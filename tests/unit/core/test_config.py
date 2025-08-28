@@ -253,13 +253,18 @@ class TestConfigurationManager:
         """Test environment variable configuration."""
         # Set environment variable
         os.environ['DEVDOCAI_CONFIG'] = 'custom.yml'
+        os.environ['DEVDOCAI_TESTING'] = 'true'
         
         try:
             ConfigurationManager._instance = None
             manager = ConfigurationManager()
-            assert manager.config_path == Path('custom.yml')
+            # Check that the path ends with custom.yml (resolved to absolute)
+            assert manager.config_path.name == 'custom.yml'
         finally:
-            del os.environ['DEVDOCAI_CONFIG']
+            if 'DEVDOCAI_CONFIG' in os.environ:
+                del os.environ['DEVDOCAI_CONFIG']
+            if 'DEVDOCAI_TESTING' in os.environ:
+                del os.environ['DEVDOCAI_TESTING']
     
     @mock.patch('psutil.virtual_memory')
     def test_memory_detection_fallback(self, mock_memory):
