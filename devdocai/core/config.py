@@ -22,7 +22,8 @@ from functools import lru_cache
 from threading import Lock
 from datetime import datetime
 
-from pydantic import BaseModel, Field, ValidationError, validator
+from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator
+from typing_extensions import Self
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -45,12 +46,12 @@ class SecurityConfig(BaseModel):
     encryption_enabled: bool = Field(default=True)
     secure_delete_passes: int = Field(default=3, ge=1, le=7)
     
-    @validator("cloud_features")
-    def validate_cloud_features(cls, v, values):
+    @model_validator(mode='after')
+    def validate_cloud_features(self) -> Self:
         """Ensure cloud features align with privacy mode."""
-        if v and values.get("privacy_mode", "local_only") == "local_only":
+        if self.cloud_features and self.privacy_mode == "local_only":
             raise ValueError("Cloud features cannot be enabled in local_only mode")
-        return v
+        return self
 
 
 class MemoryConfig(BaseModel):
@@ -61,8 +62,8 @@ class MemoryConfig(BaseModel):
     max_file_size: int = Field(ge=1048576, le=1073741824)  # 1MB to 1GB
     optimization_level: int = Field(ge=0, le=3)
     
-    @validator("cache_size")
-    def validate_cache_size(cls, v, values):
+    @model_validator(mode='after')
+    def validate_cache_size(self) -> Self:
         """Ensure cache size matches mode."""
         mode_limits = {
             "baseline": 1000,
@@ -70,10 +71,9 @@ class MemoryConfig(BaseModel):
             "enhanced": 10000,
             "performance": 50000
         }
-        mode = values.get("mode", "baseline")
-        if mode in mode_limits and v > mode_limits[mode]:
-            return mode_limits[mode]
-        return v
+        if self.mode in mode_limits and self.cache_size > mode_limits[self.mode]:
+            self.cache_size = mode_limits[self.mode]
+        return self
 
 
 class DevDocAIConfig(BaseModel):
@@ -247,7 +247,7 @@ class ConfigurationManager:
             
             # Then check main config
             parts = key.split('.')
-            value = self._config.dict()
+            value = self._config.model_dump()
             
             for part in parts:
                 if isinstance(value, dict):
@@ -287,7 +287,7 @@ class ConfigurationManager:
             
             with self._lock:
                 parts = key.split('.')
-                config_dict = self._config.dict()
+                config_dict = self._config.model_dump()
                 
                 # Navigate to parent
                 current = config_dict
@@ -305,8 +305,8 @@ class ConfigurationManager:
                 # For dynamic keys, we need to create a new config that includes existing + new values
                 existing_dict = {
                     'version': self._config.version,
-                    'security': self._config.security.dict() if self._config.security else {},
-                    'memory': self._config.memory.dict() if self._config.memory else None,
+                    'security': self._config.security.model_dump() if self._config.security else {},
+                    'memory': self._config.memory.model_dump() if self._config.memory else None,
                     'paths': self._config.paths,
                     'api_providers': self._config.api_providers,
                     'features': self._config.features
@@ -409,7 +409,7 @@ class ConfigurationManager:
         config_path = Path(path) if path else self.config_path
         
         try:
-            config_dict = self._config.dict(exclude_defaults=False)
+            config_dict = self._config.model_dump(exclude_defaults=False)
             
             with open(config_path, 'w') as f:
                 yaml.dump(config_dict, f, default_flow_style=False, sort_keys=False)

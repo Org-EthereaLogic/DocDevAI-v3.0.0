@@ -338,14 +338,14 @@ class TestPerformance:
         import sys
         
         # Measure baseline memory
-        baseline = sys.getsizeof(config_manager._config.dict())
+        baseline = sys.getsizeof(config_manager._config.model_dump())
         
         # Add many configuration entries
         for i in range(1000):
             config_manager.set(f'test.entry{i}', f'value{i}')
         
         # Measure after additions
-        after = sys.getsizeof(config_manager._config.dict())
+        after = sys.getsizeof(config_manager._config.model_dump())
         
         memory_per_entry = (after - baseline) / 1000
         
