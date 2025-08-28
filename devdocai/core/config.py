@@ -130,8 +130,31 @@ class ConfigurationManager:
         if hasattr(self, '_initialized'):
             return
             
-        self.config_path = Path(config_path or os.getenv("DEVDOCAI_CONFIG", ".devdocai.yml"))
-        self.env_file = Path(".env")
+        # Get raw config path (from argument or env variable)
+        raw_config_path = config_path or os.getenv("DEVDOCAI_CONFIG", ".devdocai.yml")
+        config_path_obj = Path(raw_config_path)
+        # Normalize and resolve
+        resolved_config_path = config_path_obj.resolve()
+        # Define safe config root (application config directory in user's home)
+        safe_root = (Path.home() / ".devdocai").resolve()
+        safe_root.mkdir(parents=True, exist_ok=True)
+        try:
+            # Ensure config file is inside safe root
+            # This will raise ValueError if resolved_config_path is not within safe_root
+            _ = resolved_config_path.relative_to(safe_root)
+            # Extra check: Avoid symlink pointing outside safe_root
+            if resolved_config_path.is_symlink():
+                target_path = resolved_config_path.resolve()
+                if not str(target_path).startswith(str(safe_root)):
+                    raise ValueError("Symlink points outside safe config root.")
+            # Extra check: Must be a file or not exist (and not a directory)
+            if resolved_config_path.exists() and resolved_config_path.is_dir():
+                raise ValueError("Config path is a directory, which is not allowed.")
+            self.config_path = resolved_config_path
+        except ValueError:
+            logger.warning(f"Unsafe config path specified: {resolved_config_path}. Falling back to safe config directory ({safe_root}).")
+            self.config_path = safe_root / ".devdocai.yml"
+        self.env_file = safe_root / ".env"
         
         # Load environment variables
         if self.env_file.exists():
