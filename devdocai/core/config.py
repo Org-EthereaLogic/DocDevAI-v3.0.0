@@ -135,16 +135,17 @@ class ConfigurationManager:
         config_path_obj = Path(raw_config_path)
         # Normalize and resolve
         resolved_config_path = config_path_obj.resolve()
-        # Define safe config root (current directory)
-        safe_root = Path.cwd().resolve()
+        # Define safe config root (application config directory in user's home)
+        safe_root = (Path.home() / ".devdocai").resolve()
+        safe_root.mkdir(parents=True, exist_ok=True)
         try:
             # Ensure config file is inside safe root
             resolved_config_path.relative_to(safe_root)
             self.config_path = resolved_config_path
         except ValueError:
-            logger.warning(f"Unsafe config path specified: {resolved_config_path}. Falling back to default in working directory.")
+            logger.warning(f"Unsafe config path specified: {resolved_config_path}. Falling back to safe config directory ({safe_root}).")
             self.config_path = safe_root / ".devdocai.yml"
-        self.env_file = Path(".env")
+        self.env_file = safe_root / ".env"
         
         # Load environment variables
         if self.env_file.exists():
