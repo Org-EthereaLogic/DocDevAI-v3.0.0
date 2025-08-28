@@ -18,7 +18,7 @@ jobs:
     
     steps:
     # Standard checkout action
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     
     # Standard Python setup action
     - name: Set up Python ${{ matrix.python-version }}
@@ -70,7 +70,7 @@ jobs:
     
     steps:
     # Standard checkout
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     
     # Standard Node.js setup
     - name: Use Node.js ${{ matrix.node-version }}
@@ -104,7 +104,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     
     # Check for security vulnerabilities in Python dependencies
     - name: Set up Python
