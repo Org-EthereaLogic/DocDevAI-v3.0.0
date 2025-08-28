@@ -140,7 +140,8 @@ class ConfigurationManager:
         safe_root.mkdir(parents=True, exist_ok=True)
         try:
             # Ensure config file is inside safe root
-            resolved_config_path.relative_to(safe_root)
+            # This will raise ValueError if resolved_config_path is not within safe_root
+            _ = resolved_config_path.relative_to(safe_root)
             self.config_path = resolved_config_path
         except ValueError:
             logger.warning(f"Unsafe config path specified: {resolved_config_path}. Falling back to safe config directory ({safe_root}).")
