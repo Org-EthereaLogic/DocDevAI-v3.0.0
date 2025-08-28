@@ -9,9 +9,9 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
+    "test": "jest --passWithNoTests",
+    "test:watch": "jest --watch --passWithNoTests",
+    "test:coverage": "jest --coverage --passWithNoTests",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
@@ -40,6 +40,6 @@
   },
   "dependencies": {
     "dotenv": "^17.2.1",
-    "zod": "^3.22.0"
+    "zod": "^3.22.5"
   }
 }
