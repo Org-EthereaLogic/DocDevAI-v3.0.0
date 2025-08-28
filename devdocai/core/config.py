@@ -130,7 +130,20 @@ class ConfigurationManager:
         if hasattr(self, '_initialized'):
             return
             
-        self.config_path = Path(config_path or os.getenv("DEVDOCAI_CONFIG", ".devdocai.yml"))
+        # Get raw config path (from argument or env variable)
+        raw_config_path = config_path or os.getenv("DEVDOCAI_CONFIG", ".devdocai.yml")
+        config_path_obj = Path(raw_config_path)
+        # Normalize and resolve
+        resolved_config_path = config_path_obj.resolve()
+        # Define safe config root (current directory)
+        safe_root = Path.cwd().resolve()
+        try:
+            # Ensure config file is inside safe root
+            resolved_config_path.relative_to(safe_root)
+            self.config_path = resolved_config_path
+        except ValueError:
+            logger.warning(f"Unsafe config path specified: {resolved_config_path}. Falling back to default in working directory.")
+            self.config_path = safe_root / ".devdocai.yml"
         self.env_file = Path(".env")
         
         # Load environment variables
