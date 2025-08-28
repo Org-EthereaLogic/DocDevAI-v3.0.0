@@ -1,0 +1,45 @@
+{
+  "name": "devdocai",
+  "version": "3.0.0",
+  "description": "AI-powered documentation generation and analysis for solo developers",
+  "main": "dist/index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "benchmark": "ts-node scripts/benchmark-m001.ts",
+    "clean": "rm -rf dist coverage"
+  },
+  "keywords": [
+    "documentation",
+    "ai",
+    "developer-tools",
+    "automation"
+  ],
+  "author": "DevDocAI Team",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.50.0",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0",
+    "ts-node": "^10.9.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.0",
+    "zod": "^3.22.0"
+  }
+}

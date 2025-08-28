@@ -1,4 +1,45 @@
 
+# Node.js
+node_modules/
+dist/
+coverage/
+*.log
+npm-debug.log*
+.npm
+.env.local
+.env.*.local
+
+# TypeScript
+*.tsbuildinfo
+*.d.ts.map
+
+# Testing
+coverage/
+*.lcov
+.nyc_output
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+htmlcov/
 
 #Ignore vscode AI rules
 .github/instructions/codacy.instructions.md
