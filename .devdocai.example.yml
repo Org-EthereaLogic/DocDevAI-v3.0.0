@@ -1,0 +1,58 @@
+# DevDocAI v3.0.0 Configuration Example
+# Copy to .devdocai.yml and customize for your project
+# M001 Configuration Manager - Privacy-first defaults
+
+# Version specification
+version: "3.0.0"
+
+# Security configuration (privacy-first defaults)
+security:
+  # Privacy mode: local_only, hybrid, or cloud
+  privacy_mode: "local_only"
+  
+  # Telemetry collection (disabled by default for privacy)
+  telemetry_enabled: false
+  
+  # Cloud features (disabled in local_only mode)
+  cloud_features: false
+  
+  # GDPR/CCPA Data Subject Rights compliance
+  dsr_enabled: true
+  
+  # API key encryption using AES-256-GCM
+  encryption_enabled: true
+  
+  # Secure deletion passes (1-7)
+  secure_delete_passes: 3
+
+# Memory configuration (auto-detected based on system resources)
+# Uncomment to override automatic detection
+# memory:
+#   mode: "standard"  # baseline, standard, enhanced, performance
+#   cache_size: 5000
+#   max_file_size: 52428800  # 50MB
+#   optimization_level: 1
+
+# File paths configuration
+paths:
+  data: "./data"
+  templates: "./templates"
+  output: "./output"
+  logs: "./logs"
+
+# API provider configuration (encrypted when stored)
+# Set via environment variables for security:
+# OPENAI_API_KEY, ANTHROPIC_API_KEY, etc.
+api_providers: {}
+  # openai:
+  #   enabled: false
+  #   model: "gpt-4"
+  # anthropic:
+  #   enabled: false
+  #   model: "claude-3"
+
+# Feature flags
+features:
+  auto_save: true
+  hot_reload: true
+  validation_strict: true
