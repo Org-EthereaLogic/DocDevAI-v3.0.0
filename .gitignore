@@ -40,6 +40,12 @@ env/
 .pytest_cache/
 htmlcov/
 
+# Database files
+data/
+*.db
+*.db-shm
+*.db-wal
+
 # Documentation should be tracked in git - removed from gitignore
 # Only ignore .DS_Store files in docs
 docs/.DS_Store
