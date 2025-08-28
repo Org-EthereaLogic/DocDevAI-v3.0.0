@@ -94,28 +94,8 @@ jobs:
       run: |
         npm run lint || echo "No lint script yet"
 
-  # Security scanning with CodeQL - Fixed: Updated to v3
-  security:
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    # Initialize CodeQL v3 (Fixed: Updated from deprecated v2)
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
-      with:
-        languages: python, javascript
-    
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@v3
-    
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
+  # Note: Security scanning is handled by GitHub's default CodeQL workflow
+  # Removed custom security job to avoid SARIF conflicts
 
   # Dependency check
   dependency-check:
