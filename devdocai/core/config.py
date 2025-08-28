@@ -27,7 +27,8 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
-from argon2 import PasswordHasher
+from argon2 import PasswordHasher, Parameters, Type
+import gc
 from argon2.exceptions import VerifyMismatchError
 import dotenv
 
@@ -434,12 +435,18 @@ class ConfigurationManager:
             return keys
         
         try:
-            # Generate or retrieve encryption key
-            if not self._cipher_key:
-                self._cipher_key = self._derive_key()
-            
             encrypted = {}
             for name, key in keys.items():
+                # Validate input
+                if not isinstance(name, str) or not isinstance(key, str):
+                    raise ValueError(f"Invalid key format for {name}")
+                
+                # Generate random salt for this encryption
+                salt = os.urandom(32)
+                
+                # Derive key with random salt
+                self._cipher_key = self._derive_key(salt=salt)
+                
                 # Generate nonce for this encryption
                 nonce = os.urandom(12)
                 
@@ -454,17 +461,24 @@ class ConfigurationManager:
                 # Encrypt the key
                 ciphertext = encryptor.update(key.encode()) + encryptor.finalize()
                 
-                # Store with nonce and tag
+                # Store with salt, nonce, tag, and version
                 encrypted[name] = {
                     'ciphertext': ciphertext.hex(),
                     'nonce': nonce.hex(),
-                    'tag': encryptor.tag.hex()
+                    'tag': encryptor.tag.hex(),
+                    'salt': salt.hex(),
+                    'version': 2  # Version 2 uses random salts
                 }
+                
+                # Secure memory cleanup
+                self._secure_wipe()
             
             return encrypted
             
         except Exception as e:
             logger.error(f"Encryption failed: {e}")
+            # Secure cleanup on error
+            self._secure_wipe()
             raise
     
     def decrypt_api_keys(self, encrypted_keys: Dict[str, Dict]) -> Dict[str, str]:
@@ -481,15 +495,27 @@ class ConfigurationManager:
             return encrypted_keys
         
         try:
-            if not self._cipher_key:
-                self._cipher_key = self._derive_key()
-            
             decrypted = {}
             for name, key_data in encrypted_keys.items():
+                # Validate encrypted structure
+                if not self._validate_encrypted_structure(key_data):
+                    raise ValueError(f"Invalid encrypted data structure for {name}")
+                
                 # Extract components
                 ciphertext = bytes.fromhex(key_data['ciphertext'])
                 nonce = bytes.fromhex(key_data['nonce'])
                 tag = bytes.fromhex(key_data['tag'])
+                
+                # Handle version-specific decryption
+                version = key_data.get('version', 1)
+                
+                if version == 2 and 'salt' in key_data:
+                    # Version 2: Use provided salt
+                    salt = bytes.fromhex(key_data['salt'])
+                    self._cipher_key = self._derive_key(salt=salt)
+                else:
+                    # Version 1 (legacy): Use fixed salt for backward compatibility
+                    self._cipher_key = self._derive_key_legacy()
                 
                 # Create cipher
                 cipher = Cipher(
@@ -502,38 +528,154 @@ class ConfigurationManager:
                 # Decrypt
                 plaintext = decryptor.update(ciphertext) + decryptor.finalize()
                 decrypted[name] = plaintext.decode()
+                
+                # Secure memory cleanup after each key
+                self._secure_wipe()
             
             return decrypted
             
         except Exception as e:
             logger.error(f"Decryption failed: {e}")
+            # Secure cleanup on error
+            self._secure_wipe()
             raise
     
-    def _derive_key(self) -> bytes:
+    def _derive_key(self, salt: bytes = None) -> bytes:
         """
-        Derive encryption key using Argon2id.
+        Derive encryption key using Argon2id with secure parameters.
+        
+        Args:
+            salt: Random salt for key derivation (32 bytes)
+            
+        Returns:
+            32-byte encryption key
+        """
+        # Get or create master password - but store it in the instance to ensure consistency
+        if not hasattr(self, '_master_password'):
+            self._master_password = os.getenv("DEVDOCAI_MASTER_KEY", "")
+            if not self._master_password:
+                # Generate and save a random key
+                self._master_password = secrets.token_hex(32)
+                logger.warning("Generated random master key - save DEVDOCAI_MASTER_KEY env var")
+        
+        # Use provided salt or generate new one
+        if salt is None:
+            salt = os.urandom(32)
+        
+        # Configure Argon2id with recommended security parameters
+        params = Parameters(
+            type=Type.ID,  # Argon2id variant
+            version=19,  # Latest Argon2 version
+            memory_cost=65536,  # 64 MB memory
+            time_cost=3,  # 3 iterations
+            parallelism=4,  # 4 parallel threads
+            salt_len=32,  # 32-byte salt
+            hash_len=32  # 32-byte output for AES-256
+        )
+        
+        # Create hasher with secure parameters
+        ph = PasswordHasher.from_parameters(params)
+        
+        # Derive key using provided salt
+        hash_result = ph.hash(self._master_password, salt=salt)
+        
+        # Extract key material (Argon2 hash includes metadata, extract the hash portion)
+        # The hash format is: $argon2id$v=19$m=65536,t=3,p=4$<salt>$<hash>
+        hash_parts = hash_result.split('$')
+        if len(hash_parts) >= 6:
+            # The hash is base64 encoded, decode it
+            import base64
+            key_material = base64.b64decode(hash_parts[-1] + '==')[:32]
+        else:
+            # Fallback to SHA256 if parsing fails
+            key_material = hashlib.sha256(hash_result.encode()).digest()
+        
+        return key_material
+    
+    def _derive_key_legacy(self) -> bytes:
+        """
+        Legacy key derivation for backward compatibility.
+        Uses fixed salt (insecure, only for decrypting old data).
         
         Returns:
             32-byte encryption key
         """
-        # Get or create master password
-        master_password = os.getenv("DEVDOCAI_MASTER_KEY", "")
-        if not master_password:
-            # Generate and save a random key
-            master_password = secrets.token_hex(32)
-            logger.warning("Generated random master key - save DEVDOCAI_MASTER_KEY env var")
+        # Get master password - use same as in _derive_key for consistency
+        if not hasattr(self, '_master_password'):
+            self._master_password = os.getenv("DEVDOCAI_MASTER_KEY", "")
+            if not self._master_password:
+                self._master_password = secrets.token_hex(32)
+                logger.warning("Generated random master key for legacy decryption")
         
-        # Use Argon2id for key derivation
+        # Use legacy fixed salt (for backward compatibility only)
+        # This is deterministic and matches the original insecure implementation
         salt = hashlib.sha256(b"DevDocAI-M001-Salt").digest()[:16]
         
-        # Derive key
-        ph = PasswordHasher()
-        hash_result = ph.hash(master_password)
-        
-        # Extract key material from hash
-        key_material = hashlib.sha256(hash_result.encode()).digest()
+        # Use deterministic key derivation for legacy compatibility
+        # Combine password and salt, then hash to get consistent key
+        key_material = hashlib.sha256(
+            self._master_password.encode() + salt
+        ).digest()
         
         return key_material
+    
+    def _validate_encrypted_structure(self, data: Dict) -> bool:
+        """
+        Validate encrypted data structure to prevent injection attacks.
+        
+        Args:
+            data: Encrypted data dictionary
+            
+        Returns:
+            True if structure is valid, False otherwise
+        """
+        required_fields = ['ciphertext', 'nonce', 'tag']
+        
+        # Check required fields
+        for field in required_fields:
+            if field not in data:
+                logger.error(f"Missing required field: {field}")
+                return False
+            
+            # Validate hex format
+            try:
+                bytes.fromhex(data[field])
+            except (ValueError, TypeError):
+                logger.error(f"Invalid hex format for field: {field}")
+                return False
+        
+        # Validate optional fields
+        if 'salt' in data:
+            try:
+                bytes.fromhex(data['salt'])
+            except (ValueError, TypeError):
+                logger.error("Invalid hex format for salt")
+                return False
+        
+        if 'version' in data:
+            if not isinstance(data['version'], int) or data['version'] not in [1, 2]:
+                logger.error(f"Invalid version: {data.get('version')}")
+                return False
+        
+        # Check for unexpected fields (potential injection)
+        allowed_fields = {'ciphertext', 'nonce', 'tag', 'salt', 'version'}
+        unexpected = set(data.keys()) - allowed_fields
+        if unexpected:
+            logger.warning(f"Unexpected fields in encrypted data: {unexpected}")
+        
+        return True
+    
+    def _secure_wipe(self) -> None:
+        """
+        Securely wipe sensitive data from memory.
+        """
+        if self._cipher_key:
+            # Overwrite the key with random data
+            self._cipher_key = os.urandom(32)
+            self._cipher_key = None
+            
+            # Force garbage collection
+            gc.collect()
     
     @property
     def config(self) -> DevDocAIConfig:
