@@ -76,12 +76,11 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-        cache-dependency-path: '**/package-lock.json'
     
     # Install and test
     - name: Install dependencies
       run: |
-        npm ci || echo "No package.json yet"
+        npm ci
     
     - name: Run TypeScript compiler
       run: |
@@ -95,7 +94,7 @@ jobs:
       run: |
         npm run lint || echo "No lint script yet"
 
-  # Security scanning with CodeQL (GitHub's standard)
+  # Security scanning with CodeQL - Fixed: Updated to v3
   security:
     runs-on: ubuntu-latest
     permissions:
@@ -106,17 +105,17 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    # Initialize CodeQL (GitHub's standard security scanner)
+    # Initialize CodeQL v3 (Fixed: Updated from deprecated v2)
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
+      uses: github/codeql-action/init@v3
       with:
         languages: python, javascript
     
     - name: Autobuild
-      uses: github/codeql-action/autobuild@v2
+      uses: github/codeql-action/autobuild@v3
     
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
+      uses: github/codeql-action/analyze@v3
 
   # Dependency check
   dependency-check:
@@ -136,7 +135,8 @@ jobs:
         pip install safety
         safety check -r requirements.txt || true
     
-    # Check for security vulnerabilities in npm dependencies
+    # Check for security vulnerabilities in npm dependencies  
     - name: npm audit
       run: |
-        npm audit --audit-level=high || echo "No package.json yet"
+        npm ci
+        npm audit --audit-level=high || true
