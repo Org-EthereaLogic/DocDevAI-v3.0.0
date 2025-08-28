@@ -1,5 +1,7 @@
 # DevDocAI v3.0.0
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2c2005a7af2448db81bbdba75828e02c)](https://app.codacy.com/gh/Org-EthereaLogic/DocDevAI-v3.0.0?utm_source=github.com&utm_medium=referral&utm_content=Org-EthereaLogic/DocDevAI-v3.0.0&utm_campaign=Badge_Grade)
+
 > AI-powered documentation generation and analysis for solo developers
 
 ## Project Status
