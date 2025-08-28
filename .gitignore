@@ -2,7 +2,6 @@
 # Node.js
 node_modules/
 dist/
-coverage/
 *.log
 npm-debug.log*
 .npm
@@ -42,7 +41,7 @@ env/
 htmlcov/
 
 #Ignore vscode AI rules
-.github/instructions/codacy.instructions.md
+# Ignore VSCode AI-related files
 docs/.DS_Store
 docs/documentation-map.md
 docs/README.md
