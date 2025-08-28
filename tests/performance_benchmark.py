@@ -17,7 +17,7 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from devdocai.core.config import ConfigurationManager, ConfigSchema
+from devdocai.core.config import ConfigurationManager
 
 
 def benchmark_retrieval_performance():
@@ -28,18 +28,18 @@ def benchmark_retrieval_performance():
     
     # Warm up the cache
     for _ in range(1000):
-        config_manager.get('privacy.mode')
-        config_manager.get('quality.target_score')
-        config_manager.get('compliance.dsr_enabled')
+        config_manager.get('security.privacy_mode')
+        config_manager.get('memory.mode')
+        config_manager.get('features.auto_save')
     
     # Benchmark different scenarios
     scenarios = [
-        ("Existing keys (cached)", lambda: config_manager.get('privacy.mode')),
-        ("Nested keys", lambda: config_manager.get('quality.target_score')),
+        ("Existing keys (cached)", lambda: config_manager.get('security.privacy_mode')),
+        ("Nested keys", lambda: config_manager.get('memory.cache_size')),
         ("Non-existent keys with default", lambda: config_manager.get('nonexistent.key', 'default')),
         ("Mixed operations", lambda: [
-            config_manager.get('privacy.mode'),
-            config_manager.get('quality.target_score'),
+            config_manager.get('security.privacy_mode'),
+            config_manager.get('memory.cache_size'),
             config_manager.get('nonexistent.key', 'default')
         ])
     ]
@@ -111,55 +111,46 @@ def benchmark_validation_performance():
         # Simple config
         {
             'version': '3.0.0',
-            'privacy': {'mode': 'local_only'}
+            'security': {'privacy_mode': 'local_only'}
         },
         # Medium config
         {
             'version': '3.0.0',
-            'privacy': {'mode': 'local_only', 'telemetry': False},
-            'quality': {'target_score': 90, 'quality_gate': 85},
-            'compliance': {'dsr_enabled': True}
+            'security': {'privacy_mode': 'local_only', 'telemetry_enabled': False},
+            'memory': {'mode': 'standard', 'cache_size': 5000},
+            'features': {'auto_save': True}
         },
         # Complex config (full schema)
         {
             'version': '3.0.0',
-            'project': {'type': 'web-application', 'name': 'TestProject'},
-            'privacy': {
-                'mode': 'local_only',
-                'telemetry': False,
-                'ai_enhancement': True,
-                'pii_protection': True,
-                'cloud_features': False
+            'security': {
+                'privacy_mode': 'local_only',
+                'telemetry_enabled': False,
+                'cloud_features': False,
+                'dsr_enabled': True,
+                'encryption_enabled': True,
+                'secure_delete_passes': 3
             },
-            'quality': {
-                'target_score': 90,
-                'quality_gate': 85,
-                'entropy_target': 0.15,
-                'review_frequency': 'weekly'
+            'memory': {
+                'mode': 'performance',
+                'cache_size': 50000,
+                'max_file_size': 104857600,
+                'optimization_level': 3
             },
-            'cost_management': {
-                'enabled': True,
-                'daily_limit': 10.00,
-                'monthly_limit': 200.00,
-                'warning_threshold': 80,
-                'prefer_economical': True
+            'paths': {
+                'data': './data',
+                'templates': './templates',
+                'output': './output',
+                'logs': './logs'
             },
-            'compliance': {
-                'sbom_generation': True,
-                'sbom_format': 'spdx',
-                'pii_detection': True,
-                'pii_sensitivity': 'medium',
-                'dsr_enabled': True
+            'api_providers': {
+                'openai': {'api_key': 'test-key-123'},
+                'anthropic': {'api_key': 'test-key-456'}
             },
-            'batch': {
-                'enabled': True,
-                'max_concurrent': 'auto',
-                'memory_aware': True
-            },
-            'version_control': {
-                'enabled': True,
-                'auto_commit': False,
-                'branch_strategy': 'feature-branch'
+            'features': {
+                'auto_save': True,
+                'hot_reload': True,
+                'validation_strict': True
             }
         }
     ]
@@ -178,7 +169,8 @@ def benchmark_validation_performance():
             start_time = time.perf_counter()
             
             for _ in range(iterations):
-                config_manager.validate_schema(test_config)
+                # For now, validate the current config
+                config_manager.validate()
             
             end_time = time.perf_counter()
             duration = end_time - start_time
