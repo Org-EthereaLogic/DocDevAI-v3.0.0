@@ -33,6 +33,29 @@ import dotenv
 
 logger = logging.getLogger(__name__)
 
+    @staticmethod
+    def _validate_config_path(raw_path: Union[str, Path], safe_root: Path) -> Path:
+        """
+        Validate that the config file is inside the safe root directory.
+        Returns a safe config file path, falling back if needed.
+        """
+        candidate_path = Path(raw_path).expanduser()
+        try:
+            resolved_path = candidate_path.resolve()
+            # Ensure config file is inside safe root
+            _ = resolved_path.relative_to(safe_root)
+            # Avoid symlink pointing outside safe_root
+            if resolved_path.is_symlink():
+                target_path = resolved_path.resolve()
+                if not str(target_path).startswith(str(safe_root)):
+                    raise ValueError("Symlink points outside safe config root.")
+            # Must be a file or not exist (not a directory)
+            if resolved_path.exists() and resolved_path.is_dir():
+                raise ValueError("Config path is a directory, which is not allowed.")
+            return resolved_path
+        except Exception as e:
+            logger.warning(f"Unsafe config path specified: {raw_path} ({e}). Falling back to safe config directory ({safe_root}).")
+            return safe_root / ".devdocai.yml"
 
 class SecurityConfig(BaseModel):
     """Security configuration with privacy-first defaults."""
@@ -130,30 +153,12 @@ class ConfigurationManager:
         if hasattr(self, '_initialized'):
             return
             
-        # Get raw config path (from argument or env variable)
-        raw_config_path = config_path or os.getenv("DEVDOCAI_CONFIG", ".devdocai.yml")
-        config_path_obj = Path(raw_config_path)
-        # Normalize and resolve
-        resolved_config_path = config_path_obj.resolve()
         # Define safe config root (application config directory in user's home)
         safe_root = (Path.home() / ".devdocai").resolve()
         safe_root.mkdir(parents=True, exist_ok=True)
-        try:
-            # Ensure config file is inside safe root
-            # This will raise ValueError if resolved_config_path is not within safe_root
-            _ = resolved_config_path.relative_to(safe_root)
-            # Extra check: Avoid symlink pointing outside safe_root
-            if resolved_config_path.is_symlink():
-                target_path = resolved_config_path.resolve()
-                if not str(target_path).startswith(str(safe_root)):
-                    raise ValueError("Symlink points outside safe config root.")
-            # Extra check: Must be a file or not exist (and not a directory)
-            if resolved_config_path.exists() and resolved_config_path.is_dir():
-                raise ValueError("Config path is a directory, which is not allowed.")
-            self.config_path = resolved_config_path
-        except ValueError:
-            logger.warning(f"Unsafe config path specified: {resolved_config_path}. Falling back to safe config directory ({safe_root}).")
-            self.config_path = safe_root / ".devdocai.yml"
+        # Get raw config path (from argument or env variable)
+        raw_config_path = config_path or os.getenv("DEVDOCAI_CONFIG", ".devdocai.yml")
+        self.config_path = self._validate_config_path(raw_config_path, safe_root)
         self.env_file = safe_root / ".env"
         
         # Load environment variables
@@ -358,14 +363,16 @@ class ConfigurationManager:
         Returns:
             Success status
         """
-        config_path = Path(path) if path else self.config_path
-        
+        safe_root = (Path.home() / ".devdocai").resolve()
+        raw_config_path = path if path is not None else self.config_path
+        config_path_to_use = self._validate_config_path(raw_config_path, safe_root)
+
         try:
-            if not config_path.exists():
-                logger.warning(f"Configuration file not found: {config_path}")
+            if not config_path_to_use.exists():
+                logger.warning(f"Configuration file not found: {config_path_to_use}")
                 return False
-            
-            with open(config_path, 'r') as f:
+
+            with open(config_path_to_use, 'r') as f:
                 config_data = yaml.safe_load(f)
             
             # Handle empty file
@@ -378,7 +385,7 @@ class ConfigurationManager:
             # Clear cache
             self.get.cache_clear()
             
-            logger.info(f"Configuration loaded from {config_path}")
+            logger.info(f"Configuration loaded from {config_path_to_use}")
             return True
             
         except ValidationError as e:
