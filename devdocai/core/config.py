@@ -611,11 +611,16 @@ class ConfigurationManager:
         # This is deterministic and matches the original insecure implementation
         salt = hashlib.sha256(b"DevDocAI-M001-Salt").digest()[:16]
         
-        # Use deterministic key derivation for legacy compatibility
-        # Combine password and salt, then hash to get consistent key
-        key_material = hashlib.sha256(
-            self._master_password.encode() + salt
-        ).digest()
+        # Use PBKDF2-HMAC-SHA256 for legacy compatibility (still insecure due to fixed salt, but better than raw SHA256)
+        # WARNING: This method is insecure and only provided for decrypting old data!
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA256(),
+            length=32,
+            salt=salt,
+            iterations=10000,
+            backend=default_backend()
+        )
+        key_material = kdf.derive(self._master_password.encode())
         
         return key_material
     
