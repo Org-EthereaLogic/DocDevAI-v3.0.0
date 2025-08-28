@@ -1,4 +1,6 @@
 name: Release
+  contents: write
+  packages: write
 
 on:
   push:
