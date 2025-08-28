@@ -1,4 +1,6 @@
 name: Quick Check
+permissions:
+  contents: read
 
 # This workflow runs on every push for fast feedback
 on:
