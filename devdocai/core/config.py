@@ -142,6 +142,14 @@ class ConfigurationManager:
             # Ensure config file is inside safe root
             # This will raise ValueError if resolved_config_path is not within safe_root
             _ = resolved_config_path.relative_to(safe_root)
+            # Extra check: Avoid symlink pointing outside safe_root
+            if resolved_config_path.is_symlink():
+                target_path = resolved_config_path.resolve()
+                if not str(target_path).startswith(str(safe_root)):
+                    raise ValueError("Symlink points outside safe config root.")
+            # Extra check: Must be a file or not exist (and not a directory)
+            if resolved_config_path.exists() and resolved_config_path.is_dir():
+                raise ValueError("Config path is a directory, which is not allowed.")
             self.config_path = resolved_config_path
         except ValueError:
             logger.warning(f"Unsafe config path specified: {resolved_config_path}. Falling back to safe config directory ({safe_root}).")
