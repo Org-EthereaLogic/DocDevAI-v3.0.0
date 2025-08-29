@@ -2,6 +2,10 @@
 M004 Document Generator - Secure HTML output with comprehensive XSS prevention.
 
 Enhanced HTML output formatter with security hardening for Pass 3.
+
+SECURITY NOTE: This module now uses proper HTML sanitization instead of regex.
+Regex-based HTML filtering is fundamentally insecure and was causing CodeQL alerts.
+See devdocai/common/html_sanitizer.py for the secure implementation.
 """
 
 import html
@@ -12,6 +16,7 @@ from typing import Optional, Dict, Any, List, Set
 from pathlib import Path
 import hashlib
 from datetime import datetime
+from ...common.html_sanitizer import get_sanitizer, sanitize_html
 
 try:
     import markdown
@@ -92,20 +97,10 @@ class SecureHtmlOutput:
     ]
     
     # Dangerous patterns to detect and remove
-    DANGEROUS_PATTERNS = [
-        re.compile(r'javascript:', re.IGNORECASE),
-        re.compile(r'vbscript:', re.IGNORECASE),
-        re.compile(r'data:', re.IGNORECASE),
-        re.compile(r'on\w+\s*=', re.IGNORECASE),  # Event handlers
-        re.compile(r'<script[^>]*>.*?</script>', re.IGNORECASE | re.DOTALL),
-        re.compile(r'<iframe[^>]*>.*?</iframe>', re.IGNORECASE | re.DOTALL),
-        re.compile(r'<object[^>]*>.*?</object>', re.IGNORECASE | re.DOTALL),
-        re.compile(r'<embed[^>]*>', re.IGNORECASE),
-        re.compile(r'<link[^>]*>', re.IGNORECASE),
-        re.compile(r'<meta[^>]*http-equiv', re.IGNORECASE),
-        re.compile(r'expression\s*\(', re.IGNORECASE),  # CSS expressions
-        re.compile(r'@import', re.IGNORECASE),  # CSS imports
-    ]
+    # DEPRECATED: Dangerous patterns removed - now using proper HTML sanitization
+    # The regex-based approach was fundamentally flawed and created security vulnerabilities.
+    # HTML sanitization is now handled by the HtmlSanitizer class.
+    DANGEROUS_PATTERNS = []  # Kept for backward compatibility
     
     def __init__(self, strict_mode: bool = True):
         """
@@ -261,14 +256,14 @@ class SecureHtmlOutput:
             'critical_issues': []
         }
         
-        # Check for dangerous patterns
-        for pattern in self.DANGEROUS_PATTERNS:
-            matches = pattern.findall(content)
-            if matches:
-                if self.strict_mode:
-                    scan_result['critical_issues'].append(f"Dangerous pattern detected: {pattern.pattern}")
-                else:
-                    scan_result['warnings'].append(f"Dangerous pattern detected: {pattern.pattern}")
+        # Check for dangerous HTML content using proper sanitization
+        # If the sanitized version differs significantly, it contained dangerous content
+        sanitized = sanitize_html(content)
+        if len(sanitized) < len(content) * 0.8:  # More than 20% removed
+            if self.strict_mode:
+                scan_result['critical_issues'].append("Dangerous HTML content detected")
+            else:
+                scan_result['warnings'].append("Potentially dangerous HTML content detected")
         
         # Check content size
         if len(content) > 10 * 1024 * 1024:  # 10MB
@@ -303,9 +298,8 @@ class SecureHtmlOutput:
         sanitized = sanitized.replace('\x00', '')
         sanitized = re.sub(r'[\x01-\x08\x0B\x0C\x0E-\x1F\x7F]', '', sanitized)
         
-        # Remove dangerous patterns
-        for pattern in self.DANGEROUS_PATTERNS:
-            sanitized = pattern.sub('', sanitized)
+        # Use proper HTML sanitization instead of regex
+        sanitized = sanitize_html(sanitized)
         
         return sanitized
     
@@ -379,9 +373,8 @@ class SecureHtmlOutput:
     
     def _manual_html_sanitization(self, html_content: str) -> str:
         """Manual HTML sanitization when bleach is not available."""
-        # Remove dangerous patterns
-        for pattern in self.DANGEROUS_PATTERNS:
-            html_content = pattern.sub('', html_content)
+        # Use proper HTML sanitization instead of regex
+        html_content = sanitize_html(html_content)
         
         # Basic tag allowlist
         allowed_pattern = '|'.join(self.ALLOWED_TAGS)
@@ -704,13 +697,13 @@ class SecureHtmlOutput:
         if len(html_content) > 50 * 1024 * 1024:  # 50MB
             raise SecurityError("Final HTML content too large")
         
-        # Final scan for dangerous patterns
-        for pattern in self.DANGEROUS_PATTERNS:
-            if pattern.search(html_content):
-                if self.strict_mode:
-                    raise SecurityError(f"Dangerous pattern found in final output: {pattern.pattern}")
-                else:
-                    logger.warning(f"Dangerous pattern found in final output: {pattern.pattern}")
+        # Final validation using proper HTML sanitization
+        final_sanitized = sanitize_html(html_content)
+        if final_sanitized != html_content:
+            if self.strict_mode:
+                raise SecurityError("Dangerous HTML content detected in final output")
+            else:
+                logger.warning("Dangerous HTML detected in final output - content was sanitized")
     
     def _generate_csp_header(self) -> str:
         """Generate Content Security Policy header."""

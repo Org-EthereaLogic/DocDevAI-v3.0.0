@@ -6,6 +6,10 @@ configurable component with layered validation levels.
 
 Pass 4 Refactoring: Consolidates validators.py and security_validator.py
 to eliminate duplication while preserving all functionality.
+
+SECURITY NOTE: This module now uses proper HTML sanitization instead of regex.
+Regex-based HTML filtering is fundamentally insecure and was causing CodeQL alerts.
+See devdocai/common/html_sanitizer.py for the secure implementation.
 """
 
 import re
@@ -14,6 +18,7 @@ import hashlib
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Union, Tuple, Set
 from datetime import datetime
+from ...common.html_sanitizer import sanitize_html, strip_html_tags
 from enum import Enum
 import json
 import urllib.parse
@@ -65,11 +70,11 @@ class UnifiedValidator:
         'api_key': re.compile(r'\b[A-Za-z0-9]{32,}\b'),
     }
     
-    # Dangerous patterns for security validation
+    # DEPRECATED: Dangerous patterns partially removed - HTML patterns now use proper sanitization
+    # The regex-based HTML filtering was fundamentally flawed and created security vulnerabilities.
+    # HTML sanitization is now handled by the HtmlSanitizer class.
     DANGEROUS_PATTERNS = {
-        'script_tag': re.compile(r'<script[^>]*>.*?</script>', re.IGNORECASE | re.DOTALL),
-        'javascript_url': re.compile(r'javascript:', re.IGNORECASE),
-        'data_url': re.compile(r'data:text/html', re.IGNORECASE),
+        # HTML patterns removed - use HtmlSanitizer instead
         'sql_injection': re.compile(r'\b(union|select|insert|update|delete|drop)\b.*\b(from|into|where)\b', re.IGNORECASE),
         'command_injection': re.compile(r'[;&|`$]|\$\(|\bsudo\b|\brm\s+-rf\b', re.IGNORECASE),
         'path_traversal': re.compile(r'\.\./', re.IGNORECASE),

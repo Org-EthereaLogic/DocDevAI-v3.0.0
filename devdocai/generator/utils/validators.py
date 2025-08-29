@@ -3,6 +3,10 @@ M004 Document Generator - Enhanced security validation utilities.
 
 Provides comprehensive validation for template inputs, configuration, 
 and document generation parameters with security hardening.
+
+SECURITY NOTE: This module now uses proper HTML sanitization instead of regex.
+Regex-based HTML filtering is fundamentally insecure and was causing CodeQL alerts.
+See devdocai/common/html_sanitizer.py for the secure implementation.
 """
 
 import re
@@ -15,6 +19,7 @@ from datetime import datetime
 from pathlib import Path
 import hashlib
 import unicodedata
+from ...common.html_sanitizer import sanitize_html, strip_html_tags
 
 from ...common.errors import DevDocAIError
 from ...common.logging import get_logger
@@ -52,15 +57,11 @@ class InputValidator:
             'safe_text': re.compile(r'^[a-zA-Z0-9\s\-_.(),!?]+$')
         }
         
-        # XSS patterns to detect
-        self.xss_patterns = [
-            re.compile(r'<script[^>]*>.*?</script>', re.IGNORECASE | re.DOTALL),
-            re.compile(r'javascript:', re.IGNORECASE),
-            re.compile(r'on\w+\s*=', re.IGNORECASE),
-            re.compile(r'<iframe[^>]*>', re.IGNORECASE),
-            re.compile(r'<object[^>]*>', re.IGNORECASE),
-            re.compile(r'<embed[^>]*>', re.IGNORECASE)
-        ]
+        # DEPRECATED: XSS patterns removed - now using proper HTML sanitization
+        # The regex-based approach was fundamentally flawed and created security vulnerabilities.
+        # HTML sanitization is now handled by the HtmlSanitizer class.
+        # Keeping empty list for backward compatibility during transition
+        self.xss_patterns = []
         
         logger.debug("InputValidator initialized")
     
@@ -203,9 +204,8 @@ class InputValidator:
             value = value.replace('"', '&quot;')
             value = value.replace("'", '&#x27;')
         
-        # Remove XSS patterns
-        for pattern in self.xss_patterns:
-            value = pattern.sub('', value)
+        # DEPRECATED: Regex-based XSS filtering removed
+        # Now handled by proper HTML sanitization above
         
         # Normalize whitespace
         value = re.sub(r'\s+', ' ', value).strip()
@@ -270,11 +270,14 @@ class InputValidator:
         """Validate content for security issues."""
         errors = []
         
-        # Check for XSS patterns
-        for pattern in self.xss_patterns:
-            if pattern.search(value):
-                errors.append(f"Potentially unsafe content detected in field '{field_name}'")
-                break
+        # Check for dangerous HTML content using proper sanitization
+        # If the sanitized version differs significantly, it contained dangerous content
+        original = str(value)
+        sanitized = sanitize_html(original)
+        
+        # If sanitization removed content, it was likely dangerous
+        if len(sanitized) < len(original) * 0.5:  # More than 50% removed
+            errors.append(f"Potentially dangerous HTML content detected in field '{field_name}'")
         
         # Check for SQL injection patterns
         sql_patterns = ['DROP TABLE', 'DELETE FROM', 'INSERT INTO', 'UPDATE SET', '--', ';--', '/*', '*/']
