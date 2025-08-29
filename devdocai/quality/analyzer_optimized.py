@@ -791,7 +791,3 @@ class OptimizedQualityAnalyzer:
         self.thread_executor.shutdown(wait=True)
         self.process_executor.shutdown(wait=True)
         self.cache.clear()
-
-
-# Alias for backward compatibility
-QualityAnalyzer = OptimizedQualityAnalyzer

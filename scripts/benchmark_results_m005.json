@@ -1,0 +1,64 @@
+{
+  "timestamp": "2025-08-29T19:12:56.348338",
+  "single_document": {
+    "small": {
+      "avg_time_ms": 14.066301997809205,
+      "min_time_ms": 8.276314998511225,
+      "max_time_ms": 21.40860998770222,
+      "std_time_ms": 3.539312025701959,
+      "avg_memory_mb": 0.016827201843261717,
+      "word_count_range": [
+        100,
+        1000
+      ]
+    },
+    "medium": {
+      "avg_time_ms": 38.99762309738435,
+      "min_time_ms": 18.269402004079893,
+      "max_time_ms": 58.16787399817258,
+      "std_time_ms": 12.603710925016804,
+      "avg_memory_mb": 0.014597606658935548,
+      "word_count_range": [
+        1000,
+        5000
+      ]
+    },
+    "large": {
+      "avg_time_ms": 87.49914829822956,
+      "min_time_ms": 68.36800600285642,
+      "max_time_ms": 119.9645460001193,
+      "std_time_ms": 19.72988782383694,
+      "avg_memory_mb": 0.014757633209228516,
+      "word_count_range": [
+        5000,
+        10000
+      ]
+    },
+    "very_large": {
+      "avg_time_ms": 328.63060900126584,
+      "min_time_ms": 298.619597000652,
+      "max_time_ms": 385.5350509984419,
+      "std_time_ms": 40.25764083703428,
+      "avg_memory_mb": 0.016369183858235676,
+      "word_count_range": [
+        10000,
+        50000
+      ]
+    }
+  },
+  "batch_processing": {
+    "small": {
+      "batch_size": 100,
+      "total_time_seconds": 0.4346035579947056,
+      "throughput_docs_per_sec": 230.0947568432429
+    },
+    "medium": {
+      "batch_size": 100,
+      "total_time_seconds": 1.473123438001494,
+      "throughput_docs_per_sec": 67.88297397240827
+    }
+  },
+  "profile": {
+    "medium": "         20072 function calls in 0.017 seconds\n\n   Ordered by: cumulative time\n   List reduced from 166 to 20 due to restriction <20>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n        1    0.000    0.000    0.017    0.017 /workspaces/DocDevAI-v3.0.0/devdocai/quality/analyzer.py:110(analyze)\n        5    0.000    0.000    0.016    0.003 /workspaces/DocDevAI-v3.0.0/devdocai/quality/analyzer.py:420(_analyze_dimension)\n      283    0.000    0.000    0.008    0.000 /usr/local/python/3.11.13/lib/python3.11/re/__init__.py:208(findall)\n      283    0.008    0.000    0.008    0.000 {method 'findall' of 're.Pattern' objects}\n        1    0.000    0.000    0.007    0.007 /workspaces/DocDevAI-v3.0.0/devdocai/quality/dimensions.py:172(analyze)\n        1    0.000    0.000    0.005    0.005 /workspaces/DocDevAI-v3.0.0/devdocai/quality/dimensions.py:339(analyze)\n        1    0.000    0.000    0.004    0.004 /workspaces/DocDevAI-v3.0.0/devdocai/quality/dimensions.py:482(_check_logical_flow)\n        1    0.000    0.000    0.004    0.004 /workspaces/DocDevAI-v3.0.0/devdocai/quality/dimensions.py:302(_calculate_readability)\n       11    0.000    0.000    0.004    0.000 {built-in method builtins.sum}\n     2807    0.001    0.000    0.003    0.000 /workspaces/DocDevAI-v3.0.0/devdocai/quality/dimensions.py:311(<genexpr>)\n        4    0.000    0.000    0.003    0.001 /workspaces/DocDevAI-v3.0.0/devdocai/quality/dimensions.py:40(extract_metrics)\n     2806    0.002    0.000    0.003    0.000 /workspaces/DocDevAI-v3.0.0/devdocai/quality/dimensions.py:317(_count_syllables)\n        1    0.000    0.000    0.002    0.002 /workspaces/DocDevAI-v3.0.0/devdocai/quality/dimensions.py:83(analyze)\n        1    0.000    0.000    0.001    0.001 /workspaces/DocDevAI-v3.0.0/devdocai/quality/analyzer.py:429(_validate_document)\n        1    0.000    0.000    0.001    0.001 /workspaces/DocDevAI-v3.0.0/devdocai/quality/validators.py:27(validate)\n        8    0.000    0.000    0.001    0.000 /workspaces/DocDevAI-v3.0.0/devdocai/quality/validators.py:50(_apply_rule)\n        7    0.000    0.000    0.001    0.000 /usr/local/python/3.11.13/lib/python3.11/re/__init__.py:198(split)\n        7    0.001    0.000    0.001    0.000 {method 'split' of 're.Pattern' objects}\n        1    0.000    0.000    0.001    0.001 /workspaces/DocDevAI-v3.0.0/devdocai/quality/dimensions.py:701(analyze)\n        1    0.000    0.000    0.001    0.001 /workspaces/DocDevAI-v3.0.0/devdocai/quality/dimensions.py:291(_count_passive_voice)\n\n\n"
+  }
+}
