@@ -9,7 +9,7 @@ import logging
 from typing import Dict, List, Tuple, Optional, Set
 from collections import Counter
 from datetime import datetime, timedelta
-
+from urllib.parse import urlparse
 from .models import QualityDimension, QualityIssue, SeverityLevel, DimensionScore
 from .scoring import ScoringMetrics
 from .exceptions import DimensionAnalysisError
@@ -612,7 +612,7 @@ class AccuracyAnalyzer(DimensionAnalyzer):
             # Simple heuristic checks
             if url.startswith('http://localhost') or url.startswith('http://127.0.0.1'):
                 broken.append(url)
-            elif 'example.com' in url:
+            elif urlparse(url).hostname == "example.com":
                 broken.append(url)
             elif url.endswith('.broken') or url.endswith('.invalid'):
                 broken.append(url)
