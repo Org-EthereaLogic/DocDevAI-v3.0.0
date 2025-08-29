@@ -1,17 +1,24 @@
 """
-M004 Document Generator - Input validation utilities.
+M004 Document Generator - Enhanced security validation utilities.
 
-Provides validation for template inputs, configuration, and document generation parameters.
+Provides comprehensive validation for template inputs, configuration, 
+and document generation parameters with security hardening.
 """
 
 import re
+import html
 import logging
-from typing import Dict, List, Optional, Any, Union
+import json
+import urllib.parse
+from typing import Dict, List, Optional, Any, Union, Set
 from datetime import datetime
 from pathlib import Path
+import hashlib
+import unicodedata
 
 from ...common.errors import DevDocAIError
 from ...common.logging import get_logger
+from ...common.security import InputValidator as BaseValidator, PIIDetector, AuditLogger
 
 logger = get_logger(__name__)
 

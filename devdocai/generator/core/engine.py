@@ -16,10 +16,16 @@ from typing import Dict, List, Optional, Any, Union
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from ..utils.validators import InputValidator, ValidationError
+from ..utils.security_validator import EnhancedSecurityValidator
 from .template_loader import TemplateLoader, TemplateMetadata
+from .secure_template_loader import SecureTemplateLoader
 from .content_processor import ContentProcessor
 from ..outputs.markdown import MarkdownOutput
 from ..outputs.html import HtmlOutput
+from ..outputs.secure_html_output import SecureHtmlOutput
+from ..security.security_monitor import SecurityMonitor
+from ..security.pii_protection import PIIProtectionEngine
+from ..security.access_control import AccessController, ResourceType
 
 # Import existing modules
 from ...core.config import ConfigurationManager
@@ -120,17 +126,23 @@ class DocumentGenerator:
         self, 
         config_manager: Optional[ConfigurationManager] = None,
         storage_system: Optional[LocalStorageSystem] = None,
-        template_dir: Optional[Union[str, Path]] = None
+        template_dir: Optional[Union[str, Path]] = None,
+        security_enabled: bool = True,
+        strict_mode: bool = True
     ):
-        """Initialize the document generator.
+        """Initialize the secure document generator.
         
         Args:
             config_manager: Configuration manager instance (M001)
-            storage_system: Storage system instance (M002)
+            storage_system: Storage system instance (M002)  
             template_dir: Custom template directory path
+            security_enabled: Enable comprehensive security features
+            strict_mode: Enable strict security mode
         """
         self.config_manager = config_manager or ConfigurationManager()
         self.storage_system = storage_system or LocalStorageSystem()
+        self.security_enabled = security_enabled
+        self.strict_mode = strict_mode
         
         # Set template directory
         if template_dir:
@@ -139,21 +151,255 @@ class DocumentGenerator:
             # Default to templates directory relative to this file
             self.template_dir = Path(__file__).parent.parent / "templates"
             
-        # Initialize components
+        # Initialize security components (Pass 3 enhancement)
+        if security_enabled:
+            self.security_monitor = SecurityMonitor()
+            self.pii_protection = PIIProtectionEngine()
+            self.access_controller = AccessController()
+            self.secure_validator = EnhancedSecurityValidator()
+            self.secure_template_loader = SecureTemplateLoader(self.template_dir, strict_mode)
+        
+        # Initialize standard components
         self.template_loader = TemplateLoader(self.template_dir)
         self.content_processor = ContentProcessor()
         self.input_validator = InputValidator()
         
-        # Initialize output formatters
-        self.formatters = {
-            "markdown": MarkdownOutput(),
-            "html": HtmlOutput()
-        }
+        # Initialize output formatters with security enhancement
+        if security_enabled:
+            self.formatters = {
+                "markdown": MarkdownOutput(),
+                "html": SecureHtmlOutput(strict_mode)
+            }
+        else:
+            self.formatters = {
+                "markdown": MarkdownOutput(),
+                "html": HtmlOutput()
+            }
         
         # Initialize performance utilities (Pass 2 optimization)
         self._parallel_executor = ParallelExecutor(max_workers=4, use_processes=False)
         
-        logger.info(f"DocumentGenerator initialized with enhanced performance features - template directory: {self.template_dir}")
+        logger.info(f"DocumentGenerator initialized - security_enabled={security_enabled}, "
+                   f"strict_mode={strict_mode}, template_directory={self.template_dir}")
+    
+    def generate_document_secure(
+        self,
+        template_name: str,
+        inputs: Dict[str, Any],
+        client_id: str = "anonymous",
+        config: Optional[GenerationConfig] = None
+    ) -> GenerationResult:
+        """
+        Generate a document with comprehensive security controls (Pass 3).
+        
+        Args:
+            template_name: Name of the template to use
+            inputs: Dictionary of input values for template variables
+            client_id: Client identifier for access control and audit
+            config: Generation configuration options
+            
+        Returns:
+            GenerationResult with success status and generated content
+        """
+        if not self.security_enabled:
+            return self.generate_document(template_name, inputs, config)
+        
+        start_time = time.time()
+        config = config or GenerationConfig()
+        
+        # Security metadata for tracking
+        security_metadata = {
+            'client_id': client_id,
+            'template_name': template_name,
+            'timestamp': datetime.now().isoformat(),
+            'security_checks': [],
+            'warnings': []
+        }
+        
+        try:
+            logger.info(f"Starting secure document generation: template={template_name}, "
+                       f"client={client_id}, format={config.output_format}")
+            
+            # Step 1: Access control check
+            access_allowed, access_reason, access_metadata = self.access_controller.check_access(
+                client_id, ResourceType.TEMPLATE, "read"
+            )
+            if not access_allowed:
+                error_msg = f"Access denied: {access_reason}"
+                self.security_monitor.report_security_event(
+                    'access_denied', 'medium', client_id, template_name,
+                    error_msg, {'reason': access_reason}
+                )
+                return GenerationResult(
+                    success=False,
+                    error_message=error_msg,
+                    generation_time=time.time() - start_time,
+                    template_name=template_name
+                )
+            security_metadata['security_checks'].append('access_control_passed')
+            
+            # Step 2: Rate limiting check
+            rate_allowed, rate_reason, rate_stats = self.access_controller.check_rate_limit(
+                client_id, 'template_render'
+            )
+            if not rate_allowed:
+                error_msg = f"Rate limit exceeded: {rate_reason}"
+                self.security_monitor.report_rate_limit_exceeded(
+                    client_id, 'template_render', 
+                    rate_stats.get('current_usage', 0),
+                    rate_stats.get('rate_limit', 0)
+                )
+                return GenerationResult(
+                    success=False,
+                    error_message=error_msg,
+                    generation_time=time.time() - start_time,
+                    template_name=template_name
+                )
+            security_metadata['security_checks'].append('rate_limit_passed')
+            
+            # Step 3: Enhanced input validation
+            validation_result = self.secure_validator.validate_template_inputs_secure(
+                inputs, [], client_id, template_name
+            )
+            if not validation_result['valid']:
+                error_msg = f"Input validation failed: {'; '.join(validation_result['errors'])}"
+                for error in validation_result['errors']:
+                    if 'injection' in error.lower():
+                        self.security_monitor.report_injection_attempt(
+                            client_id, template_name, 'template', error
+                        )
+                    elif 'xss' in error.lower():
+                        self.security_monitor.report_xss_attempt(
+                            client_id, template_name, error, 'input'
+                        )
+                
+                return GenerationResult(
+                    success=False,
+                    error_message=error_msg,
+                    generation_time=time.time() - start_time,
+                    template_name=template_name,
+                    warnings=validation_result['warnings']
+                )
+            
+            security_metadata['security_checks'].append('input_validation_passed')
+            security_metadata['warnings'].extend(validation_result['warnings'])
+            
+            # Step 4: PII scanning and protection
+            pii_result = self.pii_protection.scan_and_protect(
+                json.dumps(inputs), 'input', client_id
+            )
+            if pii_result['processing_blocked']:
+                error_msg = "Processing blocked due to PII policy violation"
+                self.security_monitor.report_pii_exposure(
+                    client_id, template_name, 
+                    pii_result['pii_types_found'], 'input'
+                )
+                return GenerationResult(
+                    success=False,
+                    error_message=error_msg,
+                    generation_time=time.time() - start_time,
+                    template_name=template_name,
+                    warnings=[f"PII detected: {', '.join(pii_result['pii_types_found'])}"]
+                )
+            
+            # Use sanitized inputs
+            sanitized_inputs = validation_result['sanitized_inputs']
+            security_metadata['security_checks'].append('pii_scan_passed')
+            
+            # Step 5: Secure template rendering
+            rendered_content, template_security = self.secure_template_loader.render_template_secure(
+                template_name, sanitized_inputs, client_id
+            )
+            security_metadata['security_checks'].append('template_render_passed')
+            security_metadata['template_security'] = template_security
+            
+            # Step 6: Secure output formatting
+            if config.output_format == "html":
+                format_result = self.formatters["html"].format_content_secure(
+                    rendered_content, self.template_loader.get_template_metadata(template_name),
+                    client_id, True, False, True
+                )
+                formatted_content = format_result['html_content']
+                security_metadata.update(format_result['security_metadata'])
+            else:
+                # Markdown is safer, but still scan for issues
+                formatted_content = self.formatters["markdown"].format_content(
+                    rendered_content, self.template_loader.get_template_metadata(template_name)
+                )
+            
+            security_metadata['security_checks'].append('output_format_passed')
+            
+            # Step 7: Final PII scan of generated content
+            final_pii_result = self.pii_protection.scan_and_protect(
+                formatted_content, 'output', client_id
+            )
+            if final_pii_result['pii_detected']:
+                security_metadata['warnings'].append(
+                    f"PII detected in output: {', '.join(final_pii_result['pii_types_found'])}"
+                )
+            
+            # Step 8: Save to storage if required
+            document_id = None
+            if config.save_to_storage:
+                # Check write access
+                write_allowed, write_reason, _ = self.access_controller.check_access(
+                    client_id, ResourceType.DOCUMENT, "write"
+                )
+                if write_allowed:
+                    template_metadata = self.template_loader.load_template(template_name)
+                    document_id = self._save_document(
+                        final_pii_result['protected_content'], 
+                        template_metadata, 
+                        config, 
+                        sanitized_inputs
+                    )
+                    self.access_controller.record_access(
+                        client_id, ResourceType.DOCUMENT, "write", True
+                    )
+                else:
+                    security_metadata['warnings'].append(f"Document save failed: {write_reason}")
+            
+            generation_time = time.time() - start_time
+            
+            # Record successful generation
+            self.access_controller.record_access(
+                client_id, ResourceType.TEMPLATE, "read", True,
+                {'generation_time': generation_time, 'output_format': config.output_format}
+            )
+            
+            result = GenerationResult(
+                success=True,
+                document_id=document_id,
+                content=final_pii_result['protected_content'],
+                format=config.output_format,
+                generation_time=generation_time,
+                template_name=template_name,
+                metadata={**template_metadata.metadata, **security_metadata} if hasattr(template_metadata, 'metadata') else security_metadata,
+                warnings=security_metadata['warnings']
+            )
+            
+            logger.info(f"Secure document generation completed in {generation_time:.3f}s: "
+                       f"client={client_id}, security_checks={len(security_metadata['security_checks'])}")
+            return result
+            
+        except Exception as e:
+            generation_time = time.time() - start_time
+            error_msg = str(e)
+            
+            # Log security incident for unexpected errors
+            self.security_monitor.report_security_event(
+                'generation_error', 'medium', client_id, template_name,
+                f"Generation failed: {error_msg}", {'exception': error_msg}
+            )
+            
+            logger.error(f"Secure document generation failed: {error_msg}")
+            
+            return GenerationResult(
+                success=False,
+                error_message=error_msg,
+                generation_time=generation_time,
+                template_name=template_name
+            )
     
     def generate_document(
         self,
