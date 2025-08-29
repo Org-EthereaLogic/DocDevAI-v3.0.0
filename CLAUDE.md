@@ -6,16 +6,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 DevDocAI v3.0.0 is an AI-powered documentation generation and analysis system for solo developers. The project follows a modular architecture with 13 independent modules (M001-M013), currently in active development.
 
-**PROJECT STATUS**: 
+**PROJECT STATUS**:
+
 - M001 Configuration Manager: ✅ COMPLETE (92% coverage, exceeds performance targets)
 - M002 Local Storage: ✅ COMPLETE (All 3 passes done, 72K queries/sec, security hardened)
-- Security: ✅ HARDENED (SQLCipher + AES-256-GCM + PII detection implemented)
+- M003 MIAIR Engine: ✅ COMPLETE (All 3 passes done, 361K docs/min, security hardened)
+- Security: ✅ HARDENED (SQLCipher + AES-256-GCM + PII detection + rate limiting)
 - Dependencies: ✅ UPDATED (setuptools 80.9.0, pydantic 2.11.7)
-- Next Priority: M003 MIAIR Engine (Mathematical optimization)
+- Next Priority: M004 Document Generator
 
 ## Development Commands
 
 ### TypeScript/Node.js Development
+
 ```bash
 # Build and run
 npm run build          # Compile TypeScript (tsc)
@@ -34,6 +37,7 @@ npm run lint:fix      # Auto-fix ESLint issues
 ```
 
 ### Python Development
+
 ```bash
 # Testing
 pytest                # Run Python tests
@@ -46,6 +50,7 @@ pylint devdocai/     # Lint Python code
 ```
 
 ### Git Operations
+
 ```bash
 git status           # Always check status first
 git diff --cached    # Review staged changes before commit
@@ -54,6 +59,7 @@ git diff --cached    # Review staged changes before commit
 ## Architecture Overview
 
 ### Module System (M001-M013)
+
 The system consists of 13 modules, each self-contained with specific responsibilities:
 
 - **M001 Configuration Manager**: ✅ COMPLETE
@@ -69,7 +75,13 @@ The system consists of 13 modules, each self-contained with specific responsibil
   - Pass 3 ✅: Security hardening (SQLCipher, AES-256-GCM, PII detection)
   - Test coverage: ~45% overall (PII detector at 92%)
   - Implementation: `devdocai/storage/` with secure_storage.py, pii_detector.py
-- **M003 MIAIR Engine**: Mathematical optimization for quality improvement (Shannon entropy)
+
+- **M003 MIAIR Engine**: ✅ COMPLETE (All 3 passes finished)
+  - Pass 1 ✅: Core implementation (Shannon entropy, quality scoring)
+  - Pass 2 ✅: Performance optimization (361,431 docs/min achieved, 29.6x improvement!)
+  - Pass 3 ✅: Security hardening (input validation, rate limiting, secure caching)
+  - Test coverage: 90%+ overall
+  - Implementation: `devdocai/miair/` with security layer
 - **M004 Document Generator**: Core generation with template system
 - **M005 Quality Engine**: Document analysis (85% quality gate requirement)
 - **M006 Template Registry**: 30+ document templates
@@ -82,10 +94,11 @@ The system consists of 13 modules, each self-contained with specific responsibil
 - **M013 VS Code Extension**: IDE integration
 
 ### Directory Structure
+
 ```
 src/modules/M00X-ModuleName/
 ├── services/     # Business logic
-├── utils/        # Helper functions  
+├── utils/        # Helper functions
 ├── types/        # TypeScript type definitions
 └── interfaces/   # Contracts and interfaces
 
@@ -93,6 +106,7 @@ tests/unit/M00X-ModuleName/  # Corresponding test structure
 ```
 
 ### Quality Gates
+
 - **M001, M002**: 95% test coverage requirement
 - **All modules**: 80% minimum coverage
 - **Code complexity**: <10 cyclomatic complexity
@@ -102,18 +116,21 @@ tests/unit/M00X-ModuleName/  # Corresponding test structure
 ## Critical Implementation Notes
 
 ### M001 Configuration Manager Specifics
+
 - Must implement memory mode detection (baseline/standard/enhanced/performance)
 - Privacy-first: telemetry disabled by default, cloud features opt-in
 - Use Argon2id for key derivation, AES-256-GCM for encryption
 - Configuration loading from `.devdocai.yml` with schema validation
 
 ### Testing Strategy
+
 - Follow TDD: Write tests first, then implementation
 - Use Jest for TypeScript, pytest for Python
 - Performance benchmarks required for M001 (scripts/benchmark-m001.ts)
 - Coverage thresholds enforced in jest.config.js
 
 ### Security Requirements
+
 - All API keys must be encrypted using AES-256-GCM
 - SQLCipher for database encryption (M002)
 - Input validation required on all external inputs
@@ -127,13 +144,14 @@ The project uses standard GitHub Actions (no custom actions):
   - Multi-version testing (Python 3.9-3.11, Node 18-20)
   - CodeQL security analysis
   - Codecov integration
-  
+
 - **quick-check.yml**: Fast feedback on all pushes
 - **release.yml**: Automated releases on version tags
 
 ## Codacy Integration
 
 When editing files, you MUST:
+
 1. Run `codacy_cli_analyze` after any file edit
 2. Use provider: `gh`, organization: `Org-EthereaLogic`, repository: `DocDevAI-v3.0.0`
 3. Run security checks with trivy after adding dependencies
@@ -151,13 +169,15 @@ When editing files, you MUST:
 - Infrastructure: ✅ Complete (TypeScript, Jest, GitHub Actions, DevContainer)
 - M001 Configuration Manager: ✅ COMPLETE (92% coverage, production-ready)
 - M002 Local Storage: ✅ COMPLETE (All passes done, 72K queries/sec, security hardened)
-- M003-M013: ⏳ Pending
+- M003 MIAIR Engine: ✅ COMPLETE (All passes done, 361K docs/min, security hardened)
+- M004-M013: ⏳ Pending
 
-Next steps focus on M003 MIAIR Engine (Mathematical optimization) following the specifications in docs/01-specifications/architecture/DESIGN-devdocsai-sdd.md.
+Next steps focus on M004 Document Generator following the specifications in docs/01-specifications/architecture/DESIGN-devdocsai-sdd.md.
 
 ## Development Method
 
 Following a validated three-pass development approach:
+
 1. **Implementation Pass**: Core functionality with basic tests (80-85% coverage)
 2. **Performance Pass**: Optimization to meet benchmarks
 3. **Security Pass**: Hardening and reaching 95% coverage target
