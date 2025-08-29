@@ -1,0 +1,43 @@
+name: Markdown Lint
+
+on:
+  push:
+    paths:
+      - '**.md'
+      - '.markdownlint.json'
+      - '.github/workflows/markdown-lint.yml'
+  pull_request:
+    paths:
+      - '**.md'
+      - '.markdownlint.json'
+      - '.github/workflows/markdown-lint.yml'
+
+jobs:
+  lint:
+    name: Lint Markdown Files
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install markdownlint-cli
+        run: npm install -g markdownlint-cli
+      
+      - name: Run markdownlint
+        run: |
+          echo "Running markdown linting on all .md files..."
+          markdownlint '**/*.md' --ignore node_modules --ignore .pytest_cache
+      
+      - name: Check for issues
+        if: failure()
+        run: |
+          echo "Markdown linting found issues. Please run locally to fix:"
+          echo "npm install -g markdownlint-cli"
+          echo "markdownlint '**/*.md' --fix --ignore node_modules"
