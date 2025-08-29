@@ -129,7 +129,7 @@ pylint devdocai/       # Lint Python code
 
 ## 📁 Project Structure
 
-```
+```text
 DocDevAI-v3.0.0/
 ├── 📁 src/                    # TypeScript source
 │   ├── modules/               # Feature modules (M001-M013)
