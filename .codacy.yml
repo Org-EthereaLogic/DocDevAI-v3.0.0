@@ -1,60 +1,69 @@
 ---
-# Codacy configuration file
-# Exclude legacy and backup directories from analysis
+# Codacy Configuration File
+# This file controls how Codacy analyzes the DevDocAI project
+# Created to address excessive markdown linting issues (2370 false positives)
 
+# Exclude files from analysis
+exclude_paths:
+  # Dependencies and generated files
+  - "node_modules/**"
+  - "dist/**"
+  - "coverage/**"
+  - ".pytest_cache/**"
+  - "**/*.egg-info/**"
+  - "**/__pycache__/**"
+  - "*.min.js"
+  - "*.min.css"
+  
+  # Test files (optional - uncomment if you want to exclude)
+  # - "tests/**"
+  # - "**/*.test.ts"
+  # - "**/*.spec.ts"
+  
+  # Documentation archives (old versions, not actively maintained)
+  - "docs/06-archives/**"
+  
+  # Generated or third-party documentation
+  - "**/vendor/**"
+  - "**/build/**"
+
+# Tool-specific configurations
 engines:
+  # Markdown linting configuration
+  markdownlint:
+    enabled: true
+    # Use project-specific configuration file
+    config: .markdownlint.json
+  
+  remark-lint:
+    enabled: false  # Disable remark-lint to avoid duplicate markdown checks
+  
+  # Python analysis
+  pylint:
+    enabled: true
+    python_version: 3
+  
+  # Security analysis
+  bandit:
+    enabled: true
+  
+  # TypeScript/JavaScript analysis  
+  eslint:
+    enabled: true
+  
+  # Duplicate code detection
   duplication:
     enabled: true
+    config:
+      languages:
+        - python
+        - javascript
+        - typescript
     exclude_paths:
-      - "**/legacy_backup/**"
-      - "**/*_backup/**"
-      - "**/legacy/**"
-      - "**/node_modules/**"
-      - "**/dist/**"
-      - "**/.git/**"
-      - "**/coverage/**"
-      - "**/__pycache__/**"
-      - "**/*.pyc"
-      - "**/test_*.py"
-      - "**/debug_*.py"
-      - "**/profile_*.py"
-      - "**/simple_*.py"
-      - "**/final_*.py"
-  
-  metrics:
-    enabled: true
-    exclude_paths:
-      - "**/legacy_backup/**"
-      - "**/*_backup/**"
-      - "**/legacy/**"
-  
-  coverage:
-    enabled: true
-    exclude_paths:
-      - "**/legacy_backup/**"
-      - "**/*_backup/**"
-      - "**/legacy/**"
-      - "**/tests/**"
-      - "**/test_*.py"
+      - "tests/**"
+      - "**/*.test.ts"
+      - "**/*.spec.ts"
 
-exclude_paths:
-  - "**/legacy_backup/**"
-  - "**/*_backup/**"  
-  - "**/legacy/**"
-  - "**/node_modules/**"
-  - "**/dist/**"
-  - "**/.git/**"
-  - "**/coverage/**"
-  - "**/__pycache__/**"
-  - "**/*.pyc"
-  - "**/test_*.py"
-  - "**/debug_*.py"
-  - "**/profile_*.py"
-  - "**/simple_*.py"
-  - "**/final_*.py"
-  - "**/*.min.js"
-  - "**/*.min.css"
-  - "**/vendor/**"
-  - "**/migrations/**"
-  - "**/*.lock"
-  - "**/*.log"
+# Coverage configuration
+coverage:
+  enabled: true
