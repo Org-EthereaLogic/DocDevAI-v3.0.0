@@ -21,6 +21,7 @@ from cryptography.hazmat.backends import default_backend
 from argon2 import PasswordHasher, Parameters, Type
 from argon2.exceptions import VerifyMismatchError
 import base64
+from typing import List
 
 logger = logging.getLogger(__name__)
 
@@ -82,38 +83,18 @@ class EncryptionManager:
         if salt is None:
             salt = secrets.token_bytes(self.ARGON2_SALT_LEN)
         
-        # Use Argon2id for key derivation (OWASP recommended)
-        params = Parameters(
-            type=Type.ID,
-            version=0x13,
-            salt_len=self.ARGON2_SALT_LEN,
-            hash_len=self.ARGON2_HASH_LEN,
-            time_cost=self.ARGON2_TIME_COST,
-            memory_cost=self.ARGON2_MEMORY_COST,
-            parallelism=self.ARGON2_PARALLELISM
+        # Use PBKDF2 for consistent key derivation
+        # (Argon2 library has inconsistent output format)
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA256(),
+            length=self.AES_KEY_SIZE,
+            salt=salt,
+            iterations=256000,  # OWASP recommended for PBKDF2-SHA256
+            backend=default_backend()
         )
+        key = kdf.derive(password.encode())
         
-        # Generate raw hash for key material
-        raw_hash = self.password_hasher.hash(password)
-        
-        # Extract the actual key bytes (skip the Argon2 format prefix)
-        # The hash format is: $argon2id$v=19$m=65536,t=3,p=4$[salt]$[hash]
-        parts = raw_hash.split('$')
-        if len(parts) >= 6:
-            key_b64 = parts[-1]
-            key = base64.b64decode(key_b64 + '==')  # Add padding if needed
-        else:
-            # Fallback to PBKDF2 if Argon2 format is unexpected
-            kdf = PBKDF2HMAC(
-                algorithm=hashes.SHA256(),
-                length=self.AES_KEY_SIZE,
-                salt=salt,
-                iterations=100000,
-                backend=default_backend()
-            )
-            key = kdf.derive(password.encode())
-        
-        return key[:self.AES_KEY_SIZE], salt
+        return key, salt
     
     def generate_master_key(self, password: str) -> bool:
         """
