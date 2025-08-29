@@ -6,6 +6,7 @@ that were previously vulnerable due to regex-based filtering.
 """
 
 import pytest
+from bs4 import BeautifulSoup
 from devdocai.common.html_sanitizer import (
     HtmlSanitizer,
     sanitize_html,
@@ -142,7 +143,10 @@ class TestHtmlSanitizer:
         
         # Safe links should work
         if 'href' in sanitized:
-            assert 'https://example.com' in sanitized
+            soup = BeautifulSoup(sanitized, 'html.parser')
+            a_tags = soup.find_all('a', href=True)
+            expected_url = "https://example.com"
+            assert any(a['href'] == expected_url for a in a_tags)
     
     def test_strip_all_tags(self):
         """Test that strip_html_tags removes all HTML."""
