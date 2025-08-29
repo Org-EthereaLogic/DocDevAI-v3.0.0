@@ -1,0 +1,69 @@
+{
+  "benchmark_info": {
+    "version": "M004 Pass 2 Baseline",
+    "timestamp": "2025-08-29T06:07:26.337252",
+    "duration_seconds": 2.6200056076049805
+  },
+  "results": {
+    "template_loading": {
+      "technical_srs_cold_ms": 25.081955500354525,
+      "technical_srs_warm_ms": 0.46368671872187406,
+      "technical_srs_cache_improvement": 54.09246046445217,
+      "project_readme_cold_ms": 18.41871579963481,
+      "project_readme_warm_ms": 0.364190420077648,
+      "project_readme_cache_improvement": 50.57441048478927
+    },
+    "document_generation": {},
+    "concurrent_performance": {
+      "workers_1_throughput": 0.0,
+      "workers_1_avg_latency_ms": 0,
+      "workers_1_total_time": 0.05407161099719815,
+      "workers_2_throughput": 0.0,
+      "workers_2_avg_latency_ms": 0,
+      "workers_2_total_time": 0.11156411899719387,
+      "workers_4_throughput": 0.0,
+      "workers_4_avg_latency_ms": 0,
+      "workers_4_total_time": 0.21339751000050455,
+      "workers_8_throughput": 0.0,
+      "workers_8_avg_latency_ms": 0,
+      "workers_8_total_time": 0.4266378390020691
+    },
+    "memory_usage": {
+      "baseline_mb": 84.0625,
+      "peak_mb": 84.0625,
+      "final_mb": 84.0625,
+      "memory_increase_mb": 0.0,
+      "memory_retained_mb": 0.0
+    },
+    "output_formatting": {
+      "markdown_avg_ms": 0.025256570224883035,
+      "markdown_ops_per_sec": 39593.65785203842,
+      "html_avg_ms": 0.02966732150525786,
+      "html_ops_per_sec": 33707.12114414416
+    }
+  },
+  "performance_analysis": {
+    "pass_2_targets": {
+      "template_loading_target_ms": 50,
+      "document_generation_target_ops_sec": 50,
+      "concurrent_generation_target_ops_sec": 100
+    },
+    "current_performance": {
+      "template_loading_cold_ms": 21.750335649994668,
+      "template_loading_warm_ms": 0.41393856939976104,
+      "document_generation_ops_sec": 0.0,
+      "max_concurrent_throughput": 0.0,
+      "memory_per_document_mb": 0.0
+    },
+    "target_status": {
+      "template_loading": "\u2705",
+      "document_generation": "\u274c",
+      "concurrent_performance": "\u274c",
+      "memory_usage": "\u2705"
+    },
+    "optimization_opportunities": [
+      "Document generation throughput needs improvement",
+      "Concurrent processing optimization needed"
+    ]
+  }
+}

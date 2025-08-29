@@ -1,0 +1,83 @@
+{
+  "benchmark_info": {
+    "version": "M004 Pass 2 Optimized",
+    "timestamp": "2025-08-29T06:12:45.640362",
+    "duration_seconds": 0.19602751731872559,
+    "optimizations_tested": [
+      "Enhanced caching system",
+      "Batch processing",
+      "Concurrent generation",
+      "Async operations",
+      "Memory efficiency"
+    ]
+  },
+  "results": {
+    "enhanced_caching": {
+      "cold_template_load_ms": 20.09956100373529,
+      "warm_template_load_ms": 0.465442260610871,
+      "compiled_template_ms": 0.7293701998423785,
+      "cache_improvement_factor": 43.18379035319131,
+      "template_cache_hit_rate": 0.9803921568627451
+    },
+    "batch_processing": {
+      "batch_5_throughput": 0.0,
+      "batch_5_success_rate": 0.0,
+      "batch_5_total_time": 0.002150460990378633,
+      "batch_10_throughput": 0.0,
+      "batch_10_success_rate": 0.0,
+      "batch_10_total_time": 0.002065209991997108,
+      "batch_20_throughput": 0.0,
+      "batch_20_success_rate": 0.0,
+      "batch_20_total_time": 0.002491177001502365,
+      "same_template_throughput": 0.0
+    },
+    "concurrent_generation": {
+      "workers_1_throughput": 0.0,
+      "workers_2_throughput": 0.0,
+      "workers_4_throughput": 0.0,
+      "workers_8_throughput": 0.0
+    },
+    "async_operations": {
+      "async_throughput": 0.0,
+      "async_success_rate": 0.0,
+      "async_total_time": 0.004780515999300405
+    },
+    "memory_efficiency": {
+      "baseline_memory_mb": 79.01171875,
+      "peak_memory_mb": 79.08984375,
+      "final_memory_mb": 79.08984375,
+      "memory_increase_mb": 0.078125,
+      "memory_retained_mb": 0.078125,
+      "memory_per_document_mb": 0.00390625,
+      "successful_generations": 0
+    }
+  },
+  "performance_improvements": {
+    "caching_improvements": {
+      "cache_speedup_factor": 43.18379035319131,
+      "cache_effectiveness": "Excellent",
+      "compiled_template_benefit": false
+    },
+    "batch_processing_benefits": {
+      "max_throughput_docs_per_sec": 0.0,
+      "same_template_optimization": 0.0,
+      "batch_processing_viable": false
+    },
+    "concurrency_scaling": {
+      "single_worker_throughput": 0.0,
+      "max_concurrent_throughput": 0.0,
+      "scaling_factor": 1.0,
+      "optimal_worker_count": 1
+    },
+    "async_benefits": {
+      "async_throughput": 0.0,
+      "async_viable": false,
+      "async_performance_rating": "Needs Improvement"
+    },
+    "memory_efficiency": {
+      "memory_per_doc_mb": 0.00390625,
+      "memory_efficient": true,
+      "memory_retention_low": true
+    }
+  }
+}
