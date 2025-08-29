@@ -1,0 +1,284 @@
+---
+title: "Project Changelog"
+type: "project"
+category: "documentation"
+description: "Keep a Changelog compliant project changelog template"
+version: "1.0"
+author: "DevDocAI"
+variables: ["project_name", "releases"]
+optional_variables: ["unreleased_changes", "initial_release_date", "repository_url"]
+sections: ["unreleased", "releases", "guidelines"]
+tags: ["changelog", "releases", "history", "keepachangelog"]
+---
+# Changelog
+All notable changes to {{ project_name }} will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+{% if repository_url %}
+## Links
+- [Repository]({{ repository_url }})
+- [Releases]({{ repository_url }}/releases)
+- [Issues]({{ repository_url }}/issues)
+{% endif %}
+
+---
+
+## [Unreleased]
+{% if unreleased_changes %}
+
+{% if unreleased_changes.added %}
+### Added
+{% for item in unreleased_changes.added %}
+- {{ item }}
+{% endfor %}
+{% endif %}
+
+{% if unreleased_changes.changed %}
+### Changed
+{% for item in unreleased_changes.changed %}
+- {{ item }}
+{% endfor %}
+{% endif %}
+
+{% if unreleased_changes.deprecated %}
+### Deprecated
+{% for item in unreleased_changes.deprecated %}
+- {{ item }}
+{% endfor %}
+{% endif %}
+
+{% if unreleased_changes.removed %}
+### Removed
+{% for item in unreleased_changes.removed %}
+- {{ item }}
+{% endfor %}
+{% endif %}
+
+{% if unreleased_changes.fixed %}
+### Fixed
+{% for item in unreleased_changes.fixed %}
+- {{ item }}
+{% endfor %}
+{% endif %}
+
+{% if unreleased_changes.security %}
+### Security
+{% for item in unreleased_changes.security %}
+- {{ item }}
+{% endfor %}
+{% endif %}
+
+{% else %}
+*No unreleased changes at this time.*
+{% endif %}
+
+---
+
+{% for release in releases %}
+## [{{ release.version }}] - {{ release.date }}
+
+{% if release.description %}
+{{ release.description }}
+
+{% endif %}
+{% if release.breaking_changes %}
+### ⚠️ BREAKING CHANGES
+{% for change in release.breaking_changes %}
+- {{ change }}
+{% endfor %}
+
+{% endif %}
+{% if release.added %}
+### Added
+{% for item in release.added %}
+- {{ item }}{% if item.pr %} ([#{{ item.pr }}]({{ repository_url }}/pull/{{ item.pr }})){% endif %}{% if item.author %} - [@{{ item.author }}]({{ repository_url }}/commits?author={{ item.author }}){% endif %}
+{% endfor %}
+
+{% endif %}
+{% if release.changed %}
+### Changed
+{% for item in release.changed %}
+- {{ item }}{% if item.pr %} ([#{{ item.pr }}]({{ repository_url }}/pull/{{ item.pr }})){% endif %}{% if item.author %} - [@{{ item.author }}]({{ repository_url }}/commits?author={{ item.author }}){% endif %}
+{% endfor %}
+
+{% endif %}
+{% if release.deprecated %}
+### Deprecated
+{% for item in release.deprecated %}
+- {{ item }}{% if item.pr %} ([#{{ item.pr }}]({{ repository_url }}/pull/{{ item.pr }})){% endif %}{% if item.author %} - [@{{ item.author }}]({{ repository_url }}/commits?author={{ item.author }}){% endif %}
+{% endfor %}
+
+{% endif %}
+{% if release.removed %}
+### Removed
+{% for item in release.removed %}
+- {{ item }}{% if item.pr %} ([#{{ item.pr }}]({{ repository_url }}/pull/{{ item.pr }})){% endif %}{% if item.author %} - [@{{ item.author }}]({{ repository_url }}/commits?author={{ item.author }}){% endif %}
+{% endfor %}
+
+{% endif %}
+{% if release.fixed %}
+### Fixed
+{% for item in release.fixed %}
+- {{ item }}{% if item.pr %} ([#{{ item.pr }}]({{ repository_url }}/pull/{{ item.pr }})){% endif %}{% if item.author %} - [@{{ item.author }}]({{ repository_url }}/commits?author={{ item.author }}){% endif %}
+{% endfor %}
+
+{% endif %}
+{% if release.security %}
+### Security
+{% for item in release.security %}
+- {{ item }}{% if item.pr %} ([#{{ item.pr }}]({{ repository_url }}/pull/{{ item.pr }})){% endif %}{% if item.author %} - [@{{ item.author }}]({{ repository_url }}/commits?author={{ item.author }}){% endif %}
+{% endfor %}
+
+{% endif %}
+{% if release.performance %}
+### Performance
+{% for item in release.performance %}
+- {{ item }}{% if item.pr %} ([#{{ item.pr }}]({{ repository_url }}/pull/{{ item.pr }})){% endif %}{% if item.author %} - [@{{ item.author }}]({{ repository_url }}/commits?author={{ item.author }}){% endif %}
+{% endfor %}
+
+{% endif %}
+{% if release.dependencies %}
+### Dependencies
+{% for item in release.dependencies %}
+- {{ item }}{% if item.pr %} ([#{{ item.pr }}]({{ repository_url }}/pull/{{ item.pr }})){% endif %}{% if item.author %} - [@{{ item.author }}]({{ repository_url }}/commits?author={{ item.author }}){% endif %}
+{% endfor %}
+
+{% endif %}
+{% if release.documentation %}
+### Documentation
+{% for item in release.documentation %}
+- {{ item }}{% if item.pr %} ([#{{ item.pr }}]({{ repository_url }}/pull/{{ item.pr }})){% endif %}{% if item.author %} - [@{{ item.author }}]({{ repository_url }}/commits?author={{ item.author }}){% endif %}
+{% endfor %}
+
+{% endif %}
+{% if release.internal %}
+### Internal Changes
+{% for item in release.internal %}
+- {{ item }}{% if item.pr %} ([#{{ item.pr }}]({{ repository_url }}/pull/{{ item.pr }})){% endif %}{% if item.author %} - [@{{ item.author }}]({{ repository_url }}/commits?author={{ item.author }}){% endif %}
+{% endfor %}
+
+{% endif %}
+{% if release.contributors %}
+### Contributors
+{% for contributor in release.contributors %}
+- [@{{ contributor.username }}]({{ repository_url }}/commits?author={{ contributor.username }}){% if contributor.name %} ({{ contributor.name }}){% endif %}
+{% endfor %}
+
+{% endif %}
+{% if release.migration_guide %}
+### Migration Guide
+
+{{ release.migration_guide }}
+
+{% endif %}
+{% if release.download_links %}
+### Downloads
+{% for link in release.download_links %}
+- [{{ link.name }}]({{ link.url }}) - {{ link.description }}
+{% endfor %}
+
+{% endif %}
+---
+
+{% endfor %}
+
+## Release Types
+
+This project follows [Semantic Versioning](https://semver.org/). Version numbers follow the pattern `MAJOR.MINOR.PATCH`:
+
+- **MAJOR** version increments indicate incompatible API changes
+- **MINOR** version increments add functionality in a backwards compatible manner  
+- **PATCH** version increments include backwards compatible bug fixes
+
+### Pre-release Versions
+
+Pre-release versions may include additional labels:
+- `alpha` - Early development, may have bugs and missing features
+- `beta` - Feature complete, undergoing testing
+- `rc` (release candidate) - Potentially stable, final testing phase
+
+### Release Schedule
+
+{% if release_schedule %}
+{{ release_schedule }}
+{% else %}
+- **Major releases:** As needed for breaking changes
+- **Minor releases:** Monthly or as features are completed
+- **Patch releases:** As needed for critical bug fixes
+{% endif %}
+
+## Changelog Guidelines
+
+### Types of Changes
+
+- **Added** for new features
+- **Changed** for changes in existing functionality
+- **Deprecated** for soon-to-be removed features
+- **Removed** for now removed features
+- **Fixed** for any bug fixes
+- **Security** for vulnerability fixes
+- **Performance** for performance improvements
+- **Dependencies** for dependency updates
+- **Documentation** for documentation changes
+- **Internal** for internal/development changes
+
+### Entry Format
+
+Each entry should:
+- Start with a capital letter
+- Use present tense ("Add feature" not "Added feature")
+- Be concise but descriptive
+- Include pull request number when applicable
+- Credit contributors when appropriate
+
+### Breaking Changes
+
+Breaking changes should be:
+- Clearly marked with ⚠️ BREAKING CHANGES section
+- Include migration instructions when possible
+- Documented in the migration guide
+- Accompanied by major version increment
+
+## Historical Notes
+
+{% if historical_notes %}
+{% for note in historical_notes %}
+### {{ note.title }}
+{{ note.content }}
+
+{% endfor %}
+{% endif %}
+
+## Archive
+
+{% if archived_releases %}
+Older releases (before standardized changelog format):
+
+{% for release in archived_releases %}
+### {{ release.version }} - {{ release.date }}
+{{ release.notes }}
+
+{% endfor %}
+{% endif %}
+
+---
+
+## Links and References
+
+{% if repository_url %}
+- [Compare Releases]({{ repository_url }}/compare)
+- [Release Tags]({{ repository_url }}/tags)
+- [Commit History]({{ repository_url }}/commits)
+- [Contributors]({{ repository_url }}/contributors)
+{% endif %}
+- [Keep a Changelog](https://keepachangelog.com/)
+- [Semantic Versioning](https://semver.org/)
+- [Conventional Commits](https://www.conventionalcommits.org/)
+
+---
+
+*This changelog was generated using DevDocAI v3.0.0*
+
+*Last updated: {{ generated_date }}*

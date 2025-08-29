@@ -1,0 +1,506 @@
+---
+title: "Software Requirements Specification"
+type: "technical"
+category: "requirements"
+description: "IEEE 830 compliant Software Requirements Specification template"
+version: "1.0"
+author: "DevDocAI"
+variables: ["project_name", "system_name", "purpose", "scope", "functional_requirements"]
+optional_variables: ["stakeholders", "constraints", "assumptions", "non_functional_requirements", "interfaces"]
+sections: ["introduction", "overall_description", "specific_requirements", "appendices"]
+tags: ["srs", "requirements", "specification", "ieee830", "software"]
+---
+# Software Requirements Specification
+## {{ system_name }}
+
+**Project:** {{ project_name }}  
+**Version:** {{ version | default('1.0') }}  
+**Date:** {{ generated_date }}  
+**Authors:** {{ authors | default(['Development Team']) | join(', ') }}
+
+---
+
+## Table of Contents
+
+1. [Introduction](#1-introduction)
+   - 1.1 [Purpose](#11-purpose)
+   - 1.2 [Scope](#12-scope)
+   - 1.3 [Definitions, Acronyms, and Abbreviations](#13-definitions-acronyms-and-abbreviations)
+   - 1.4 [References](#14-references)
+   - 1.5 [Overview](#15-overview)
+2. [Overall Description](#2-overall-description)
+   - 2.1 [Product Perspective](#21-product-perspective)
+   - 2.2 [Product Functions](#22-product-functions)
+   - 2.3 [User Characteristics](#23-user-characteristics)
+   - 2.4 [Constraints](#24-constraints)
+   - 2.5 [Assumptions and Dependencies](#25-assumptions-and-dependencies)
+3. [Specific Requirements](#3-specific-requirements)
+   - 3.1 [External Interface Requirements](#31-external-interface-requirements)
+   - 3.2 [Functional Requirements](#32-functional-requirements)
+   - 3.3 [Non-Functional Requirements](#33-non-functional-requirements)
+4. [Appendices](#4-appendices)
+
+---
+
+## 1. Introduction
+
+### 1.1 Purpose
+
+{{ purpose }}
+
+This document is intended for:
+{% for audience in intended_audience | default([]) %}
+- **{{ audience.role }}:** {{ audience.description }}
+{% endfor %}
+
+### 1.2 Scope
+
+{{ scope }}
+
+**System Benefits:**
+{% for benefit in system_benefits | default([]) %}
+- {{ benefit }}
+{% endfor %}
+
+**System Objectives:**
+{% for objective in system_objectives | default([]) %}
+- {{ objective }}
+{% endfor %}
+
+### 1.3 Definitions, Acronyms, and Abbreviations
+
+{% for term in glossary | default([]) %}
+**{{ term.term }}:** {{ term.definition }}
+
+{% endfor %}
+
+### 1.4 References
+
+{% for ref in references | default([]) %}
+- {{ ref.title }}{% if ref.author %}, {{ ref.author }}{% endif %}{% if ref.date %}, {{ ref.date }}{% endif %}{% if ref.url %}, Available at: {{ ref.url }}{% endif %}
+{% endfor %}
+
+### 1.5 Overview
+
+This SRS is organized into four major sections:
+
+1. **Introduction** - Provides overview and context
+2. **Overall Description** - Describes general factors affecting the product
+3. **Specific Requirements** - Details functional and non-functional requirements
+4. **Appendices** - Contains supporting information
+
+---
+
+## 2. Overall Description
+
+### 2.1 Product Perspective
+
+{{ product_perspective | default('This section describes the product perspective and its relationship to other products.') }}
+
+{% if system_context %}
+#### 2.1.1 System Context
+
+{{ system_context }}
+
+{% if context_diagram %}
+![System Context Diagram]({{ context_diagram }})
+{% endif %}
+{% endif %}
+
+#### 2.1.2 System Interfaces
+
+{% for interface in system_interfaces | default([]) %}
+**{{ interface.name }}:** {{ interface.description }}
+- **Type:** {{ interface.type }}
+- **Protocol:** {{ interface.protocol | default('TBD') }}
+- **Data Format:** {{ interface.format | default('TBD') }}
+
+{% endfor %}
+
+#### 2.1.3 User Interfaces
+
+{% for ui in user_interfaces | default([]) %}
+**{{ ui.name }}:** {{ ui.description }}
+- **Type:** {{ ui.type }}
+- **Users:** {{ ui.users | join(', ') }}
+- **Key Features:** {{ ui.features | join(', ') }}
+
+{% endfor %}
+
+#### 2.1.4 Hardware Interfaces
+
+{% for hw in hardware_interfaces | default([]) %}
+**{{ hw.name }}:** {{ hw.description }}
+- **Hardware:** {{ hw.hardware }}
+- **Interface:** {{ hw.interface_type }}
+- **Protocols:** {{ hw.protocols | default('Standard') }}
+
+{% endfor %}
+
+#### 2.1.5 Software Interfaces
+
+{% for sw in software_interfaces | default([]) %}
+**{{ sw.name }}:** {{ sw.description }}
+- **Software:** {{ sw.software }}
+- **Version:** {{ sw.version | default('Latest') }}
+- **Interface:** {{ sw.interface_type }}
+- **Services Used:** {{ sw.services | join(', ') if sw.services else 'N/A' }}
+
+{% endfor %}
+
+#### 2.1.6 Communications Interfaces
+
+{% for comm in communication_interfaces | default([]) %}
+**{{ comm.name }}:** {{ comm.description }}
+- **Protocol:** {{ comm.protocol }}
+- **Data Format:** {{ comm.format }}
+- **Frequency:** {{ comm.frequency | default('As needed') }}
+
+{% endfor %}
+
+### 2.2 Product Functions
+
+{{ product_functions_overview | default('This section provides a summary of the major functions the software will perform.') }}
+
+{% for function in product_functions | default([]) %}
+#### {{ function.name }}
+
+{{ function.description }}
+
+**Key Capabilities:**
+{% for capability in function.capabilities %}
+- {{ capability }}
+{% endfor %}
+
+**User Interactions:**
+{% for interaction in function.interactions | default([]) %}
+- {{ interaction }}
+{% endfor %}
+
+{% endfor %}
+
+### 2.3 User Characteristics
+
+{% for user_type in user_types | default([]) %}
+#### {{ user_type.name }}
+
+**Description:** {{ user_type.description }}
+
+**Characteristics:**
+- **Technical Expertise:** {{ user_type.technical_level }}
+- **Domain Knowledge:** {{ user_type.domain_knowledge }}
+- **Experience Level:** {{ user_type.experience_level }}
+- **Usage Frequency:** {{ user_type.frequency }}
+
+**Responsibilities:**
+{% for responsibility in user_type.responsibilities | default([]) %}
+- {{ responsibility }}
+{% endfor %}
+
+{% endfor %}
+
+### 2.4 Constraints
+
+{% for constraint in constraints | default([]) %}
+#### {{ constraint.category }}
+
+{{ constraint.description }}
+
+**Impact:** {{ constraint.impact }}
+**Mitigation:** {{ constraint.mitigation | default('TBD') }}
+
+{% endfor %}
+
+### 2.5 Assumptions and Dependencies
+
+#### 2.5.1 Assumptions
+
+{% for assumption in assumptions | default([]) %}
+- {{ assumption }}
+{% endfor %}
+
+#### 2.5.2 Dependencies
+
+{% for dependency in dependencies | default([]) %}
+**{{ dependency.name }}:** {{ dependency.description }}
+- **Type:** {{ dependency.type }}
+- **Impact:** {{ dependency.impact }}
+- **Mitigation:** {{ dependency.mitigation | default('Monitor closely') }}
+
+{% endfor %}
+
+---
+
+## 3. Specific Requirements
+
+### 3.1 External Interface Requirements
+
+#### 3.1.1 User Interface Requirements
+
+{% for ui_req in ui_requirements | default([]) %}
+**{{ ui_req.id }}:** {{ ui_req.name }}
+
+**Description:** {{ ui_req.description }}
+
+**Requirements:**
+{% for req in ui_req.requirements %}
+- {{ req }}
+{% endfor %}
+
+**Acceptance Criteria:**
+{% for criteria in ui_req.acceptance_criteria | default([]) %}
+- {{ criteria }}
+{% endfor %}
+
+---
+{% endfor %}
+
+#### 3.1.2 Hardware Interface Requirements
+
+{% for hw_req in hardware_requirements | default([]) %}
+**{{ hw_req.id }}:** {{ hw_req.name }}
+
+**Description:** {{ hw_req.description }}
+**Hardware:** {{ hw_req.hardware }}
+**Interface Type:** {{ hw_req.interface_type }}
+**Data Transfer:** {{ hw_req.data_transfer | default('N/A') }}
+
+---
+{% endfor %}
+
+#### 3.1.3 Software Interface Requirements
+
+{% for sw_req in software_requirements | default([]) %}
+**{{ sw_req.id }}:** {{ sw_req.name }}
+
+**Description:** {{ sw_req.description }}
+**External System:** {{ sw_req.system }}
+**Interface Type:** {{ sw_req.interface_type }}
+**Data Exchange:** {{ sw_req.data_exchange | default('N/A') }}
+**Error Handling:** {{ sw_req.error_handling | default('Standard') }}
+
+---
+{% endfor %}
+
+### 3.2 Functional Requirements
+
+{% for func_req in functional_requirements %}
+#### {{ func_req.id }}: {{ func_req.name }}
+
+**Priority:** {{ func_req.priority | default('Medium') }}
+**Source:** {{ func_req.source | default('Stakeholder') }}
+
+**Description:**
+{{ func_req.description }}
+
+**Inputs:**
+{% for input in func_req.inputs | default([]) %}
+- **{{ input.name }}:** {{ input.description }}
+  - **Type:** {{ input.type }}
+  - **Source:** {{ input.source }}
+  - **Validation:** {{ input.validation | default('Standard') }}
+{% endfor %}
+
+**Processing:**
+{% for process in func_req.processing | default([]) %}
+{{ loop.index }}. {{ process }}
+{% endfor %}
+
+**Outputs:**
+{% for output in func_req.outputs | default([]) %}
+- **{{ output.name }}:** {{ output.description }}
+  - **Type:** {{ output.type }}
+  - **Destination:** {{ output.destination }}
+  - **Format:** {{ output.format | default('Standard') }}
+{% endfor %}
+
+**Functional Logic:**
+{% if func_req.logic %}
+{{ func_req.logic }}
+{% endif %}
+
+**Business Rules:**
+{% for rule in func_req.business_rules | default([]) %}
+- {{ rule }}
+{% endfor %}
+
+**Error Conditions:**
+{% for error in func_req.error_conditions | default([]) %}
+- **{{ error.condition }}:** {{ error.response }}
+{% endfor %}
+
+---
+{% endfor %}
+
+### 3.3 Non-Functional Requirements
+
+#### 3.3.1 Performance Requirements
+
+{% for perf_req in performance_requirements | default([]) %}
+**{{ perf_req.id }}:** {{ perf_req.name }}
+
+{{ perf_req.description }}
+
+**Metrics:**
+{% for metric in perf_req.metrics %}
+- **{{ metric.name }}:** {{ metric.target }} ({{ metric.condition }})
+{% endfor %}
+
+**Measurement Method:** {{ perf_req.measurement | default('TBD') }}
+
+---
+{% endfor %}
+
+#### 3.3.2 Safety Requirements
+
+{% for safety_req in safety_requirements | default([]) %}
+**{{ safety_req.id }}:** {{ safety_req.name }}
+
+{{ safety_req.description }}
+
+**Risk Level:** {{ safety_req.risk_level }}
+**Mitigation:** {{ safety_req.mitigation }}
+
+---
+{% endfor %}
+
+#### 3.3.3 Security Requirements
+
+{% for security_req in security_requirements | default([]) %}
+**{{ security_req.id }}:** {{ security_req.name }}
+
+{{ security_req.description }}
+
+**Security Level:** {{ security_req.level }}
+**Implementation:** {{ security_req.implementation | default('TBD') }}
+
+---
+{% endfor %}
+
+#### 3.3.4 Software Quality Attributes
+
+{% for quality in quality_attributes | default([]) %}
+##### {{ quality.attribute }}
+
+**Definition:** {{ quality.definition }}
+**Requirement:** {{ quality.requirement }}
+**Measurement:** {{ quality.measurement | default('TBD') }}
+
+{% for scenario in quality.scenarios | default([]) %}
+**Scenario:** {{ scenario.description }}
+- **Stimulus:** {{ scenario.stimulus }}
+- **Response:** {{ scenario.response }}
+- **Measure:** {{ scenario.measure }}
+
+{% endfor %}
+
+---
+{% endfor %}
+
+---
+
+## 4. Appendices
+
+### Appendix A: Use Case Diagrams
+
+{% for use_case in use_cases | default([]) %}
+#### {{ use_case.name }}
+
+**Actors:** {{ use_case.actors | join(', ') }}
+**Description:** {{ use_case.description }}
+
+**Main Flow:**
+{% for step in use_case.main_flow %}
+{{ loop.index }}. {{ step }}
+{% endfor %}
+
+**Alternative Flows:**
+{% for alt_flow in use_case.alternative_flows | default([]) %}
+**{{ alt_flow.name }}:**
+{% for step in alt_flow.steps %}
+{{ loop.index }}. {{ step }}
+{% endfor %}
+{% endfor %}
+
+**Preconditions:** {{ use_case.preconditions | default('None') }}
+**Postconditions:** {{ use_case.postconditions | default('None') }}
+
+{% if use_case.diagram %}
+![{{ use_case.name }} Use Case]({{ use_case.diagram }})
+{% endif %}
+
+---
+{% endfor %}
+
+### Appendix B: Data Flow Diagrams
+
+{% if data_flow_diagrams %}
+{% for dfd in data_flow_diagrams %}
+#### {{ dfd.name }}
+
+{{ dfd.description }}
+
+![{{ dfd.name }}]({{ dfd.diagram }})
+
+**Processes:**
+{% for process in dfd.processes %}
+- **{{ process.id }}:** {{ process.name }} - {{ process.description }}
+{% endfor %}
+
+**Data Stores:**
+{% for store in dfd.data_stores | default([]) %}
+- **{{ store.id }}:** {{ store.name }} - {{ store.description }}
+{% endfor %}
+
+**External Entities:**
+{% for entity in dfd.external_entities | default([]) %}
+- **{{ entity.id }}:** {{ entity.name }} - {{ entity.description }}
+{% endfor %}
+
+---
+{% endfor %}
+{% endif %}
+
+### Appendix C: Traceability Matrix
+
+{% if traceability_matrix %}
+| Requirement ID | Source | Design Element | Test Case | Implementation |
+|----------------|--------|----------------|-----------|----------------|
+{% for trace in traceability_matrix %}
+| {{ trace.requirement_id }} | {{ trace.source }} | {{ trace.design_element }} | {{ trace.test_case }} | {{ trace.implementation }} |
+{% endfor %}
+{% endif %}
+
+### Appendix D: Requirements Validation
+
+#### Validation Criteria
+
+{% for criteria in validation_criteria | default([]) %}
+- **{{ criteria.aspect }}:** {{ criteria.method }}
+{% endfor %}
+
+#### Review Process
+
+{% for step in review_process | default([]) %}
+{{ loop.index }}. **{{ step.phase }}:** {{ step.description }}
+   - **Participants:** {{ step.participants | join(', ') }}
+   - **Deliverable:** {{ step.deliverable }}
+
+{% endfor %}
+
+---
+
+**Document Control:**
+- **Created:** {{ created_date | default(generated_date) }}
+- **Last Modified:** {{ generated_date }}
+- **Version:** {{ version | default('1.0') }}
+- **Status:** {{ document_status | default('Draft') }}
+
+**Approval:**
+{% for approver in approvers | default([]) %}
+- **{{ approver.role }}:** {{ approver.name }} - Date: ____________
+{% endfor %}
+
+---
+
+*This Software Requirements Specification was generated using DevDocAI v3.0.0*

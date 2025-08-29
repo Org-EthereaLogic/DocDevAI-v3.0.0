@@ -1,0 +1,232 @@
+---
+title: "Product Requirements Document"
+type: "technical"
+category: "requirements"
+description: "Comprehensive product requirements document template"
+version: "1.0"
+author: "DevDocAI"
+variables: ["product_name", "project_name", "overview", "target_users", "features", "non_functional_requirements"]
+optional_variables: ["author", "version", "deadline", "dependencies", "assumptions", "constraints"]
+sections: ["overview", "objectives", "target_users", "features", "requirements", "acceptance_criteria", "timeline"]
+tags: ["prd", "requirements", "product", "planning"]
+---
+# {{ product_name }} - Product Requirements Document
+
+**Project:** {{ project_name }}  
+**Version:** {{ version | default('1.0') }}  
+**Author:** {{ author | default('Product Team') }}  
+**Date:** {{ generated_date }}  
+{% if deadline %}**Deadline:** {{ deadline }}{% endif %}
+
+---
+
+## 1. Executive Summary
+
+### 1.1 Product Overview
+{{ overview }}
+
+### 1.2 Objectives
+{% for objective in objectives | default([]) %}
+- {{ objective }}
+{% endfor %}
+
+### 1.3 Success Metrics
+{% for metric in success_metrics | default([]) %}
+- **{{ metric.name }}:** {{ metric.target }} ({{ metric.description | default('') }})
+{% endfor %}
+
+---
+
+## 2. Target Users
+
+### 2.1 Primary Users
+{{ target_users }}
+
+### 2.2 User Personas
+{% for persona in user_personas | default([]) %}
+#### {{ persona.name }}
+- **Role:** {{ persona.role }}
+- **Goals:** {{ persona.goals }}
+- **Pain Points:** {{ persona.pain_points }}
+- **Technical Expertise:** {{ persona.tech_level | default('Medium') }}
+{% endfor %}
+
+### 2.3 User Journey
+{% for step in user_journey | default([]) %}
+{{ loop.index }}. **{{ step.stage }}:** {{ step.description }}
+   - **Actions:** {{ step.actions | join(', ') }}
+   - **Expected Outcome:** {{ step.outcome }}
+{% endfor %}
+
+---
+
+## 3. Functional Requirements
+
+### 3.1 Core Features
+{% for feature in features %}
+#### {{ feature.name }}
+**Priority:** {{ feature.priority | default('Medium') }}  
+**Description:** {{ feature.description }}
+
+**User Stories:**
+{% for story in feature.user_stories | default([]) %}
+- As a {{ story.user }}, I want {{ story.want }} so that {{ story.benefit }}
+{% endfor %}
+
+**Acceptance Criteria:**
+{% for criteria in feature.acceptance_criteria | default([]) %}
+- {{ criteria }}
+{% endfor %}
+
+{% if feature.technical_notes %}
+**Technical Notes:** {{ feature.technical_notes }}
+{% endif %}
+
+---
+{% endfor %}
+
+### 3.2 Secondary Features
+{% for feature in secondary_features | default([]) %}
+#### {{ feature.name }} (Optional)
+{{ feature.description }}
+- **Effort:** {{ feature.effort | default('TBD') }}
+- **Dependency:** {{ feature.dependency | default('None') }}
+{% endfor %}
+
+---
+
+## 4. Non-Functional Requirements
+
+### 4.1 Performance Requirements
+{% for req in non_functional_requirements.performance | default([]) %}
+- **{{ req.metric }}:** {{ req.target }} ({{ req.condition | default('under normal load') }})
+{% endfor %}
+
+### 4.2 Security Requirements
+{% for req in non_functional_requirements.security | default([]) %}
+- {{ req }}
+{% endfor %}
+
+### 4.3 Scalability Requirements
+{% for req in non_functional_requirements.scalability | default([]) %}
+- {{ req }}
+{% endfor %}
+
+### 4.4 Usability Requirements
+{% for req in non_functional_requirements.usability | default([]) %}
+- {{ req }}
+{% endfor %}
+
+---
+
+## 5. Technical Considerations
+
+### 5.1 Architecture Requirements
+{% for req in architecture_requirements | default([]) %}
+- {{ req }}
+{% endfor %}
+
+### 5.2 Integration Requirements
+{% for integration in integrations | default([]) %}
+- **{{ integration.name }}:** {{ integration.description }}
+  - **Type:** {{ integration.type | default('API') }}
+  - **Priority:** {{ integration.priority | default('Medium') }}
+{% endfor %}
+
+### 5.3 Data Requirements
+{% for data in data_requirements | default([]) %}
+- **{{ data.entity }}:** {{ data.description }}
+  - **Storage:** {{ data.storage | default('Database') }}
+  - **Retention:** {{ data.retention | default('Indefinite') }}
+{% endfor %}
+
+---
+
+## 6. Constraints and Assumptions
+
+### 6.1 Constraints
+{% for constraint in constraints | default([]) %}
+- {{ constraint }}
+{% endfor %}
+
+### 6.2 Assumptions
+{% for assumption in assumptions | default([]) %}
+- {{ assumption }}
+{% endfor %}
+
+### 6.3 Dependencies
+{% for dependency in dependencies | default([]) %}
+- **{{ dependency.name }}:** {{ dependency.description }}
+  - **Impact:** {{ dependency.impact | default('Medium') }}
+  - **Mitigation:** {{ dependency.mitigation | default('TBD') }}
+{% endfor %}
+
+---
+
+## 7. Timeline and Milestones
+
+{% if timeline %}
+### 7.1 Project Timeline
+{% for milestone in timeline %}
+- **{{ milestone.name }}:** {{ milestone.date }}
+  - **Deliverables:** {{ milestone.deliverables | join(', ') }}
+  - **Dependencies:** {{ milestone.dependencies | default('None') | join(', ') }}
+{% endfor %}
+{% endif %}
+
+### 7.2 Release Plan
+{% for release in release_plan | default([]) %}
+#### {{ release.name }} - {{ release.date }}
+{{ release.description }}
+
+**Features Included:**
+{% for feature in release.features %}
+- {{ feature }}
+{% endfor %}
+{% endfor %}
+
+---
+
+## 8. Risk Analysis
+
+{% for risk in risks | default([]) %}
+### {{ risk.category }} Risk: {{ risk.name }}
+**Probability:** {{ risk.probability | default('Medium') }}  
+**Impact:** {{ risk.impact | default('Medium') }}  
+**Description:** {{ risk.description }}  
+**Mitigation:** {{ risk.mitigation | default('TBD') }}
+{% endfor %}
+
+---
+
+## 9. Success Criteria and Testing
+
+### 9.1 Definition of Done
+{% for criteria in definition_of_done | default([]) %}
+- {{ criteria }}
+{% endfor %}
+
+### 9.2 Testing Strategy
+{% for test_type in testing_strategy | default([]) %}
+- **{{ test_type.type }}:** {{ test_type.description }}
+  - **Coverage:** {{ test_type.coverage | default('TBD') }}
+  - **Tools:** {{ test_type.tools | default('TBD') }}
+{% endfor %}
+
+---
+
+## 10. Appendix
+
+### 10.1 Glossary
+{% for term in glossary | default([]) %}
+- **{{ term.name }}:** {{ term.definition }}
+{% endfor %}
+
+### 10.2 References
+{% for ref in references | default([]) %}
+- {{ ref }}
+{% endfor %}
+
+---
+
+*This document was generated using DevDocAI v3.0.0*
