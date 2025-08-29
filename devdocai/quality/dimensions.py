@@ -612,7 +612,7 @@ class AccuracyAnalyzer(DimensionAnalyzer):
             # Simple heuristic checks
             if url.startswith('http://localhost') or url.startswith('http://127.0.0.1'):
                 broken.append(url)
-            elif urlparse(url).hostname == "example.com":
+            elif urlparse(url).hostname and urlparse(url).hostname == "example.com":
                 broken.append(url)
             elif url.endswith('.broken') or url.endswith('.invalid'):
                 broken.append(url)
