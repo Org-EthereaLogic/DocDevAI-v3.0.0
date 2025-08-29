@@ -267,12 +267,13 @@ class OptimizedStorageSystem(LocalStorageSystem):
         else:
             # Warm most recently accessed documents
             with self.get_session() as session:
-                result = session.execute("""
+                from sqlalchemy import text
+                result = session.execute(text("""
                     SELECT id FROM documents
                     WHERE status != 'deleted'
                     ORDER BY access_count DESC, last_accessed DESC
                     LIMIT :limit
-                """, {'limit': limit})
+                """), {'limit': limit})
                 
                 doc_ids = [row[0] for row in result]
                 if doc_ids:

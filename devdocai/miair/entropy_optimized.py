@@ -50,64 +50,51 @@ class OptimizedShannonEntropyCalculator:
         self.enable_parallel = enable_parallel
         self.num_workers = num_workers or mp.cpu_count()
         
-        # Enhanced caching with hash-based keys
-        self._cache = {}
-        self._setup_optimized_caches()
+        # Simple caching without complex setup - avoid initialization overhead
+        self._simple_cache = {}
+        self._cache_hits = 0
+        self._cache_misses = 0
         
-        # Pre-allocate numpy arrays for better memory efficiency
-        self._freq_buffer = np.zeros(256, dtype=np.float64)  # ASCII chars
-        self._word_buffer = np.zeros(10000, dtype=np.float64)  # Common words
-        
-    def _setup_optimized_caches(self):
-        """Setup optimized LRU caches with hash-based keys."""
-        # Use hash-based caching for better performance
-        @lru_cache(maxsize=self.cache_size)
-        def _cached_char_entropy(text_hash: str, text_len: int) -> float:
-            # Retrieve actual text from cache
-            if text_hash in self._cache:
-                text = self._cache[text_hash]
-                return self._calculate_character_entropy_vectorized(text)
-            return 0.0
-        
-        @lru_cache(maxsize=self.cache_size)
-        def _cached_word_entropy(text_hash: str, text_len: int) -> float:
-            if text_hash in self._cache:
-                text = self._cache[text_hash]
-                return self._calculate_word_entropy_vectorized(text)
-            return 0.0
-        
-        self._cached_char_entropy = _cached_char_entropy
-        self._cached_word_entropy = _cached_word_entropy
+    def _get_cache_key(self, text: str) -> str:
+        """Generate simple cache key."""
+        # Simple hash without complex overhead
+        return f"{len(text)}_{hash(text[:100] if len(text) > 100 else text)}"
     
     def calculate_entropy(self, text: str, level: str = 'all') -> Dict[str, float]:
         """
         Calculate entropy with optimized performance.
         
-        Uses vectorization and caching for 2-3x speedup.
+        Fast approach: always use basic operations for best performance.
         """
         if not text:
             return {'character': 0.0, 'word': 0.0, 'sentence': 0.0}
         
-        # Generate hash for caching
-        text_hash = self._get_text_hash(text)
+        # Check simple cache first
+        cache_key = self._get_cache_key(text) + f"_{level}"
+        if cache_key in self._simple_cache:
+            self._cache_hits += 1
+            return self._simple_cache[cache_key]
         
-        # Store text in cache for hash lookup
-        if len(self._cache) < self.cache_size:
-            self._cache[text_hash] = text
+        self._cache_misses += 1
         
+        # Always use basic operations for best performance - no NumPy overhead
         results = {}
         
         if level in ['character', 'all']:
-            results['character'] = self._cached_char_entropy(text_hash, len(text))
+            results['character'] = self._calculate_character_entropy_fast(text)
         
         if level in ['word', 'all']:
-            results['word'] = self._cached_word_entropy(text_hash, len(text))
+            results['word'] = self._calculate_word_entropy_fast(text)
         
         if level in ['sentence', 'all']:
-            results['sentence'] = self._calculate_sentence_entropy_optimized(text)
+            results['sentence'] = self._calculate_sentence_entropy_fast(text)
         
         if level == 'all':
             results['aggregate'] = self._calculate_aggregate_entropy_fast(results)
+        
+        # Cache result (limit cache size)
+        if len(self._simple_cache) < self.cache_size:
+            self._simple_cache[cache_key] = results
         
         return results
     
@@ -137,85 +124,82 @@ class OptimizedShannonEntropyCalculator:
         sample = text[:100] if len(text) > 100 else text
         return hashlib.md5(f"{sample}_{len(text)}".encode()).hexdigest()
     
-    def _calculate_character_entropy_vectorized(self, text: str) -> float:
+    def _calculate_character_entropy_fast(self, text: str) -> float:
         """
-        Vectorized character entropy calculation using numpy.
-        
-        2-3x faster than original implementation.
+        Fast character entropy calculation using basic Python operations.
         """
         if not text:
             return 0.0
         
-        # Convert to numpy array for vectorized operations
-        text_array = np.frombuffer(text.encode('utf-8', errors='ignore'), dtype=np.uint8)
+        # Use collections.Counter for fast frequency counting
+        from collections import Counter
+        import math
         
-        # Use numpy's unique for fast frequency counting
-        unique, counts = np.unique(text_array, return_counts=True)
+        char_counts = Counter(text)
+        text_length = len(text)
         
-        # Vectorized probability and entropy calculation
-        probabilities = counts.astype(np.float64) / len(text_array)
+        entropy = 0.0
+        for count in char_counts.values():
+            probability = count / text_length
+            entropy -= probability * math.log2(probability)
         
-        # Vectorized entropy calculation: -sum(p * log2(p))
-        # Add small epsilon to avoid log(0)
-        entropy = -np.sum(probabilities * np.log2(probabilities + 1e-10))
-        
-        return float(entropy)
+        return entropy
     
-    def _calculate_word_entropy_vectorized(self, text: str) -> float:
+    def _calculate_word_entropy_fast(self, text: str) -> float:
         """
-        Optimized word entropy with pre-compiled regex and vectorization.
-        
-        2x faster than original implementation.
+        Fast word entropy calculation using basic Python operations.
         """
         if not text:
             return 0.0
         
-        # Use pre-compiled regex for faster word extraction
         words = WORD_PATTERN.findall(text.lower())
         if not words:
             return 0.0
         
-        # Use Counter with numpy for fast frequency calculation
+        # Use collections.Counter for fast frequency counting
+        from collections import Counter
+        import math
+        
         word_counts = Counter(words)
-        counts = np.array(list(word_counts.values()), dtype=np.float64)
         total_words = len(words)
         
-        # Vectorized entropy calculation
-        probabilities = counts / total_words
-        entropy = -np.sum(probabilities * np.log2(probabilities + 1e-10))
+        entropy = 0.0
+        for count in word_counts.values():
+            probability = count / total_words
+            entropy -= probability * math.log2(probability)
         
-        return float(entropy)
+        return entropy
     
-    def _calculate_sentence_entropy_optimized(self, text: str) -> float:
+    def _calculate_sentence_entropy_fast(self, text: str) -> float:
         """
-        Optimized sentence entropy with pre-compiled patterns.
-        
-        1.5x faster than original.
+        Fast sentence entropy calculation using basic Python operations.
         """
         if not text:
             return 0.0
         
-        # Use pre-compiled regex
         sentences = SENTENCE_PATTERN.split(text)
         sentences = [s.strip() for s in sentences if s.strip()]
         
         if not sentences:
             return 0.0
         
-        # Vectorized length calculation
-        lengths = np.array([len(WORD_PATTERN.findall(s)) for s in sentences])
+        # Use collections.Counter for fast frequency counting
+        from collections import Counter
+        import math
         
-        if len(lengths) == 0:
+        lengths = [len(WORD_PATTERN.findall(s)) for s in sentences]
+        if not lengths:
             return 0.0
         
-        # Use numpy for fast unique counting
-        unique_lengths, counts = np.unique(lengths, return_counts=True)
-        probabilities = counts.astype(np.float64) / len(sentences)
+        length_counts = Counter(lengths)
+        total_sentences = len(sentences)
         
-        # Vectorized entropy
-        entropy = -np.sum(probabilities * np.log2(probabilities + 1e-10))
+        entropy = 0.0
+        for count in length_counts.values():
+            probability = count / total_sentences
+            entropy -= probability * math.log2(probability)
         
-        return float(entropy)
+        return entropy
     
     def _calculate_aggregate_entropy_fast(self, entropies: Dict[str, float]) -> float:
         """

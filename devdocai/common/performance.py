@@ -413,7 +413,9 @@ class ResourceMonitor:
     
     def get_cpu_usage(self) -> float:
         """Get current CPU usage percentage."""
-        return self.process.cpu_percent(interval=0.1)
+        # Use interval=None for non-blocking call to avoid 100ms sleep delay
+        # This provides instant CPU usage based on previous measurement
+        return self.process.cpu_percent(interval=None)
     
     def check_resources(self) -> Tuple[bool, List[str]]:
         """

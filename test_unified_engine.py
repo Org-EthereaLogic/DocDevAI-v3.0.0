@@ -68,8 +68,8 @@ def test_engine_mode(mode_name: str, engine):
         duration = time.perf_counter() - start
         
         print(f"   ✓ Optimization completed in {duration:.4f}s")
-        print(f"   - Original Score: {opt_result.original_score:.2f}")
-        print(f"   - Optimized Score: {opt_result.optimized_score:.2f}")
+        print(f"   - Original Score: {opt_result.original_score.overall:.2f}")
+        print(f"   - Optimized Score: {opt_result.optimized_score.overall:.2f}")
         print(f"   - Iterations: {opt_result.iterations}")
         
         # Test batch processing

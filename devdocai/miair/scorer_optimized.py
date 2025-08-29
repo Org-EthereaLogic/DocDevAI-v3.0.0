@@ -134,25 +134,21 @@ class OptimizedQualityScorer:
     
     def score_document(self, content: str, metadata: Optional[Dict] = None) -> QualityMetrics:
         """
-        Score document with optimized parallel processing.
+        Score document with hybrid optimization approach.
         
-        2-3x faster than original implementation.
+        Uses parallel processing only for large documents to avoid overhead.
         """
         if not content:
             return QualityMetrics()
         
-        # Generate cache key
-        content_hash = self._get_content_hash(content, metadata)
+        # Use parallel processing only for large documents to avoid overhead
+        use_parallel = self.enable_parallel and len(content) > 5000
         
-        # Store in cache for lookup
-        if len(self._cache) < self.cache_size:
-            self._cache[content_hash] = (content, metadata)
-        
-        # Get cached or compute scores
-        if self.enable_parallel:
+        # Get scores
+        if use_parallel:
             scores = self._score_parallel(content, metadata)
         else:
-            scores = self._cached_score(content_hash)
+            scores = self._score_all_dimensions(content, metadata)
         
         # Vectorized overall calculation
         overall = float(np.dot(self.weights_array, scores))
