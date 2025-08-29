@@ -16,6 +16,8 @@ from functools import lru_cache
 import jinja2
 from jinja2 import Environment, FileSystemLoader, Template, meta
 
+from ...common.performance import LRUCache, ContentCache
+
 from ...common.errors import DevDocAIError
 from ...common.logging import get_logger
 
@@ -84,25 +86,31 @@ class TemplateLoader:
             template_dir: Directory containing template files
         """
         self.template_dir = Path(template_dir)
-        self._template_cache = {}  # Cache for loaded templates
-        self._metadata_cache = {}  # Cache for template metadata
         
-        # Create Jinja2 environment
+        # Enhanced caching system (Pass 2 optimization)
+        self._template_cache = LRUCache[TemplateMetadata](max_size=64, ttl_seconds=3600)  # 1 hour TTL
+        self._metadata_cache = LRUCache[TemplateMetadata](max_size=128, ttl_seconds=3600)
+        self._compiled_template_cache = LRUCache[Template](max_size=64, ttl_seconds=3600)
+        self._content_fragment_cache = ContentCache(max_size=256)  # Content-based cache
+        
+        # Create Jinja2 environment with performance optimizations
         self.jinja_env = Environment(
             loader=FileSystemLoader(str(self.template_dir)),
             autoescape=False,  # We're generating documentation, not HTML
             trim_blocks=True,
-            lstrip_blocks=True
+            lstrip_blocks=True,
+            cache_size=100,  # Enable Jinja2 internal caching
+            auto_reload=False  # Disable auto-reload for performance
         )
         
         # Add custom filters
         self._register_custom_filters()
         
-        logger.info(f"TemplateLoader initialized with directory: {self.template_dir}")
+        logger.info(f"TemplateLoader initialized with enhanced caching - template directory: {self.template_dir}")
     
     def load_template(self, template_name: str) -> Optional[TemplateMetadata]:
         """
-        Load a template and its metadata.
+        Load a template and its metadata with enhanced caching.
         
         Args:
             template_name: Name of the template file (without .j2 extension)
@@ -110,9 +118,11 @@ class TemplateLoader:
         Returns:
             TemplateMetadata object with content, or None if not found
         """
-        # Check cache first
-        if template_name in self._template_cache:
-            return self._template_cache[template_name]
+        # Check enhanced cache first (Pass 2 optimization)
+        cached_template = self._template_cache.get(template_name)
+        if cached_template:
+            logger.debug(f"Template cache hit: {template_name}")
+            return cached_template
         
         try:
             # Find template file
@@ -150,9 +160,9 @@ class TemplateLoader:
                 file_path=template_file
             )
             
-            # Cache the template
-            self._template_cache[template_name] = metadata
-            self._metadata_cache[template_name] = metadata
+            # Cache the template with enhanced caching (Pass 2 optimization)
+            self._template_cache.put(template_name, metadata)
+            self._metadata_cache.put(template_name, metadata)
             
             logger.debug(f"Template loaded: {template_name} ({metadata.type}/{metadata.category})")
             return metadata
@@ -171,9 +181,10 @@ class TemplateLoader:
         Returns:
             TemplateMetadata object without content, or None if not found
         """
-        # Check cache first
-        if template_name in self._metadata_cache:
-            return self._metadata_cache[template_name]
+        # Check enhanced cache first
+        cached_metadata = self._metadata_cache.get(template_name)
+        if cached_metadata:
+            return cached_metadata
         
         # Load full template (which caches metadata)
         template = self.load_template(template_name)
@@ -241,11 +252,87 @@ class TemplateLoader:
         
         return categories
     
+    def get_compiled_template(self, template_name: str) -> Optional[Template]:
+        """
+        Get compiled Jinja2 template with caching (Pass 2 optimization).
+        
+        Args:
+            template_name: Name of the template
+            
+        Returns:
+            Compiled Jinja2 Template object or None if not found
+        """
+        # Check compiled template cache
+        cached_compiled = self._compiled_template_cache.get(template_name)
+        if cached_compiled:
+            logger.debug(f"Compiled template cache hit: {template_name}")
+            return cached_compiled
+        
+        # Load template metadata to get content
+        metadata = self.load_template(template_name)
+        if not metadata or not metadata.content:
+            return None
+        
+        try:
+            # Compile template
+            compiled_template = self.jinja_env.from_string(metadata.content)
+            
+            # Cache compiled template
+            self._compiled_template_cache.put(template_name, compiled_template)
+            
+            logger.debug(f"Template compiled and cached: {template_name}")
+            return compiled_template
+            
+        except Exception as e:
+            logger.error(f"Failed to compile template {template_name}: {e}")
+            return None
+    
+    def cache_content_fragment(self, fragment_key: str, content: str, result: Any) -> None:
+        """
+        Cache processed content fragment for reuse (Pass 2 optimization).
+        
+        Args:
+            fragment_key: Unique key for the fragment
+            content: Original content
+            result: Processed result to cache
+        """
+        cache_key = f"{fragment_key}:{content}"
+        self._content_fragment_cache.put(cache_key, result)
+        logger.debug(f"Content fragment cached: {fragment_key}")
+    
+    def get_cached_content_fragment(self, fragment_key: str, content: str) -> Any:
+        """
+        Get cached content fragment result.
+        
+        Args:
+            fragment_key: Unique key for the fragment
+            content: Original content
+            
+        Returns:
+            Cached result or None if not found
+        """
+        cache_key = f"{fragment_key}:{content}"
+        result = self._content_fragment_cache.get(cache_key)
+        if result:
+            logger.debug(f"Content fragment cache hit: {fragment_key}")
+        return result
+    
+    def get_cache_stats(self) -> Dict[str, Any]:
+        """Get comprehensive cache statistics (Pass 2 optimization)."""
+        return {
+            "template_cache": self._template_cache.get_stats(),
+            "metadata_cache": self._metadata_cache.get_stats(),
+            "compiled_template_cache": self._compiled_template_cache.get_stats(),
+            "content_fragment_cache": self._content_fragment_cache.cache.get_stats()
+        }
+    
     def clear_cache(self) -> None:
-        """Clear template cache."""
+        """Clear all caches (Pass 2 enhanced)."""
         self._template_cache.clear()
         self._metadata_cache.clear()
-        logger.debug("Template cache cleared")
+        self._compiled_template_cache.clear()
+        self._content_fragment_cache.clear()
+        logger.debug("All template caches cleared")
     
     def _find_template_file(self, template_name: str) -> Optional[Path]:
         """Find template file by name, searching in subdirectories."""

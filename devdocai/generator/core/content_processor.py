@@ -15,6 +15,7 @@ from jinja2 import Environment, BaseLoader, StrictUndefined, select_autoescape
 
 from ...common.errors import DevDocAIError
 from ...common.logging import get_logger
+from ...common.performance import LRUCache, cached
 
 logger = get_logger(__name__)
 
@@ -31,21 +32,27 @@ class ContentProcessor:
     """
     
     def __init__(self):
-        """Initialize the content processor."""
+        """Initialize the content processor with enhanced caching (Pass 2)."""
         # Create Jinja2 environment for content processing
         self.jinja_env = Environment(
             loader=BaseLoader(),  # We'll pass content directly
             autoescape=select_autoescape([]),  # No auto-escaping for document content
             trim_blocks=True,
             lstrip_blocks=True,
-            undefined=StrictUndefined  # Fail on undefined variables
+            undefined=StrictUndefined,  # Fail on undefined variables
+            cache_size=200,  # Enable Jinja2 internal caching
+            auto_reload=False  # Disable auto-reload for performance
         )
+        
+        # Enhanced caching for processed content (Pass 2 optimization)
+        self._rendered_content_cache = LRUCache[str](max_size=512, ttl_seconds=1800)  # 30 min TTL
+        self._context_cache = LRUCache[Dict[str, Any]](max_size=256, ttl_seconds=1800)
         
         # Register custom filters and functions
         self._register_custom_filters()
         self._register_global_functions()
         
-        logger.debug("ContentProcessor initialized")
+        logger.debug("ContentProcessor initialized with enhanced caching")
     
     def process_content(
         self, 
@@ -54,7 +61,7 @@ class ContentProcessor:
         required_variables: Optional[List[str]] = None
     ) -> str:
         """
-        Process template content with provided inputs.
+        Process template content with provided inputs and caching (Pass 2 enhanced).
         
         Args:
             template_content: Raw template content with Jinja2 syntax
@@ -68,6 +75,18 @@ class ContentProcessor:
             DevDocAIError: If template processing fails
         """
         try:
+            # Create cache key from content and inputs
+            import hashlib
+            content_hash = hashlib.sha256(template_content.encode()).hexdigest()[:16]
+            inputs_hash = hashlib.sha256(str(sorted(inputs.items())).encode()).hexdigest()[:16]
+            cache_key = f"{content_hash}:{inputs_hash}"
+            
+            # Check cache first (Pass 2 optimization)
+            cached_result = self._rendered_content_cache.get(cache_key)
+            if cached_result:
+                logger.debug(f"Content processing cache hit ({len(cached_result)} characters)")
+                return cached_result
+            
             # Validate required variables if specified
             if required_variables:
                 self._validate_required_variables(inputs, required_variables)
@@ -75,8 +94,8 @@ class ContentProcessor:
             # Create template from content
             template = self.jinja_env.from_string(template_content)
             
-            # Prepare context with default values
-            context = self._prepare_context(inputs)
+            # Prepare context with default values (with caching)
+            context = self._prepare_context_cached(inputs)
             
             # Render template
             rendered_content = template.render(**context)
@@ -84,7 +103,10 @@ class ContentProcessor:
             # Post-process content
             processed_content = self._post_process_content(rendered_content)
             
-            logger.debug(f"Content processed successfully ({len(processed_content)} characters)")
+            # Cache the result (Pass 2 optimization)
+            self._rendered_content_cache.put(cache_key, processed_content)
+            
+            logger.debug(f"Content processed and cached ({len(processed_content)} characters)")
             return processed_content
             
         except jinja2.UndefinedError as e:
@@ -175,6 +197,21 @@ class ContentProcessor:
         context.setdefault('version', '1.0')
         
         # Add utility objects
+        context['now'] = datetime.now()
+        
+        return context
+    
+    def _prepare_context_cached(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        """Prepare template context with caching for static parts (Pass 2 optimization)."""
+        # Start with inputs (user values take priority)
+        context = inputs.copy()
+        
+        # Add default values only if not already provided by user
+        context.setdefault('version', '1.0')
+        
+        # Add dynamic values (not cached)
+        context.setdefault('generated_date', datetime.now().strftime('%Y-%m-%d'))
+        context.setdefault('generated_time', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         context['now'] = datetime.now()
         
         return context

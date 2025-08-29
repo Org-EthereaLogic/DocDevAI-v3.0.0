@@ -8,10 +8,12 @@ workflow using templates, content processing, and output formatting.
 import logging
 import time
 import uuid
+import asyncio
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Union
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from ..utils.validators import InputValidator, ValidationError
 from .template_loader import TemplateLoader, TemplateMetadata
@@ -24,6 +26,7 @@ from ...core.config import ConfigurationManager
 from ...storage import LocalStorageSystem, Document
 from ...common.errors import DevDocAIError
 from ...common.logging import get_logger
+from ...common.performance import ParallelExecutor
 
 logger = get_logger(__name__)
 
@@ -65,6 +68,40 @@ class GenerationResult:
         """Initialize warnings list if not provided."""
         if self.warnings is None:
             self.warnings = []
+
+
+@dataclass
+class BatchGenerationRequest:
+    """Request for batch document generation (Pass 2 feature)."""
+    
+    template_name: str
+    inputs: Dict[str, Any]
+    config: Optional[GenerationConfig] = None
+    request_id: Optional[str] = None
+    
+    def __post_init__(self):
+        """Initialize request ID if not provided."""
+        if self.request_id is None:
+            self.request_id = str(uuid.uuid4())
+
+
+@dataclass 
+class BatchGenerationResult:
+    """Result of batch document generation (Pass 2 feature)."""
+    
+    total_requests: int
+    successful: int
+    failed: int
+    total_time: float
+    average_time_per_document: float
+    throughput_docs_per_sec: float
+    results: List[GenerationResult]
+    errors: List[str]
+    
+    def __post_init__(self):
+        """Initialize errors list if not provided."""
+        if self.errors is None:
+            self.errors = []
 
 
 class DocumentGenerator:
@@ -113,7 +150,10 @@ class DocumentGenerator:
             "html": HtmlOutput()
         }
         
-        logger.info(f"DocumentGenerator initialized with template directory: {self.template_dir}")
+        # Initialize performance utilities (Pass 2 optimization)
+        self._parallel_executor = ParallelExecutor(max_workers=4, use_processes=False)
+        
+        logger.info(f"DocumentGenerator initialized with enhanced performance features - template directory: {self.template_dir}")
     
     def generate_document(
         self,
@@ -267,6 +307,243 @@ class DocumentGenerator:
         except Exception as e:
             logger.error(f"Input validation failed for {template_name}: {e}")
             return [f"Validation error: {str(e)}"]
+    
+    def generate_batch(
+        self,
+        requests: List[BatchGenerationRequest],
+        max_workers: Optional[int] = None
+    ) -> BatchGenerationResult:
+        """
+        Generate multiple documents in parallel (Pass 2 feature).
+        
+        Args:
+            requests: List of batch generation requests
+            max_workers: Maximum number of concurrent workers
+            
+        Returns:
+            BatchGenerationResult with aggregated results
+        """
+        if not requests:
+            return BatchGenerationResult(
+                total_requests=0,
+                successful=0,
+                failed=0,
+                total_time=0.0,
+                average_time_per_document=0.0,
+                throughput_docs_per_sec=0.0,
+                results=[],
+                errors=[]
+            )
+        
+        start_time = time.time()
+        results = []
+        errors = []
+        
+        logger.info(f"Starting batch generation of {len(requests)} documents")
+        
+        # Use custom max_workers or default
+        if max_workers is None:
+            max_workers = min(len(requests), 8)  # Cap at 8 workers
+        
+        # Generate documents concurrently
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Submit all generation tasks
+            future_to_request = {
+                executor.submit(self._generate_single_for_batch, req): req 
+                for req in requests
+            }
+            
+            # Collect results as they complete
+            for future in as_completed(future_to_request):
+                request = future_to_request[future]
+                try:
+                    result = future.result()
+                    results.append(result)
+                    if not result.success:
+                        errors.append(f"Request {request.request_id}: {result.error_message}")
+                except Exception as e:
+                    error_msg = f"Request {request.request_id} failed with exception: {str(e)}"
+                    errors.append(error_msg)
+                    logger.error(error_msg)
+                    # Create failed result
+                    results.append(GenerationResult(
+                        success=False,
+                        template_name=request.template_name,
+                        error_message=str(e)
+                    ))
+        
+        end_time = time.time()
+        total_time = end_time - start_time
+        
+        # Calculate statistics
+        successful = sum(1 for r in results if r.success)
+        failed = len(results) - successful
+        average_time = total_time / len(results) if results else 0.0
+        throughput = successful / total_time if total_time > 0 else 0.0
+        
+        batch_result = BatchGenerationResult(
+            total_requests=len(requests),
+            successful=successful,
+            failed=failed,
+            total_time=total_time,
+            average_time_per_document=average_time,
+            throughput_docs_per_sec=throughput,
+            results=results,
+            errors=errors
+        )
+        
+        logger.info(f"Batch generation completed: {successful}/{len(requests)} successful, "
+                   f"{throughput:.1f} docs/sec, {total_time:.2f}s total")
+        
+        return batch_result
+    
+    def generate_many_same_template(
+        self,
+        template_name: str,
+        inputs_list: List[Dict[str, Any]],
+        config: Optional[GenerationConfig] = None,
+        max_workers: Optional[int] = None
+    ) -> BatchGenerationResult:
+        """
+        Generate multiple documents using the same template (Pass 2 optimization).
+        
+        This method is optimized for generating many documents with the same template
+        but different inputs, allowing for template compilation reuse.
+        
+        Args:
+            template_name: Name of the template to use for all documents
+            inputs_list: List of input dictionaries for each document
+            config: Generation configuration (applied to all)
+            max_workers: Maximum concurrent workers
+            
+        Returns:
+            BatchGenerationResult with aggregated results
+        """
+        # Convert to batch requests
+        requests = [
+            BatchGenerationRequest(
+                template_name=template_name,
+                inputs=inputs,
+                config=config or GenerationConfig()
+            )
+            for inputs in inputs_list
+        ]
+        
+        return self.generate_batch(requests, max_workers)
+    
+    async def generate_batch_async(
+        self,
+        requests: List[BatchGenerationRequest]
+    ) -> BatchGenerationResult:
+        """
+        Async version of batch generation (Pass 2 feature).
+        
+        Args:
+            requests: List of batch generation requests
+            
+        Returns:
+            BatchGenerationResult with aggregated results
+        """
+        if not requests:
+            return BatchGenerationResult(
+                total_requests=0,
+                successful=0,
+                failed=0, 
+                total_time=0.0,
+                average_time_per_document=0.0,
+                throughput_docs_per_sec=0.0,
+                results=[],
+                errors=[]
+            )
+        
+        start_time = time.time()
+        logger.info(f"Starting async batch generation of {len(requests)} documents")
+        
+        # Create tasks for async execution
+        tasks = [
+            asyncio.create_task(self._generate_single_async(req))
+            for req in requests
+        ]
+        
+        # Wait for all tasks to complete
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # Process results and handle exceptions
+        processed_results = []
+        errors = []
+        
+        for i, result in enumerate(results):
+            if isinstance(result, Exception):
+                error_msg = f"Request {requests[i].request_id} failed: {str(result)}"
+                errors.append(error_msg)
+                processed_results.append(GenerationResult(
+                    success=False,
+                    template_name=requests[i].template_name,
+                    error_message=str(result)
+                ))
+            else:
+                processed_results.append(result)
+                if not result.success:
+                    errors.append(f"Request {requests[i].request_id}: {result.error_message}")
+        
+        end_time = time.time()
+        total_time = end_time - start_time
+        
+        # Calculate statistics
+        successful = sum(1 for r in processed_results if r.success)
+        failed = len(processed_results) - successful
+        average_time = total_time / len(processed_results) if processed_results else 0.0
+        throughput = successful / total_time if total_time > 0 else 0.0
+        
+        batch_result = BatchGenerationResult(
+            total_requests=len(requests),
+            successful=successful,
+            failed=failed,
+            total_time=total_time,
+            average_time_per_document=average_time,
+            throughput_docs_per_sec=throughput,
+            results=processed_results,
+            errors=errors
+        )
+        
+        logger.info(f"Async batch generation completed: {successful}/{len(requests)} successful, "
+                   f"{throughput:.1f} docs/sec, {total_time:.2f}s total")
+        
+        return batch_result
+    
+    def _generate_single_for_batch(self, request: BatchGenerationRequest) -> GenerationResult:
+        """Generate a single document for batch processing."""
+        try:
+            return self.generate_document(
+                request.template_name,
+                request.inputs,
+                request.config
+            )
+        except Exception as e:
+            logger.error(f"Batch generation failed for request {request.request_id}: {e}")
+            return GenerationResult(
+                success=False,
+                template_name=request.template_name,
+                error_message=str(e)
+            )
+    
+    async def _generate_single_async(self, request: BatchGenerationRequest) -> GenerationResult:
+        """Generate a single document asynchronously."""
+        loop = asyncio.get_event_loop()
+        try:
+            # Run the synchronous generation in a thread pool
+            return await loop.run_in_executor(
+                None,
+                self._generate_single_for_batch,
+                request
+            )
+        except Exception as e:
+            logger.error(f"Async generation failed for request {request.request_id}: {e}")
+            return GenerationResult(
+                success=False,
+                template_name=request.template_name,
+                error_message=str(e)
+            )
     
     def _validate_inputs(self, inputs: Dict[str, Any], template_name: str) -> None:
         """Validate inputs for the specified template."""
