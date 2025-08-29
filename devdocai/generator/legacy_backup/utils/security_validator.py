@@ -7,6 +7,7 @@ Comprehensive security validation for document generation with advanced threat d
 import re
 import html
 import logging
+import bleach
 import json
 import urllib.parse
 from typing import Dict, List, Optional, Any, Union, Set
@@ -54,22 +55,16 @@ class EnhancedSecurityValidator(BaseValidator):
         re.compile(r'\{\{.*?\}\}', re.IGNORECASE | re.DOTALL),  # Handlebars
     ]
     
-    XSS_PATTERNS = [
-        re.compile(r'<script[^>]*>.*?</script>', re.IGNORECASE | re.DOTALL),
-        re.compile(r'<iframe[^>]*>.*?</iframe>', re.IGNORECASE | re.DOTALL),
-        re.compile(r'<object[^>]*>.*?</object>', re.IGNORECASE | re.DOTALL),
-        re.compile(r'<embed[^>]*>', re.IGNORECASE),
-        re.compile(r'<link[^>]*>', re.IGNORECASE),
-        re.compile(r'<meta[^>]*>', re.IGNORECASE),
-        re.compile(r'<base[^>]*>', re.IGNORECASE),
-        re.compile(r'<form[^>]*>', re.IGNORECASE),
-        re.compile(r'javascript:', re.IGNORECASE),
-        re.compile(r'vbscript:', re.IGNORECASE),
-        re.compile(r'data:', re.IGNORECASE),
-        re.compile(r'on\w+\s*=', re.IGNORECASE),  # Event handlers
-        re.compile(r'style\s*=.*?expression\s*\(', re.IGNORECASE),  # CSS expressions
-        re.compile(r'@import\s*["\']', re.IGNORECASE),  # CSS imports
-    ]
+    # XSS and script injection sanitizer using bleach.
+    @staticmethod
+    def sanitize_html(content: str, allowed_tags: Optional[List[str]] = None, allowed_attributes: Optional[dict] = None) -> str:
+        """
+        Sanitize HTML input and strip out dangerous content such as scripts, event handlers, and unsafe tags/attributes.
+        """
+        # To be secure by default: allow *no* tags/attributes unless specified.
+        tags = allowed_tags if allowed_tags is not None else []
+        attrs = allowed_attributes if allowed_attributes is not None else {}
+        return bleach.clean(content, tags=tags, attributes=attrs, strip=True)
     
     SQL_INJECTION_PATTERNS = [
         re.compile(r'\b(union|select|insert|update|delete|drop|create|alter|exec|execute)\b', re.IGNORECASE),
