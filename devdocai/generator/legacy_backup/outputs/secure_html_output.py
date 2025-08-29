@@ -338,25 +338,25 @@ class SecureHtmlOutput:
         html_content = re.sub(r'^### (.+)$', r'<h3>\1</h3>', html_content, flags=re.MULTILINE)
         
         # Bold and italic (with HTML escaping)
-        html_content = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', html_content)
-        html_content = re.sub(r'\*(.+?)\*', r'<em>\1</em>', html_content)
+        html_content = re.sub(r'\\*\\*(.+?)\\*\\*', r'<strong>\1</strong>', html_content)
+        html_content = re.sub(r'\\*(.+?)\\*', r'<em>\1</em>', html_content)
         
         # Links (with URL validation)
         def safe_link_replace(match):
             text = html.escape(match.group(1))
             url = match.group(2)
             if self._is_safe_url(url):
-                return f'<a href="{html.escape(url)}">{text}</a>'
+                return f'<a href=\"{html.escape(url)}\">{text}</a>'
             else:
                 return text  # Just return text if URL is unsafe
         
-        html_content = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', safe_link_replace, html_content)
+        html_content = re.sub(r'\\[([^\\]]+)\\]\\(([^)]+)\\)', safe_link_replace, html_content)
         
         # Code (inline)
         html_content = re.sub(r'`([^`]+)`', r'<code>\1</code>', html_content)
         
         # Paragraphs
-        paragraphs = html_content.split('\n\n')
+        paragraphs = html_content.split('\\n\\n')
         html_paragraphs = []
         
         for para in paragraphs:
@@ -369,7 +369,7 @@ class SecureHtmlOutput:
         return '\n\n'.join(html_paragraphs)
     
     def _sanitize_html_comprehensive(self, html_content: str) -> str:
-        """Comprehensive HTML sanitization."""
+        \"\"\"Comprehensive HTML sanitization.\"\"\"
         if self.html_cleaner:
             # Use bleach for thorough sanitization
             return self.html_cleaner.clean(html_content)
@@ -378,7 +378,7 @@ class SecureHtmlOutput:
             return self._manual_html_sanitization(html_content)
     
     def _manual_html_sanitization(self, html_content: str) -> str:
-        """Manual HTML sanitization when bleach is not available."""
+        \"\"\"Manual HTML sanitization when bleach is not available.\"\"\"
         # Remove dangerous patterns
         for pattern in self.DANGEROUS_PATTERNS:
             html_content = pattern.sub('', html_content)
@@ -389,19 +389,19 @@ class SecureHtmlOutput:
         html_content = tag_pattern.sub('', html_content)
         
         # Remove dangerous attributes
-        attr_pattern = re.compile(r'\son\w+\s*=\s*["\'][^"\']*["\']', re.IGNORECASE)
+        attr_pattern = re.compile(r'\\son\\w+\\s*=\\s*[\"\\'][^\"\\'][\"\\']', re.IGNORECASE)
         html_content = attr_pattern.sub('', html_content)
         
         return html_content
     
     def _generate_secure_toc(self, html_content: str) -> str:
-        """Generate secure table of contents."""
+        \"\"\"Generate secure table of contents.\"\"\"
         # Extract headers safely
-        header_pattern = re.compile(r'<(h[1-6])(?:[^>]*id=["\']([\w\-]+)["\'])?[^>]*>([^<]+)</h[1-6]>', re.IGNORECASE)
+        header_pattern = re.compile(r'<(h[1-6])(?:[^>]*id=[\"\\']([^\"\\'][^\"\\'])[\"\\'])?[^>]*>([^<]+)</h[1-6]>', re.IGNORECASE)
         headers = header_pattern.findall(html_content)
         
         if not headers:
-            return ""
+            return \"\"
         
         toc_items = []
         for tag, id_attr, text in headers:
@@ -410,18 +410,18 @@ class SecureHtmlOutput:
             
             if id_attr:
                 safe_id = html.escape(id_attr)
-                toc_items.append(f'<li class="toc-level-{level}"><a href="#{safe_id}">{safe_text}</a></li>')
+                toc_items.append(f'<li class=\"toc-level-{level}\"><a href=\"#{safe_id}\">{safe_text}</a></li>')
             else:
-                toc_items.append(f'<li class="toc-level-{level}">{safe_text}</li>')
+                toc_items.append(f'<li class=\"toc-level-{level}\">{safe_text}</li>')
         
-        toc_html = f"""
-        <div class="toc">
+        toc_html = f\"\"\"
+        <div class=\"toc\">
             <h2>Table of Contents</h2>
             <ul>
                 {''.join(toc_items)}
             </ul>
         </div>
-        """
+        \"\"\"
         
         return toc_html
     
@@ -429,22 +429,22 @@ class SecureHtmlOutput:
         self,
         content: str,
         template_metadata: TemplateMetadata,
-        toc_html: str = "",
+        toc_html: str = \"\",
         include_css: bool = True,
         responsive: bool = True
     ) -> str:
-        """Create complete secure HTML document."""
+        \"\"\"Create complete secure HTML document.\"\"\"
         
         # Document title (safely escaped)
         title = html.escape(template_metadata.title or template_metadata.name)
         
         # CSS styles (secure)
-        css_content = ""
+        css_content = \"\"
         if include_css:
-            css_content = f"<style nonce='{self._generate_nonce()}'>{self._get_secure_css(responsive)}</style>"
+            css_content = f\"<style nonce='{self._generate_nonce()}'>{self._get_secure_css(responsive)}</style>\"
         
         # Table of contents
-        toc_section = ""
+        toc_section = \"\"
         if toc_html:
             toc_section = toc_html
         
@@ -455,66 +455,66 @@ class SecureHtmlOutput:
         nonce = self._generate_nonce()
         
         # Complete HTML document with security headers
-        html_doc = f"""<!DOCTYPE html>
-<html lang="en">
+        html_doc = f\"\"\"<!DOCTYPE html>
+<html lang=\"en\">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="generator" content="DevDocAI v3.0.0 Secure">
-    <meta name="template" content="{html.escape(template_metadata.name)}">
-    <meta name="X-Content-Type-Options" content="nosniff">
-    <meta name="X-Frame-Options" content="DENY">
-    <meta name="X-XSS-Protection" content="1; mode=block">
-    <meta name="Referrer-Policy" content="strict-origin-when-cross-origin">
+    <meta charset=\"UTF-8\">
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+    <meta name=\"generator\" content=\"DevDocAI v3.0.0 Secure\">
+    <meta name=\"template\" content=\"{html.escape(template_metadata.name)}\">
+    <meta name=\"X-Content-Type-Options\" content=\"nosniff\">
+    <meta name=\"X-Frame-Options\" content=\"DENY\">
+    <meta name=\"X-XSS-Protection\" content=\"1; mode=block\">
+    <meta name=\"Referrer-Policy\" content=\"strict-origin-when-cross-origin\">
     <title>{title}</title>
     {css_content}
 </head>
 <body>
     {header_section}
     {toc_section}
-    <main class="document-content">
+    <main class=\"document-content\">
         {content}
     </main>
-    <footer class="document-footer">
+    <footer class=\"document-footer\">
         <p>Generated by <strong>DevDocAI v3.0.0</strong> (Security Hardened) using template: {html.escape(template_metadata.name)}</p>
         <p>Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}</p>
     </footer>
 </body>
-</html>"""
+</html>\"\"\"
         
         return html_doc
     
     def _create_secure_document_header(self, template_metadata: TemplateMetadata) -> str:
-        """Create secure document header with escaped metadata."""
+        \"\"\"Create secure document header with escaped metadata.\"\"\"
         title = html.escape(template_metadata.title or template_metadata.name)
         
         meta_items = []
         
         if template_metadata.author:
             safe_author = html.escape(template_metadata.author)
-            meta_items.append(f"<span><strong>Author:</strong> {safe_author}</span>")
+            meta_items.append(f\"<span><strong>Author:</strong> {safe_author}</span>\")
         
         safe_type = html.escape(template_metadata.type)
-        meta_items.append(f"<span><strong>Type:</strong> {safe_type}</span>")
+        meta_items.append(f\"<span><strong>Type:</strong> {safe_type}</span>\")
         
         if template_metadata.version:
             safe_version = html.escape(template_metadata.version)
-            meta_items.append(f"<span><strong>Version:</strong> {safe_version}</span>")
+            meta_items.append(f\"<span><strong>Version:</strong> {safe_version}</span>\")
         
-        meta_items.append(f"<span><strong>Generated:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}</span>")
+        meta_items.append(f\"<span><strong>Generated:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}</span>\")
         
-        meta_html = "\n        ".join(meta_items)
+        meta_html = \"\\n        \".join(meta_items)
         
-        return f"""<header class="document-header">
+        return f\"\"\"<header class=\"document-header\">
     <h1>{title}</h1>
-    <div class="document-meta">
+    <div class=\"document-meta\">
         {meta_html}
     </div>
-</header>"""
+</header>\"\"\"
     
     def _get_secure_css(self, responsive: bool = True) -> str:
-        """Get secure CSS styles with no external dependencies."""
-        css = """
+        \"\"\"Get secure CSS styles with no external dependencies.\"\"\"
+        css = \"\"\"
         /* DevDocAI Secure Document Styles */
         :root {
             --primary-color: #2563eb;
@@ -654,10 +654,10 @@ class SecureHtmlOutput:
             font-size: 0.875rem;
             text-align: center;
         }
-        """
+        \"\"\"
         
         if responsive:
-            css += """
+            css += \"\"\"
         
         @media (max-width: 768px) {
             body { padding: 1rem; }
@@ -671,9 +671,9 @@ class SecureHtmlOutput:
             h1 { font-size: 1.5rem; }
             h2 { font-size: 1.25rem; }
         }
-        """
+        \"\"\"
         
-        css += """
+        css += \"\"\"
         
         @media print {
             body {
@@ -689,54 +689,54 @@ class SecureHtmlOutput:
             
             a { color: black; text-decoration: none; }
             a[href]:after {
-                content: " (" attr(href) ")";
+                content: \" (\" attr(href) \")\";
                 font-size: 0.8em;
             }
         }
-        """
+        \"\"\"
         
         return css
     
     def _post_process_security_validation(self, html_content: str):
-        """Post-processing security validation."""
+        \"\"\"Post-processing security validation.\"\"\"
         
         # Check final content size
         if len(html_content) > 50 * 1024 * 1024:  # 50MB
-            raise SecurityError("Final HTML content too large")
+            raise SecurityError(\"Final HTML content too large\")
         
         # Final scan for dangerous patterns
         for pattern in self.DANGEROUS_PATTERNS:
             if pattern.search(html_content):
                 if self.strict_mode:
-                    raise SecurityError(f"Dangerous pattern found in final output: {pattern.pattern}")
+                    raise SecurityError(f\"Dangerous pattern found in final output: {pattern.pattern}\")
                 else:
-                    logger.warning(f"Dangerous pattern found in final output: {pattern.pattern}")
+                    logger.warning(f\"Dangerous pattern found in final output: {pattern.pattern}\")
     
     def _generate_csp_header(self) -> str:
-        """Generate Content Security Policy header."""
+        \"\"\"Generate Content Security Policy header.\"\"\"
         nonce = self._generate_nonce()
         
         csp = (
-            "default-src 'self'; "
-            f"style-src 'self' 'nonce-{nonce}'; "
-            "script-src 'none'; "
-            "object-src 'none'; "
-            "base-uri 'self'; "
-            "form-action 'none'; "
-            "frame-ancestors 'none'; "
-            "img-src 'self' data:; "
-            "font-src 'self'"
+            \"default-src 'self'; \"
+            f\"style-src 'self' 'nonce-{nonce}'; \"
+            \"script-src 'none'; \"
+            \"object-src 'none'; \"
+            \"base-uri 'self'; \"
+            \"form-action 'none'; \"
+            \"frame-ancestors 'none'; \"
+            \"img-src 'self' data:; \"
+            \"font-src 'self'\"
         )
         
         return csp
     
     def _generate_nonce(self) -> str:
-        """Generate cryptographically secure nonce."""
+        \"\"\"Generate cryptographically secure nonce.\"\"\"
         import secrets
         return secrets.token_urlsafe(16)
     
     def _is_safe_url(self, url: str) -> bool:
-        """Check if URL is safe."""
+        \"\"\"Check if URL is safe.\"\"\"
         try:
             parsed = urllib.parse.urlparse(url)
             return parsed.scheme in self.ALLOWED_URL_SCHEMES
@@ -750,7 +750,7 @@ class SecureHtmlOutput:
         violation_type: str, 
         details: Any
     ):
-        """Log security violations."""
+        \"\"\"Log security violations.\"\"\"
         self.audit_logger.log_event('html_security_violation', {
             'client_id': client_id,
             'template_name': template_name,
@@ -760,7 +760,7 @@ class SecureHtmlOutput:
         })
     
     def _log_formatting_success(self, client_id: str, template_name: str, content_size: int):
-        """Log successful formatting."""
+        \"\"\"Log successful formatting.\"\"\"
         self.audit_logger.log_event('html_formatting_success', {
             'client_id': client_id,
             'template_name': template_name,
@@ -770,5 +770,5 @@ class SecureHtmlOutput:
 
 
 class SecurityError(Exception):
-    """Exception raised for security-related errors."""
+    \"\"\"Exception raised for security-related errors.\"\"\"
     pass

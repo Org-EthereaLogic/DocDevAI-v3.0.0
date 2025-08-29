@@ -15,7 +15,7 @@ Quality targets:
 - Integration with M001, M002, M003
 """
 
-from .core.engine import DocumentGenerator
+from .core.unified_engine import UnifiedDocumentGenerator as DocumentGenerator
 from .core.template_loader import TemplateLoader
 from .core.content_processor import ContentProcessor
 from .outputs.markdown import MarkdownOutput
