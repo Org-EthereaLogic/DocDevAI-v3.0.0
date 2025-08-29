@@ -15,6 +15,9 @@ alembic>=1.12.0
 cryptography>=41.0.0
 argon2-cffi>=21.3.0
 
+# Mathematical/Scientific Computing
+numpy>=1.24.0  # Required for M003 MIAIR Engine
+
 # AI/ML Libraries (install what you need when you need it)
 # openai>=1.0.0
 # anthropic>=0.7.0
