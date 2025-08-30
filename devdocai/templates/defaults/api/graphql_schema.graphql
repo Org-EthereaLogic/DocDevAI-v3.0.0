@@ -1,0 +1,181 @@
+# GraphQL Schema Template
+# metadata:
+#   id: graphql_schema_standard
+#   name: GraphQL Schema Template
+#   description: GraphQL schema definition template
+#   category: api
+#   type: graphql_schema
+#   version: 1.0.0
+#   author: DevDocAI
+#   tags: [graphql, schema, api]
+# variables:
+#   - name: api_name
+#     required: true
+#     type: string
+
+type Query {
+  # Get current user
+  me: User
+  
+  # Get user by ID
+  user(id: ID!): User
+  
+  # List users with pagination
+  users(first: Int, after: String): UserConnection
+  
+  # Get post by ID
+  post(id: ID!): Post
+  
+  # List posts with filters
+  posts(first: Int, after: String, authorId: ID): PostConnection
+}
+
+type Mutation {
+  # User mutations
+  createUser(input: CreateUserInput!): CreateUserPayload
+  updateUser(id: ID!, input: UpdateUserInput!): UpdateUserPayload
+  deleteUser(id: ID!): DeleteUserPayload
+  
+  # Post mutations
+  createPost(input: CreatePostInput!): CreatePostPayload
+  updatePost(id: ID!, input: UpdatePostInput!): UpdatePostPayload
+  deletePost(id: ID!): DeletePostPayload
+}
+
+type Subscription {
+  # Subscribe to user updates
+  userUpdated(id: ID!): User
+  
+  # Subscribe to new posts
+  postCreated(authorId: ID): Post
+}
+
+# Types
+type User {
+  id: ID!
+  email: String!
+  name: String!
+  avatar: String
+  posts: [Post!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Post {
+  id: ID!
+  title: String!
+  content: String!
+  author: User!
+  published: Boolean!
+  tags: [String!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+# Connections for pagination
+type UserConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type UserEdge {
+  node: User!
+  cursor: String!
+}
+
+type PostConnection {
+  edges: [PostEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type PostEdge {
+  node: Post!
+  cursor: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+# Input types
+input CreateUserInput {
+  email: String!
+  name: String!
+  password: String!
+}
+
+input UpdateUserInput {
+  email: String
+  name: String
+  avatar: String
+}
+
+input CreatePostInput {
+  title: String!
+  content: String!
+  published: Boolean = false
+  tags: [String!] = []
+}
+
+input UpdatePostInput {
+  title: String
+  content: String
+  published: Boolean
+  tags: [String!]
+}
+
+# Payload types
+type CreateUserPayload {
+  user: User
+  errors: [Error!]!
+}
+
+type UpdateUserPayload {
+  user: User
+  errors: [Error!]!
+}
+
+type DeleteUserPayload {
+  success: Boolean!
+  errors: [Error!]!
+}
+
+type CreatePostPayload {
+  post: Post
+  errors: [Error!]!
+}
+
+type UpdatePostPayload {
+  post: Post
+  errors: [Error!]!
+}
+
+type DeletePostPayload {
+  success: Boolean!
+  errors: [Error!]!
+}
+
+# Error handling
+type Error {
+  field: String
+  message: String!
+  code: ErrorCode!
+}
+
+enum ErrorCode {
+  VALIDATION_ERROR
+  NOT_FOUND
+  UNAUTHORIZED
+  FORBIDDEN
+  INTERNAL_ERROR
+}
+
+# Scalars
+scalar DateTime
+scalar JSON
+scalar Upload

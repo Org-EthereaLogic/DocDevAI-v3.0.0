@@ -1,0 +1,57 @@
+{
+  "id": "user-stories",
+  "name": "User Stories Generator",
+  "version": "1.0.0",
+  "category": "projects",
+  "type": "project_proposal",
+  "description": "Generate comprehensive user stories for agile development",
+  "author": "DevDocAI",
+  "tags": ["agile", "user-stories", "requirements", "scrum"],
+  "variables": [
+    {
+      "name": "USER_INPUT",
+      "description": "Project requirements and user needs",
+      "required": true,
+      "type": "text"
+    },
+    {
+      "name": "PROJECT_NAME",
+      "description": "Name of the project",
+      "required": false,
+      "default": "Project"
+    }
+  ],
+  "sections": [
+    {
+      "id": "overview",
+      "title": "User Stories Overview",
+      "required": true,
+      "order": 1
+    },
+    {
+      "id": "personas",
+      "title": "User Personas",
+      "required": true,
+      "order": 2
+    },
+    {
+      "id": "epic-stories",
+      "title": "Epic Stories",
+      "required": true,
+      "order": 3
+    },
+    {
+      "id": "user-stories",
+      "title": "Detailed User Stories",
+      "required": true,
+      "order": 4
+    },
+    {
+      "id": "acceptance-criteria",
+      "title": "Acceptance Criteria",
+      "required": true,
+      "order": 5
+    }
+  ],
+  "template": "# User Stories - {{PROJECT_NAME}}\n\n## Overview\n\nBased on the project requirements:\n{{USER_INPUT}}\n\nThis document contains user stories that capture the functional requirements from the user's perspective.\n\n## User Personas\n\n### Primary Users\n\n#### Persona 1: [End User]\n- **Role**: Primary system user\n- **Goals**: [User goals]\n- **Pain Points**: [Current challenges]\n- **Technical Level**: [Low/Medium/High]\n\n#### Persona 2: [Administrator]\n- **Role**: System administrator\n- **Goals**: [Admin goals]\n- **Pain Points**: [Management challenges]\n- **Technical Level**: High\n\n#### Persona 3: [Manager]\n- **Role**: Business manager\n- **Goals**: [Business goals]\n- **Pain Points**: [Reporting challenges]\n- **Technical Level**: Medium\n\n## Epic Stories\n\n### Epic 1: User Management\nAs a system administrator, I want to manage user accounts so that I can control access to the system.\n\n### Epic 2: Core Functionality\nAs an end user, I want to [main functionality] so that I can [achieve goal].\n\n### Epic 3: Reporting\nAs a manager, I want comprehensive reports so that I can make informed decisions.\n\n## Detailed User Stories\n\n### US-001: User Registration\n**As a** new user  \n**I want to** register for an account  \n**So that** I can access the system  \n\n**Priority**: High  \n**Story Points**: 5  \n**Sprint**: 1  \n\n**Acceptance Criteria**:\n- [ ] User can navigate to registration page\n- [ ] All required fields are validated\n- [ ] Email verification is sent\n- [ ] User receives confirmation\n- [ ] Account is created in database\n\n**Technical Notes**:\n- Implement email verification\n- Store passwords securely (bcrypt)\n- Create user profile\n\n---\n\n### US-002: User Login\n**As a** registered user  \n**I want to** log into the system  \n**So that** I can access my personalized content  \n\n**Priority**: High  \n**Story Points**: 3  \n**Sprint**: 1  \n\n**Acceptance Criteria**:\n- [ ] User can enter username/email and password\n- [ ] System validates credentials\n- [ ] Failed attempts are logged\n- [ ] Successful login creates session\n- [ ] User is redirected to dashboard\n\n**Technical Notes**:\n- Implement session management\n- Add \"Remember Me\" option\n- Include password reset link\n\n---\n\n### US-003: Password Reset\n**As a** user who forgot their password  \n**I want to** reset my password  \n**So that** I can regain access to my account  \n\n**Priority**: High  \n**Story Points**: 3  \n**Sprint**: 1  \n\n**Acceptance Criteria**:\n- [ ] User can request password reset\n- [ ] Reset link is sent to email\n- [ ] Link expires after 24 hours\n- [ ] User can set new password\n- [ ] Old sessions are invalidated\n\n---\n\n### US-004: User Profile Management\n**As a** logged-in user  \n**I want to** update my profile information  \n**So that** my account details are current  \n\n**Priority**: Medium  \n**Story Points**: 5  \n**Sprint**: 2  \n\n**Acceptance Criteria**:\n- [ ] User can view current profile\n- [ ] User can edit profile fields\n- [ ] Changes are validated\n- [ ] Profile photo can be uploaded\n- [ ] Changes are saved to database\n\n---\n\n### US-005: Dashboard View\n**As a** logged-in user  \n**I want to** see a personalized dashboard  \n**So that** I can quickly access relevant information  \n\n**Priority**: High  \n**Story Points**: 8  \n**Sprint**: 2  \n\n**Acceptance Criteria**:\n- [ ] Dashboard displays user-specific data\n- [ ] Widgets are customizable\n- [ ] Real-time updates are shown\n- [ ] Quick actions are available\n- [ ] Performance metrics are visible\n\n---\n\n### US-006: Search Functionality\n**As a** user  \n**I want to** search for content  \n**So that** I can quickly find what I need  \n\n**Priority**: Medium  \n**Story Points**: 5  \n**Sprint**: 3  \n\n**Acceptance Criteria**:\n- [ ] Search bar is prominently displayed\n- [ ] Auto-complete suggestions appear\n- [ ] Results are relevant and ranked\n- [ ] Filters can be applied\n- [ ] Search history is maintained\n\n---\n\n### US-007: Data Export\n**As a** user  \n**I want to** export my data  \n**So that** I can use it in other applications  \n\n**Priority**: Low  \n**Story Points**: 3  \n**Sprint**: 4  \n\n**Acceptance Criteria**:\n- [ ] Export options are available\n- [ ] Multiple formats supported (CSV, PDF, Excel)\n- [ ] Data is properly formatted\n- [ ] Large exports are handled efficiently\n- [ ] Download link is provided\n\n---\n\n### US-008: Notifications\n**As a** user  \n**I want to** receive notifications  \n**So that** I stay informed about important events  \n\n**Priority**: Medium  \n**Story Points**: 5  \n**Sprint**: 3  \n\n**Acceptance Criteria**:\n- [ ] In-app notifications appear\n- [ ] Email notifications can be configured\n- [ ] Notification preferences are saved\n- [ ] Notifications can be marked as read\n- [ ] History is maintained\n\n---\n\n### US-009: Admin User Management\n**As an** administrator  \n**I want to** manage all user accounts  \n**So that** I can maintain system security  \n\n**Priority**: High  \n**Story Points**: 8  \n**Sprint**: 2  \n\n**Acceptance Criteria**:\n- [ ] Admin can view all users\n- [ ] Users can be activated/deactivated\n- [ ] Roles can be assigned\n- [ ] Password resets can be triggered\n- [ ] Activity logs are visible\n\n---\n\n### US-010: Reporting Dashboard\n**As a** manager  \n**I want to** view comprehensive reports  \n**So that** I can make data-driven decisions  \n\n**Priority**: Medium  \n**Story Points**: 13  \n**Sprint**: 4  \n\n**Acceptance Criteria**:\n- [ ] Multiple report types available\n- [ ] Date ranges can be selected\n- [ ] Charts and graphs are interactive\n- [ ] Reports can be exported\n- [ ] Custom reports can be created\n\n## Story Mapping\n\n```\nUser Journey:\nRegistration → Login → Dashboard → Core Features → Reports → Export\n\nRelease 1: Authentication & Basic Features\n- US-001: Registration\n- US-002: Login\n- US-003: Password Reset\n- US-005: Dashboard\n\nRelease 2: User Features\n- US-004: Profile Management\n- US-006: Search\n- US-008: Notifications\n\nRelease 3: Advanced Features\n- US-007: Data Export\n- US-009: Admin Management\n- US-010: Reporting\n```\n\n## Definition of Done\n\n- [ ] Code is written and reviewed\n- [ ] Unit tests pass (>80% coverage)\n- [ ] Integration tests pass\n- [ ] Documentation is updated\n- [ ] Acceptance criteria are met\n- [ ] Product Owner has approved\n- [ ] Deployed to staging environment\n- [ ] No critical bugs remain\n\n## Velocity Tracking\n\n| Sprint | Planned Points | Completed Points | Velocity |\n|--------|---------------|------------------|----------|\n| 1 | 11 | - | - |\n| 2 | 21 | - | - |\n| 3 | 10 | - | - |\n| 4 | 16 | - | - |\n\n---\n\n*Generated by*: DevDocAI Template System  \n*Last Updated*: [Current Date]  \n*Version*: 1.0.0"
+}

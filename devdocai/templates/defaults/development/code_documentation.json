@@ -1,0 +1,63 @@
+{
+  "id": "code-documentation",
+  "name": "Source Code Documentation",
+  "version": "1.0.0",
+  "category": "development",
+  "type": "technical",
+  "description": "Generate comprehensive documentation for source code files and modules",
+  "author": "DevDocAI",
+  "tags": ["code", "documentation", "api", "comments", "technical"],
+  "variables": [
+    {
+      "name": "CODE_INPUT",
+      "description": "Source code to document",
+      "required": true,
+      "type": "text"
+    },
+    {
+      "name": "LANGUAGE",
+      "description": "Programming language",
+      "required": false,
+      "default": "Python"
+    },
+    {
+      "name": "MODULE_NAME",
+      "description": "Name of the module or file",
+      "required": false,
+      "default": "Module"
+    }
+  ],
+  "sections": [
+    {
+      "id": "overview",
+      "title": "Module Overview",
+      "required": true,
+      "order": 1
+    },
+    {
+      "id": "dependencies",
+      "title": "Dependencies",
+      "required": true,
+      "order": 2
+    },
+    {
+      "id": "classes",
+      "title": "Classes",
+      "required": false,
+      "order": 3
+    },
+    {
+      "id": "functions",
+      "title": "Functions",
+      "required": false,
+      "order": 4
+    },
+    {
+      "id": "examples",
+      "title": "Usage Examples",
+      "required": true,
+      "order": 5
+    }
+  ],
+  "template": "# {{MODULE_NAME}} Documentation\n\n**Language**: {{LANGUAGE}}  \n**Generated**: [Current Date]  \n\n## Module Overview\n\nThis module provides functionality for [purpose based on code analysis].\n\n### Key Features\n- [Feature 1 extracted from code]\n- [Feature 2 extracted from code]\n- [Feature 3 extracted from code]\n\n### Code Structure\n```{{LANGUAGE}}\n{{CODE_INPUT}}\n```\n\n## Dependencies\n\n### External Libraries\n```{{LANGUAGE}}\n# Required packages\n[List of imports from code]\n```\n\n### Internal Dependencies\n- [Internal module 1]\n- [Internal module 2]\n\n## Classes\n\n### Class: `ClassName`\n\n**Purpose**: [Description of class purpose]\n\n**Inheritance**: `BaseClass` (if applicable)\n\n#### Constructor\n\n```{{LANGUAGE}}\ndef __init__(self, param1: type, param2: type):\n    \"\"\"\n    Initialize the class.\n    \n    Args:\n        param1: Description of parameter 1\n        param2: Description of parameter 2\n    \"\"\"\n```\n\n#### Properties\n\n| Property | Type | Description |\n|----------|------|-------------|\n| property1 | type | Description |\n| property2 | type | Description |\n\n#### Methods\n\n##### `method_name(param1, param2) -> return_type`\n\n**Purpose**: Description of what the method does\n\n**Parameters**:\n- `param1` (type): Description\n- `param2` (type): Description\n\n**Returns**:\n- `return_type`: Description of return value\n\n**Raises**:\n- `ExceptionType`: When this exception is raised\n\n**Example**:\n```{{LANGUAGE}}\n# Example usage\nresult = instance.method_name(value1, value2)\n```\n\n## Functions\n\n### `function_name(param1: type, param2: type = default) -> return_type`\n\n**Purpose**: Description of function purpose\n\n**Parameters**:\n- `param1` (type): Description of parameter\n- `param2` (type, optional): Description. Defaults to `default`.\n\n**Returns**:\n- `return_type`: Description of return value\n\n**Raises**:\n- `ValueError`: When invalid input is provided\n- `TypeError`: When wrong type is passed\n\n**Example**:\n```{{LANGUAGE}}\n# Basic usage\nresult = function_name(input_value)\n\n# With optional parameter\nresult = function_name(input_value, optional_param=custom_value)\n```\n\n**Algorithm**:\n1. Step 1 of the algorithm\n2. Step 2 of the algorithm\n3. Step 3 of the algorithm\n\n**Complexity**:\n- Time: O(n)\n- Space: O(1)\n\n## Constants and Variables\n\n### Module-Level Constants\n\n```{{LANGUAGE}}\nCONSTANT_NAME = value  # Description\nANOTHER_CONSTANT = value  # Description\n```\n\n### Configuration Variables\n\n| Variable | Type | Default | Description |\n|----------|------|---------|-------------|\n| config_var1 | type | value | Description |\n| config_var2 | type | value | Description |\n\n## Error Handling\n\n### Custom Exceptions\n\n#### `CustomException`\n**Purpose**: Raised when [condition]\n**Attributes**:\n- `message`: Error message\n- `code`: Error code\n\n### Error Codes\n\n| Code | Description | Resolution |\n|------|-------------|------------|\n| E001 | Invalid input | Check input format |\n| E002 | Connection failed | Verify network settings |\n| E003 | Permission denied | Check access rights |\n\n## Usage Examples\n\n### Basic Usage\n\n```{{LANGUAGE}}\n# Import the module\nimport {{MODULE_NAME}}\n\n# Initialize\ninstance = {{MODULE_NAME}}.MainClass()\n\n# Basic operation\nresult = instance.process(data)\n\n# Handle result\nif result.success:\n    print(f\"Success: {result.value}\")\nelse:\n    print(f\"Error: {result.error}\")\n```\n\n### Advanced Usage\n\n```{{LANGUAGE}}\n# Complex configuration\nconfig = {\n    'option1': value1,\n    'option2': value2,\n    'advanced': {\n        'setting1': value3\n    }\n}\n\n# Initialize with configuration\ninstance = {{MODULE_NAME}}.MainClass(**config)\n\n# Batch processing\nresults = []\nfor item in data_list:\n    try:\n        result = instance.process(item)\n        results.append(result)\n    except {{MODULE_NAME}}.CustomException as e:\n        logger.error(f\"Processing failed: {e}\")\n        continue\n\n# Aggregate results\nfinal_result = instance.aggregate(results)\n```\n\n### Integration Example\n\n```{{LANGUAGE}}\n# Integration with other modules\nfrom other_module import OtherClass\n\n# Combined usage\nother = OtherClass()\ninstance = {{MODULE_NAME}}.MainClass()\n\n# Pipeline\nprocessed = other.prepare(raw_data)\nresult = instance.process(processed)\nfinal = other.finalize(result)\n```\n\n## Testing\n\n### Unit Tests\n\n```{{LANGUAGE}}\nimport unittest\nfrom {{MODULE_NAME}} import function_name\n\nclass Test{{MODULE_NAME}}(unittest.TestCase):\n    \n    def test_basic_functionality(self):\n        result = function_name(test_input)\n        self.assertEqual(result, expected_output)\n    \n    def test_edge_cases(self):\n        with self.assertRaises(ValueError):\n            function_name(invalid_input)\n```\n\n### Integration Tests\n\n```{{LANGUAGE}}\ndef test_integration():\n    # Setup\n    instance = {{MODULE_NAME}}.MainClass()\n    \n    # Test workflow\n    result = instance.full_workflow(test_data)\n    \n    # Assertions\n    assert result.status == 'success'\n    assert len(result.data) > 0\n```\n\n## Performance Considerations\n\n### Optimization Tips\n\n1. **Caching**: Results are cached for [duration]\n2. **Batch Processing**: Use batch methods for multiple items\n3. **Connection Pooling**: Reuse connections when possible\n4. **Memory Management**: Large datasets are processed in chunks\n\n### Benchmarks\n\n| Operation | Time (ms) | Memory (MB) |\n|-----------|-----------|-------------|\n| Initialize | 10 | 5 |\n| Process (single) | 50 | 10 |\n| Process (batch-100) | 400 | 25 |\n| Cleanup | 5 | 0 |\n\n## API Reference\n\n### Public API\n\n```{{LANGUAGE}}\n# Public functions\nfunction_name(param1, param2) -> result\nanother_function(param) -> result\n\n# Public classes\nclass MainClass:\n    def __init__(self, **kwargs)\n    def process(self, data) -> Result\n    def cleanup(self) -> None\n\nclass HelperClass:\n    def __init__(self, config: dict)\n    def validate(self, input) -> bool\n```\n\n### Internal API\n\n⚠️ **Note**: Internal APIs are subject to change without notice.\n\n```{{LANGUAGE}}\n# Internal functions (prefixed with _)\n_internal_function(data) -> processed_data\n_validate_input(input) -> bool\n```\n\n## Changelog\n\n### Version History\n\n- **v1.0.0** - Initial release\n  - Core functionality implemented\n  - Basic error handling\n  \n- **v1.1.0** - Performance improvements\n  - Added caching\n  - Optimized algorithms\n  \n- **v1.2.0** - New features\n  - Batch processing support\n  - Extended API\n\n## Contributing\n\n### Development Setup\n\n```bash\n# Clone repository\ngit clone [repository]\n\n# Install dependencies\npip install -r requirements.txt\n\n# Run tests\npytest tests/\n```\n\n### Code Style\n\n- Follow PEP 8 for Python\n- Use type hints\n- Document all public APIs\n- Write unit tests for new features\n\n## License\n\n[License information]\n\n## Support\n\n- **Documentation**: [Link to full docs]\n- **Issues**: [Link to issue tracker]\n- **Contact**: [Contact information]\n\n---\n\n*Generated by*: DevDocAI Template System  \n*Module*: {{MODULE_NAME}}  \n*Language*: {{LANGUAGE}}"
+}
