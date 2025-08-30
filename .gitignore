@@ -79,3 +79,8 @@ M001_IMPLEMENTATION_SUMMARY.md
 .claude/agents/ux-delight-enhancer.md
 .claude/agents/ux-designer-engineer.md
 .claude/agents/ux-researcher.md
+templates/architectural-design-document-creation.md
+templates/project-plan-WBS-creation.md
+templates/software-design-document-creation.md
+templates/software-requirements-specification-generator.md
+templates/software-user-stories-generator.md
