@@ -221,10 +221,10 @@ When editing files, you MUST:
 - M003 MIAIR Engine: ✅ COMPLETE (All passes done, 248K docs/min, security hardened)
 - M004 Document Generator: ✅ COMPLETE (All passes done, 95% coverage, production-ready)
 - M005 Quality Engine: ✅ COMPLETE (All passes done, 85% coverage, production-ready)
-- M006 Template Registry: 🚧 IN PROGRESS (Pass 1/4 complete, 80% coverage)
+- M006 Template Registry: 🚧 IN PROGRESS (Pass 2/4 complete, 80% coverage, 800.9% performance boost)
 - M007-M013: ⏳ Pending
 
-Next steps focus on M006 Template Registry Pass 2 (Performance Optimization) following the 4-pass development methodology.
+Next steps focus on M006 Template Registry Pass 3 (Security Hardening) following the 4-pass development methodology.
 
 ## Development Method
 
