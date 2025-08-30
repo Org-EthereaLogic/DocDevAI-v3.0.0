@@ -124,3 +124,75 @@ class TemplateVariableError(TemplateError):
         """Initialize variable error."""
         error_message = f"Variable '{variable_name}' error: {message}"
         super().__init__(error_message, {"variable_name": variable_name})
+
+
+# Security-related exceptions
+
+class TemplateSecurityError(TemplateError):
+    """Base exception for template security violations."""
+    
+    def __init__(self, message: str, threat_type: Optional[str] = None):
+        """Initialize security error."""
+        super().__init__(message, {"threat_type": threat_type})
+
+
+class TemplateSSTIError(TemplateSecurityError):
+    """Exception raised when Server-Side Template Injection is detected."""
+    
+    def __init__(self, message: str, pattern: Optional[str] = None):
+        """Initialize SSTI error."""
+        error_message = f"SSTI detected: {message}"
+        super().__init__(error_message, "SSTI")
+        self.pattern = pattern
+
+
+class TemplatePathTraversalError(TemplateSecurityError):
+    """Exception raised when path traversal attempt is detected."""
+    
+    def __init__(self, path: str):
+        """Initialize path traversal error."""
+        message = f"Path traversal attempt detected: {path}"
+        super().__init__(message, "PathTraversal")
+        self.path = path
+
+
+class TemplateRateLimitError(TemplateSecurityError):
+    """Exception raised when rate limit is exceeded."""
+    
+    def __init__(self, message: str, limit_type: Optional[str] = None):
+        """Initialize rate limit error."""
+        super().__init__(message, "RateLimit")
+        self.limit_type = limit_type
+
+
+class TemplateSandboxError(TemplateSecurityError):
+    """Exception raised for sandbox violations."""
+    
+    def __init__(self, message: str):
+        """Initialize sandbox error."""
+        error_message = f"Sandbox violation: {message}"
+        super().__init__(error_message, "Sandbox")
+
+
+class TemplateTimeoutError(TemplateSandboxError):
+    """Exception raised when template execution times out."""
+    
+    def __init__(self, message: str):
+        """Initialize timeout error."""
+        super().__init__(f"Timeout: {message}")
+
+
+class TemplateMemoryError(TemplateSandboxError):
+    """Exception raised when memory limit is exceeded."""
+    
+    def __init__(self, message: str):
+        """Initialize memory error."""
+        super().__init__(f"Memory limit exceeded: {message}")
+
+
+class TemplateRecursionError(TemplateSandboxError):
+    """Exception raised when recursion limit is exceeded."""
+    
+    def __init__(self, message: str):
+        """Initialize recursion error."""
+        super().__init__(f"Recursion limit exceeded: {message}")
