@@ -101,7 +101,7 @@ class SecurityValidator:
     ]
     
     XSS_PATTERNS = [
-        re.compile(r'<script[^>]*>.*?</script>', re.IGNORECASE | re.DOTALL),
+        re.compile(r'<script[^>]*>.*?</script[^>]*>', re.IGNORECASE | re.DOTALL),
         re.compile(r'javascript:', re.IGNORECASE),
         re.compile(r'on\w+\s*=', re.IGNORECASE),  # Event handlers
         re.compile(r'<iframe[^>]*>', re.IGNORECASE),
