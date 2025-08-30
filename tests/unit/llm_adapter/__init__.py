@@ -1,0 +1,1 @@
+"""Tests for M008 LLM Adapter module."""
