@@ -16,7 +16,8 @@ Quality targets:
 """
 
 from .core.unified_engine import UnifiedDocumentGenerator as DocumentGenerator
-from .core.template_loader import TemplateLoader
+# Now using M006's template registry through adapter for proper integration
+from .core.template_registry_adapter import TemplateRegistryAdapter as TemplateLoader
 from .core.content_processor import ContentProcessor
 from .outputs.markdown import MarkdownOutput
 from .outputs.html import HtmlOutput

@@ -20,7 +20,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from enum import Enum
 
 # Import unified components
-from .unified_template_loader import UnifiedTemplateLoader, SecurityLevel as TemplateSecurityLevel
+# Now using M006's template registry through adapter for proper integration
+from .template_registry_adapter import TemplateRegistryAdapter as UnifiedTemplateLoader, SecurityLevel as TemplateSecurityLevel
 from ..outputs.unified_html_output import UnifiedHTMLOutput, SecurityLevel as OutputSecurityLevel
 from ..outputs.markdown import MarkdownOutput
 from ..utils.unified_validators import UnifiedValidator, ValidationLevel
@@ -33,6 +34,20 @@ from ...common.errors import DevDocAIError
 from ...common.logging import get_logger
 from ...common.performance import ParallelExecutor, LRUCache
 from ...common.security import get_audit_logger
+
+# Import M003 MIAIR Engine for document optimization
+try:
+    from ...miair.engine_unified import (
+        UnifiedMIAIREngine,
+        UnifiedMIAIRConfig,
+        EngineMode as MIAIREngineMode
+    )
+    MIAIR_AVAILABLE = True
+except ImportError:
+    MIAIR_AVAILABLE = False
+    UnifiedMIAIREngine = None
+    UnifiedMIAIRConfig = None
+    MIAIREngineMode = None
 
 logger = get_logger(__name__)
 
@@ -60,6 +75,12 @@ class UnifiedGenerationConfig:
     enable_audit: bool = None  # Auto-determined by mode
     enable_pii_detection: bool = None  # Auto-determined by mode
     
+    # MIAIR optimization settings
+    enable_miair_optimization: bool = None  # Auto-determined by mode
+    miair_target_quality: float = 0.85  # Target quality score for optimization
+    miair_max_iterations: int = 10  # Maximum optimization iterations
+    miair_optimization_timeout: float = 5.0  # Timeout in seconds for optimization
+    
     # Project metadata
     project_name: Optional[str] = None
     author: Optional[str] = None
@@ -84,6 +105,8 @@ class UnifiedGenerationConfig:
             self.validation_level = self.validation_level or ValidationLevel.BASIC
             self.enable_audit = self.enable_audit or False
             self.enable_pii_detection = self.enable_pii_detection or False
+            # Disable MIAIR optimization in development for speed
+            self.enable_miair_optimization = self.enable_miair_optimization if self.enable_miair_optimization is not None else False
             
         elif self.engine_mode == EngineMode.STANDARD:
             self.template_security = self.template_security or TemplateSecurityLevel.STANDARD
@@ -91,6 +114,8 @@ class UnifiedGenerationConfig:
             self.validation_level = self.validation_level or ValidationLevel.STANDARD
             self.enable_audit = self.enable_audit or True
             self.enable_pii_detection = self.enable_pii_detection or True
+            # Enable MIAIR optimization in standard mode
+            self.enable_miair_optimization = self.enable_miair_optimization if self.enable_miair_optimization is not None else True
             
         elif self.engine_mode == EngineMode.PRODUCTION:
             self.template_security = self.template_security or TemplateSecurityLevel.STANDARD
@@ -99,6 +124,8 @@ class UnifiedGenerationConfig:
             self.enable_audit = True
             self.enable_pii_detection = True
             self.enable_caching = True  # Force caching in production
+            # Enable MIAIR optimization in production mode
+            self.enable_miair_optimization = self.enable_miair_optimization if self.enable_miair_optimization is not None else True
             
         elif self.engine_mode == EngineMode.STRICT:
             self.template_security = TemplateSecurityLevel.STRICT
@@ -107,6 +134,8 @@ class UnifiedGenerationConfig:
             self.enable_audit = True
             self.enable_pii_detection = True
             self.timeout = self.timeout or 30  # Add timeout in strict mode
+            # Enable MIAIR optimization in strict mode
+            self.enable_miair_optimization = self.enable_miair_optimization if self.enable_miair_optimization is not None else True
         
         # Validate output format
         valid_formats = {"markdown", "html", "pdf"}
@@ -128,6 +157,7 @@ class GenerationResult:
     error_message: Optional[str] = None
     warnings: List[str] = field(default_factory=list)
     security_report: Dict[str, Any] = field(default_factory=dict)
+    optimization_report: Dict[str, Any] = field(default_factory=dict)  # MIAIR optimization metrics
 
 
 class UnifiedDocumentGenerator:
@@ -190,11 +220,9 @@ class UnifiedDocumentGenerator:
             enable_audit=self.config.enable_audit
         )
         
-        self.markdown_output = MarkdownOutput(output_dir=output_dir)
+        self.markdown_output = MarkdownOutput()
         
-        self.content_processor = ContentProcessor(
-            enable_caching=self.config.enable_caching
-        )
+        self.content_processor = ContentProcessor()
         
         # Initialize audit logger if needed
         if self.config.enable_audit:
@@ -207,11 +235,17 @@ class UnifiedDocumentGenerator:
         self._generation_times = []
         self._cache_hits = 0
         self._cache_misses = 0
+        self._optimization_times = []  # Track MIAIR optimization times
+        
+        # MIAIR Engine (lazy initialization)
+        self._miair_engine = None
+        self._miair_initialized = False
         
         logger.info(
             f"Initialized UnifiedDocumentGenerator with mode={self.config.engine_mode.value}, "
             f"template_security={self.config.template_security.value}, "
-            f"validation={self.config.validation_level.value}"
+            f"validation={self.config.validation_level.value}, "
+            f"miair_optimization={'enabled' if self.config.enable_miair_optimization and MIAIR_AVAILABLE else 'disabled'}"
         )
     
     def generate(
@@ -271,6 +305,18 @@ class UnifiedDocumentGenerator:
                 metadata=metadata.to_dict()
             )
             
+            # Step 5.5: Apply MIAIR optimization if enabled
+            optimization_report = {}
+            if config.enable_miair_optimization and MIAIR_AVAILABLE:
+                optimized_content, optimization_report = self._optimize_with_miair(
+                    processed_content,
+                    metadata.to_dict(),
+                    config
+                )
+                if optimized_content:
+                    processed_content = optimized_content
+                    result.warnings.append(f"Document optimized: quality improved by {optimization_report.get('improvement_percentage', 0):.1f}%")
+            
             # Step 6: Generate output
             if output_format == "html":
                 final_content = self.html_output.generate(
@@ -305,7 +351,8 @@ class UnifiedDocumentGenerator:
                 format=output_format,
                 generation_time=generation_time,
                 template_name=template_name,
-                metadata=metadata.to_dict()
+                metadata=metadata.to_dict(),
+                optimization_report=optimization_report
             )
             
             # Add security report in strict mode
@@ -500,12 +547,147 @@ class UnifiedDocumentGenerator:
         
         return report
     
+    def _initialize_miair_engine(self, config: UnifiedGenerationConfig) -> bool:
+        """Initialize MIAIR engine for optimization."""
+        if not MIAIR_AVAILABLE:
+            logger.warning("MIAIR Engine not available, optimization disabled")
+            return False
+        
+        if self._miair_initialized:
+            return True
+        
+        try:
+            # Map M004 EngineMode to M003 EngineMode
+            miair_mode_map = {
+                EngineMode.DEVELOPMENT: MIAIREngineMode.STANDARD,
+                EngineMode.STANDARD: MIAIREngineMode.STANDARD,
+                EngineMode.PRODUCTION: MIAIREngineMode.OPTIMIZED,
+                EngineMode.STRICT: MIAIREngineMode.SECURE
+            }
+            
+            miair_mode = miair_mode_map.get(config.engine_mode, MIAIREngineMode.STANDARD)
+            
+            # Create MIAIR configuration
+            miair_config = UnifiedMIAIRConfig(
+                mode=miair_mode,
+                target_quality=config.miair_target_quality,
+                max_iterations=config.miair_max_iterations,
+                optimization_timeout=config.miair_optimization_timeout,
+                enable_caching=config.enable_caching,
+                cache_size=config.cache_size,
+                storage_enabled=False  # Don't double-store in M002
+            )
+            
+            # Initialize MIAIR engine
+            self._miair_engine = UnifiedMIAIREngine(miair_config)
+            self._miair_initialized = True
+            
+            logger.info(f"MIAIR Engine initialized with mode={miair_mode.value}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize MIAIR Engine: {e}")
+            self._miair_initialized = False
+            return False
+    
+    def _optimize_with_miair(
+        self,
+        content: str,
+        metadata: Dict[str, Any],
+        config: UnifiedGenerationConfig
+    ) -> Tuple[Optional[str], Dict[str, Any]]:
+        """Optimize content using MIAIR Engine.
+        
+        Args:
+            content: Content to optimize
+            metadata: Document metadata
+            config: Generation configuration
+            
+        Returns:
+            Tuple of (optimized_content, optimization_report)
+        """
+        optimization_report = {}
+        
+        # Initialize engine if needed
+        if not self._initialize_miair_engine(config):
+            return None, optimization_report
+        
+        try:
+            start_time = time.time()
+            
+            # Prepare document for optimization
+            document_data = {
+                'content': content,
+                'metadata': metadata
+            }
+            
+            # Run optimization
+            logger.debug("Starting MIAIR optimization")
+            optimization_result = self._miair_engine.optimize(
+                content=document_data,
+                target_quality=config.miair_target_quality
+            )
+            
+            optimization_time = time.time() - start_time
+            self._optimization_times.append(optimization_time)
+            
+            # Check if optimization was successful
+            if optimization_result.success and optimization_result.optimized_content:
+                # Verify quality improvement
+                improvement = optimization_result.improvement_percentage()
+                
+                if improvement > 0:
+                    optimization_report = {
+                        'applied': True,
+                        'original_score': optimization_result.original_score.overall,
+                        'optimized_score': optimization_result.optimized_score.overall,
+                        'improvement_percentage': improvement,
+                        'iterations': optimization_result.iterations,
+                        'optimization_time': optimization_time,
+                        'suggestions': optimization_result.improvements
+                    }
+                    
+                    logger.info(
+                        f"MIAIR optimization successful: quality {optimization_result.original_score.overall:.2f} -> "
+                        f"{optimization_result.optimized_score.overall:.2f} ({improvement:.1f}% improvement) "
+                        f"in {optimization_time:.2f}s"
+                    )
+                    
+                    return optimization_result.optimized_content, optimization_report
+                else:
+                    # No improvement, use original
+                    optimization_report = {
+                        'applied': False,
+                        'reason': 'No quality improvement achieved',
+                        'original_score': optimization_result.original_score.overall
+                    }
+                    logger.debug("MIAIR optimization did not improve quality, using original content")
+                    return None, optimization_report
+            else:
+                # Optimization failed
+                optimization_report = {
+                    'applied': False,
+                    'reason': 'Optimization failed',
+                    'error': str(optimization_result.error_message) if hasattr(optimization_result, 'error_message') else 'Unknown error'
+                }
+                logger.warning(f"MIAIR optimization failed: {optimization_report['error']}")
+                return None, optimization_report
+                
+        except Exception as e:
+            logger.error(f"Error during MIAIR optimization: {e}")
+            optimization_report = {
+                'applied': False,
+                'reason': 'Exception during optimization',
+                'error': str(e)
+            }
+            return None, optimization_report
+    
     def get_performance_stats(self) -> Dict[str, Any]:
         """Get performance statistics."""
         if not self._generation_times:
             return {}
         
-        return {
+        stats = {
             'total_generations': len(self._generation_times),
             'average_time': sum(self._generation_times) / len(self._generation_times),
             'min_time': min(self._generation_times),
@@ -515,6 +697,17 @@ class UnifiedDocumentGenerator:
             'cache_hit_rate': self._cache_hits / (self._cache_hits + self._cache_misses) 
                              if (self._cache_hits + self._cache_misses) > 0 else 0
         }
+        
+        # Add optimization statistics if available
+        if self._optimization_times:
+            stats['optimization'] = {
+                'total_optimizations': len(self._optimization_times),
+                'average_optimization_time': sum(self._optimization_times) / len(self._optimization_times),
+                'min_optimization_time': min(self._optimization_times),
+                'max_optimization_time': max(self._optimization_times)
+            }
+        
+        return stats
     
     def clear_caches(self):
         """Clear all caches."""

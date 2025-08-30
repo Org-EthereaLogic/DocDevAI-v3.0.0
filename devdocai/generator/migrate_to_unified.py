@@ -41,11 +41,11 @@ def create_backup():
 def update_imports():
     """Update import statements in existing files."""
     replacements = [
-        # Template loader imports
+        # Template loader imports (now using M006 adapter)
         ("from .template_loader import TemplateLoader",
-         "from .unified_template_loader import UnifiedTemplateLoader as TemplateLoader"),
+         "from .template_registry_adapter import TemplateRegistryAdapter as TemplateLoader"),
         ("from .secure_template_loader import SecureTemplateLoader",
-         "from .unified_template_loader import UnifiedTemplateLoader as SecureTemplateLoader"),
+         "from .template_registry_adapter import TemplateRegistryAdapter as SecureTemplateLoader"),
         
         # Engine imports
         ("from .engine import DocumentGenerator",
@@ -101,15 +101,19 @@ M004 Document Generator - Core Components (Unified).
 Exports unified components with backward compatibility aliases.
 """
 
-from .unified_template_loader import (
-    UnifiedTemplateLoader,
+# Now using M006's template registry through adapter
+from .template_registry_adapter import (
+    TemplateRegistryAdapter as UnifiedTemplateLoader,
     TemplateMetadata,
     SecurityLevel,
-    create_template_loader,
     # Backward compatibility
-    UnifiedTemplateLoader as TemplateLoader,
-    UnifiedTemplateLoader as SecureTemplateLoader
+    TemplateRegistryAdapter as TemplateLoader,
+    TemplateRegistryAdapter as SecureTemplateLoader
 )
+
+# Helper function for template loader creation
+def create_template_loader(*args, **kwargs):
+    return UnifiedTemplateLoader(*args, **kwargs)
 
 from .unified_engine import (
     UnifiedDocumentGenerator,

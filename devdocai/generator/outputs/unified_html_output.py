@@ -165,7 +165,7 @@ class UnifiedHTMLOutput:
         # Initialize caching
         self.enable_caching = enable_caching
         if enable_caching:
-            self._cache = LRUCache(maxsize=cache_size)
+            self._cache = LRUCache(max_size=cache_size)
         
         # Initialize audit logger if needed
         if self.enable_audit:

@@ -40,6 +40,18 @@ class TemplateParseError(TemplateError):
         super().__init__(message, {"line": line, "column": column})
 
 
+class TemplateSyntaxError(TemplateError):
+    """Exception raised when template has syntax errors."""
+    
+    def __init__(self, message: str, line: Optional[int] = None, column: Optional[int] = None):
+        """Initialize template syntax error."""
+        if line is not None:
+            message += f" at line {line}"
+            if column is not None:
+                message += f", column {column}"
+        super().__init__(message, {"line": line, "column": column})
+
+
 class TemplateValidationError(TemplateError):
     """Exception raised when template validation fails."""
     
