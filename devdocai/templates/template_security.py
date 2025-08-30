@@ -269,7 +269,7 @@ class TemplateSecurity:
             # Fallback to basic sanitization if bleach not available
             cleaned = html
             # Remove script tags
-            cleaned = re.sub(r'<script[^>]*>.*?</script>', '', cleaned, flags=re.DOTALL | re.IGNORECASE)
+            cleaned = re.sub(r'<script[^>]*>.*?</script\b[^>]*>', '', cleaned, flags=re.DOTALL | re.IGNORECASE)
             # Remove event handlers
             cleaned = re.sub(r'\s*on\w+\s*=\s*["\'][^"\']*["\']', '', cleaned, flags=re.IGNORECASE)
             # Escape remaining HTML
