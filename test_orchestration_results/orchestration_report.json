@@ -1,0 +1,135 @@
+{
+  "timestamp": "2025-08-31T04:52:03.506639",
+  "total_frameworks": 4,
+  "frameworks_ready": 4,
+  "frameworks_failed": 0,
+  "total_tests": 44,
+  "tests_passed": 19,
+  "tests_failed": 25,
+  "overall_coverage": 2.875,
+  "total_execution_time": 54.254148924999754,
+  "peak_memory_usage_mb": 45.56640625,
+  "concurrent_execution_successful": false,
+  "integration_tests_passed": 6,
+  "integration_tests_total": 6,
+  "production_ready": false,
+  "framework_statuses": [
+    {
+      "name": "SBOM Testing Framework",
+      "version": "1.0.0",
+      "status": "completed",
+      "tests_total": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "coverage": 0.0,
+      "execution_time": 54.24218192999979,
+      "memory_usage_mb": 0.58984375,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "name": "Enhanced PII Testing Framework",
+      "version": "1.0.0",
+      "status": "completed",
+      "tests_total": 21,
+      "tests_passed": 12,
+      "tests_failed": 9,
+      "coverage": 5.0,
+      "execution_time": 7.113616456001182,
+      "memory_usage_mb": 0.515625,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "name": "DSR Testing Strategy",
+      "version": "1.0.0",
+      "status": "completed",
+      "tests_total": 23,
+      "tests_passed": 7,
+      "tests_failed": 16,
+      "coverage": 0.75,
+      "execution_time": 5.48511219700049,
+      "memory_usage_mb": 0.484375,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "name": "UI Testing Framework",
+      "version": "1.0.0",
+      "status": "completed",
+      "tests_total": 0,
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "coverage": 0.0,
+      "execution_time": 1.8770349550013634,
+      "memory_usage_mb": 0.33203125,
+      "errors": [],
+      "warnings": []
+    }
+  ],
+  "integration_results": [
+    {
+      "framework_a": "sbom",
+      "framework_b": "pii",
+      "test_name": "sbom_pii_integration",
+      "status": "pass",
+      "execution_time": 4.5800152292940766e-07,
+      "details": {}
+    },
+    {
+      "framework_a": "sbom",
+      "framework_b": "dsr",
+      "test_name": "sbom_dsr_integration",
+      "status": "pass",
+      "execution_time": 4.5900014811195433e-07,
+      "details": {}
+    },
+    {
+      "framework_a": "pii",
+      "framework_b": "dsr",
+      "test_name": "pii_dsr_integration",
+      "status": "pass",
+      "execution_time": 3.749992174562067e-07,
+      "details": {}
+    },
+    {
+      "framework_a": "ui",
+      "framework_b": "sbom",
+      "test_name": "ui_sbom_integration",
+      "status": "pass",
+      "execution_time": 2.9100010578986257e-07,
+      "details": {}
+    },
+    {
+      "framework_a": "ui",
+      "framework_b": "pii",
+      "test_name": "ui_pii_integration",
+      "status": "pass",
+      "execution_time": 2.0799961930606514e-07,
+      "details": {}
+    },
+    {
+      "framework_a": "ui",
+      "framework_b": "dsr",
+      "test_name": "ui_dsr_integration",
+      "status": "pass",
+      "execution_time": 2.5000008463393897e-07,
+      "details": {}
+    }
+  ],
+  "performance_metrics": {
+    "parallel_execution_time": 54.242364556999746,
+    "total_memory_usage_mb": 1.921875,
+    "peak_memory_usage_mb": 45.56640625,
+    "avg_framework_startup": 17.179486384500706,
+    "overall_performance_score": 0.6455223947937987
+  },
+  "recommendations": [
+    "Increase SBOM coverage from 0.0% to 85.0%",
+    "Increase PII coverage from 5.0% to 85.0%",
+    "Increase DSR coverage from 0.8% to 85.0%",
+    "Increase UI coverage from 0.0% to 85.0%",
+    "Fix 9 failing tests in PII framework",
+    "Fix 16 failing tests in DSR framework"
+  ]
+}
