@@ -600,7 +600,7 @@ class DSRRequestHandler:
         """Generate unique request ID."""
         timestamp = datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')
         hash_input = f"{user_id}_{request_type.value}_{timestamp}"
-        hash_short = hashlib.md5(hash_input.encode()).hexdigest()[:8]
+        hash_short = hashlib.sha256(hash_input.encode()).hexdigest()[:8]
         return f"DSR_{request_type.value.upper()}_{timestamp}_{hash_short}"
     
     def _can_process_erasure(self, user_id: str) -> bool:
