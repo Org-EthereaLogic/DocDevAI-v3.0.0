@@ -631,8 +631,8 @@ class SecurityValidator:
             ])
             allowed_attributes = getattr(self.config, 'allowed_html_attributes', {
                 'a': ['href', 'title'],
-                'span': ['style'],
-                'p': ['style'],
+                'span': [],
+                'p': [],
             })
             sanitized = bleach.clean(
                 sanitized,
