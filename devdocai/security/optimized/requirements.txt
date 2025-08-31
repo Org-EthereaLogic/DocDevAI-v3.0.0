@@ -1,0 +1,19 @@
+# M010 Security Module - Optimized Components Requirements
+
+# Core dependencies
+pyahocorasick>=2.0.0      # Aho-Corasick algorithm for PII detection
+mmh3>=3.0.0               # MurmurHash3 for fast hashing
+msgpack>=1.0.0            # Fast serialization
+networkx>=3.0             # Graph operations for SBOM
+bitarray>=2.0.0           # Efficient bit operations for bloom filters
+lz4>=4.0.0                # Fast compression (optional)
+
+# Async support
+aiohttp>=3.8.0            # Async HTTP for parallel requests
+
+# Database
+sqlite3                   # Built-in, for DSR storage
+
+# Performance monitoring (optional)
+psutil>=5.9.0             # System resource monitoring
+memory_profiler>=0.60.0   # Memory profiling
