@@ -19,6 +19,8 @@ beautifulsoup4>=4.12.0  # HTML parsing as fallback for bleach
 
 # Mathematical/Scientific Computing
 numpy>=1.24.0  # Required for M003 MIAIR Engine
+scikit-learn>=1.3.0  # For clustering and similarity in M009
+sentence-transformers>=2.2.0  # For semantic similarity in M009 cache
 
 # HTTP Client for M008 LLM Adapter
 aiohttp>=3.8.0
@@ -28,9 +30,16 @@ aiohttp>=3.8.0
 # anthropic>=0.7.0  # For Anthropic provider  
 # google-generativeai>=0.3.0  # For Google provider
 
+# Performance Optimization (M009 Pass 2)
+mmh3>=3.0.0  # Fast MurmurHash3 for caching
+lz4>=4.3.0  # Fast compression for cache
+uvloop>=0.17.0  # Fast event loop for async operations
+redis>=4.5.0  # Optional: distributed caching
+
 # Development Tools
 pytest>=7.4.0
 pytest-cov>=4.1.0
+pytest-asyncio>=0.21.0  # For async tests
 black>=23.0.0
 pylint>=3.0.0
 mypy>=1.5.0
