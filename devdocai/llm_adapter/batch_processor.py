@@ -14,7 +14,7 @@ import hashlib
 import json
 import time
 import logging
-from typing import Dict, List, Optional, Any, Set, Callable, Tuple
+from typing import Dict, List, Optional, Any, Set, Callable, Tuple, Coroutine
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
@@ -258,7 +258,7 @@ class BatchProcessor:
     def register_processor(
         self,
         provider: str,
-        processor: Callable[[List[LLMRequest]], asyncio.Coroutine]
+        processor: Callable[[List[LLMRequest]], Coroutine[Any, Any, List[LLMResponse]]]
     ) -> None:
         """
         Register a batch processor for a provider.
