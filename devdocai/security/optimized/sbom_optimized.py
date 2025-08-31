@@ -21,7 +21,7 @@ from collections import defaultdict, deque
 import msgpack  # For efficient serialization
 import networkx as nx  # For dependency graph operations
 from datetime import datetime, timezone
-import aiohttp
+# aiohttp removed - was unused (only ThreadPoolExecutor is used for parallelization)
 import asyncio
 import pickle
 
@@ -111,8 +111,7 @@ class OptimizedSBOMGenerator:
         self.last_scan = {}
         self.package_hashes = {}
         
-        # Connection pool for registry lookups
-        self.session = None
+        # Note: Parallel processing uses ThreadPoolExecutor, not async HTTP
         
         # Statistics
         self.stats = {
@@ -122,20 +121,7 @@ class OptimizedSBOMGenerator:
             'parallel_speedup': 0
         }
     
-    async def _init_session(self):
-        """Initialize async HTTP session"""
-        if not self.session:
-            connector = aiohttp.TCPConnector(
-                limit=100,
-                limit_per_host=30,
-                ttl_dns_cache=300
-            )
-            self.session = aiohttp.ClientSession(connector=connector)
-    
-    async def _close_session(self):
-        """Close async HTTP session"""
-        if self.session:
-            await self.session.close()
+    # Removed unused async session methods - parallel processing uses ThreadPoolExecutor
     
     def generate(self, dependencies: List[Dict], 
                  format: str = 'spdx',

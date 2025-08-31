@@ -9,7 +9,7 @@ bitarray>=2.0.0           # Efficient bit operations for bloom filters
 lz4>=4.0.0                # Fast compression (optional)
 
 # Async support
-aiohttp>=3.8.0            # Async HTTP for parallel requests
+# aiohttp removed - was unused (ThreadPoolExecutor handles parallelization)
 
 # Database
 sqlite3                   # Built-in, for DSR storage
