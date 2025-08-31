@@ -1,4 +1,6 @@
 name: Dependency and Security Check
+permissions:
+  contents: read
 
 on:
   push:
