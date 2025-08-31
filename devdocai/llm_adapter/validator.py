@@ -6,6 +6,7 @@ for all LLM requests to prevent injection attacks and ensure data integrity.
 """
 
 import re
+import bleach
 import json
 import hashlib
 import logging
@@ -503,11 +504,7 @@ class ResponseValidator:
         return any(re.search(p, text, re.IGNORECASE) for p in xss_patterns)
     
     def _sanitize_html(self, text: str) -> str:
-        """Remove potentially dangerous HTML/JavaScript."""
-        # Remove script tags
-        text = re.sub(r'<script[^>]*>.*?</script>', '', text, flags=re.IGNORECASE | re.DOTALL)
-        # Remove event handlers
-        text = re.sub(r'on\w+\s*=\s*["\'][^"\']*["\']', '', text, flags=re.IGNORECASE)
-        # Remove javascript: protocol
-        text = re.sub(r'javascript:', '', text, flags=re.IGNORECASE)
-        return text
+        """Remove potentially dangerous HTML/JavaScript using bleach."""
+        # Remove all HTML tags and attributes to fully sanitize the output.
+        sanitized = bleach.clean(text, tags=[], attributes={}, strip=True)
+        return sanitized
