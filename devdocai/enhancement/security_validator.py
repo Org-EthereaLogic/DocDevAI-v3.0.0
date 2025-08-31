@@ -8,6 +8,7 @@ security vulnerabilities while maintaining performance.
 
 import re
 import html
+import bleach
 import hashlib
 import secrets
 import logging
@@ -624,14 +625,22 @@ class SecurityValidator:
         
         # HTML sanitization
         if self.config.enable_html_sanitization:
-            # Remove script tags
-            if self.config.enable_script_removal:
-                sanitized = re.sub(r'<script[^>]*>.*?</script>', '', sanitized, flags=re.IGNORECASE | re.DOTALL)
-                sanitized = re.sub(r'<iframe[^>]*>.*?</iframe>', '', sanitized, flags=re.IGNORECASE | re.DOTALL)
-                sanitized = re.sub(r'on\w+\s*=\s*["\'][^"\']*["\']', '', sanitized, flags=re.IGNORECASE)
-            
-            # Escape HTML entities
-            sanitized = html.escape(sanitized)
+            # Use bleach to remove dangerous tags and attributes robustly
+            allowed_tags = getattr(self.config, 'allowed_html_tags', [
+                'b', 'i', 'u', 'em', 'strong', 'a', 'code', 'pre', 'br', 'p', 'ul', 'li', 'ol', 'span'
+            ])
+            allowed_attributes = getattr(self.config, 'allowed_html_attributes', {
+                'a': ['href', 'title'],
+                'span': ['style'],
+                'p': ['style'],
+            })
+            strip = True
+            sanitized = bleach.clean(
+                sanitized,
+                tags=allowed_tags,
+                attributes=allowed_attributes,
+                strip=strip,
+            )
         
         # URL sanitization
         if self.config.enable_url_sanitization:
