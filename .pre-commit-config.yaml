@@ -1,0 +1,274 @@
+# Pre-commit hooks for DocDevAI v3.0.0
+# Prevents security vulnerabilities and code quality issues before commit
+# Install: pip install pre-commit && pre-commit install
+# Run manually: pre-commit run --all-files
+# Skip hook: SKIP=hook_name git commit -m "message" or git commit --no-verify
+
+default_language_version:
+  python: python3.9
+  node: '18.17.0'
+
+# Configure hook behavior
+default_stages: [commit]
+fail_fast: false
+minimum_pre_commit_version: '3.0.0'
+
+repos:
+  # =============================================================================
+  # SECURITY CHECKS - Never skip these without justification
+  # =============================================================================
+  
+  # Detect secrets and credentials
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        name: 🔐 Detect secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: |
+          (?x)^(
+            .*\.(lock|svg|png|jpg|jpeg|gif|ico)|
+            package-lock\.json|
+            \.secrets\.baseline
+          )$
+
+  # Security vulnerability scanning for Python
+  - repo: https://github.com/PyCQA/bandit
+    rev: '1.7.5'
+    hooks:
+      - id: bandit
+        name: 🛡️ Bandit security scan
+        args: ['-ll', '-r', 'devdocai']
+        exclude: ^tests/
+        files: \.py$
+
+  # Check for known vulnerabilities in dependencies
+  - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
+    rev: v1.3.3
+    hooks:
+      - id: python-safety-dependencies-check
+        name: 🔒 Check Python dependencies for vulnerabilities
+        files: requirements.*\.txt$
+
+  # =============================================================================
+  # DEAD CODE & UNUSED IMPORTS - Automatically fixed when possible
+  # =============================================================================
+
+  # Remove unused imports and variables (auto-fix)
+  - repo: https://github.com/PyCQA/autoflake
+    rev: v2.2.1
+    hooks:
+      - id: autoflake
+        name: 🧹 Remove unused imports and variables
+        args: [
+          '--in-place',
+          '--remove-all-unused-imports',
+          '--remove-unused-variables',
+          '--remove-duplicate-keys',
+          '--ignore-init-module-imports'
+        ]
+        exclude: ^(docs/|scripts/test_)
+
+  # Dead code detection with vulture
+  - repo: local
+    hooks:
+      - id: vulture
+        name: 🦅 Detect dead code
+        entry: vulture
+        language: python
+        types: [python]
+        args: ['--min-confidence', '80']
+        exclude: |
+          (?x)^(
+            tests/.*|
+            .*__pycache__.*|
+            .*\.pyc|
+            devdocai/migrations/.*|
+            scripts/test_.*
+          )$
+        additional_dependencies: ['vulture']
+        # To skip: SKIP=vulture git commit -m "message"
+        # To whitelist: Add to .vulture_whitelist.py
+
+  # Check for unused dependencies
+  - repo: local
+    hooks:
+      - id: check-unused-deps
+        name: 📦 Check for unused Python dependencies
+        entry: bash -c 'python scripts/check_unused_deps.py || echo "Warning: Unused dependencies detected (non-blocking)"'
+        language: system
+        files: ^requirements.*\.txt$
+        pass_filenames: false
+
+  # =============================================================================
+  # CODE QUALITY - Format and lint
+  # =============================================================================
+
+  # Python code formatting
+  - repo: https://github.com/psf/black
+    rev: 23.11.0
+    hooks:
+      - id: black
+        name: 🎨 Black code formatter
+        language_version: python3.9
+        exclude: ^(devdocai/migrations/|docs/)
+
+  # Python import sorting
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        name: 📚 Sort imports
+        args: ['--profile', 'black', '--filter-files']
+        exclude: ^devdocai/migrations/
+
+  # Python linting
+  - repo: https://github.com/PyCQA/flake8
+    rev: 6.1.0
+    hooks:
+      - id: flake8
+        name: 🔍 Flake8 linting
+        args: ['--max-line-length=100', '--extend-ignore=E203,W503']
+        exclude: ^(devdocai/migrations/|docs/)
+        additional_dependencies: [
+          'flake8-docstrings',
+          'flake8-bugbear',
+          'flake8-comprehensions',
+          'flake8-simplify'
+        ]
+
+  # Type checking
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.7.1
+    hooks:
+      - id: mypy
+        name: 🔎 Type checking with mypy
+        args: ['--ignore-missing-imports', '--strict-optional']
+        exclude: ^(tests/|docs/|scripts/test_)
+        additional_dependencies: [
+          'types-requests',
+          'types-PyYAML',
+          'types-python-dateutil'
+        ]
+
+  # =============================================================================
+  # GENERAL CHECKS
+  # =============================================================================
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      # File checks
+      - id: check-added-large-files
+        name: 🚫 Check for large files
+        args: ['--maxkb=1000']
+      - id: check-case-conflict
+        name: 🔤 Check for case conflicts
+      - id: check-merge-conflict
+        name: ⚔️ Check for merge conflicts
+      - id: check-symlinks
+        name: 🔗 Check for broken symlinks
+      - id: destroyed-symlinks
+        name: 💔 Check for destroyed symlinks
+        
+      # Content checks
+      - id: check-yaml
+        name: ✅ Validate YAML
+        exclude: ^\.github/workflows/.*\.yml$
+      - id: check-json
+        name: ✅ Validate JSON
+      - id: check-toml
+        name: ✅ Validate TOML
+      - id: check-xml
+        name: ✅ Validate XML
+        
+      # Python specific
+      - id: check-ast
+        name: 🐍 Validate Python syntax
+      - id: check-docstring-first
+        name: 📝 Check docstring placement
+      - id: debug-statements
+        name: 🐛 Check for debug statements
+      - id: name-tests-test
+        name: 🧪 Check test naming
+        args: ['--pytest-test-first']
+        
+      # Security
+      - id: detect-private-key
+        name: 🔑 Detect private keys
+        
+      # Clean up
+      - id: end-of-file-fixer
+        name: 📄 Fix end of files
+        exclude: \.(svg|png|jpg|jpeg|gif|ico)$
+      - id: trailing-whitespace
+        name: ✂️ Trim trailing whitespace
+        exclude: \.(svg|png|jpg|jpeg|gif|ico|md)$
+      - id: mixed-line-ending
+        name: 🔚 Fix line endings
+        args: ['--fix=lf']
+
+  # =============================================================================
+  # NODE.JS / TYPESCRIPT CHECKS
+  # =============================================================================
+
+  # ESLint for TypeScript
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v8.54.0
+    hooks:
+      - id: eslint
+        name: 📘 ESLint TypeScript
+        files: \.(ts|tsx|js|jsx)$
+        exclude: ^(node_modules/|dist/|coverage/)
+        additional_dependencies: [
+          'eslint@8.54.0',
+          '@typescript-eslint/parser@6.13.1',
+          '@typescript-eslint/eslint-plugin@6.13.1',
+          'eslint-config-prettier@9.0.0',
+          'eslint-plugin-prettier@5.0.1'
+        ]
+
+  # Check for security issues in npm packages
+  - repo: local
+    hooks:
+      - id: npm-audit
+        name: 🔒 NPM security audit
+        entry: bash -c 'if [ -f package.json ]; then npm audit --audit-level=moderate || echo "Warning: npm vulnerabilities (non-blocking)"; fi'
+        language: system
+        files: ^package\.json$
+        pass_filenames: false
+
+  # =============================================================================
+  # MARKDOWN CHECKS
+  # =============================================================================
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.37.0
+    hooks:
+      - id: markdownlint
+        name: 📝 Markdown linting
+        args: ['--fix']
+        exclude: ^(node_modules/|\.github/pull_request_template\.md)
+
+  # =============================================================================
+  # COMMIT MESSAGE VALIDATION
+  # =============================================================================
+
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: 3.12.0
+    hooks:
+      - id: commitizen
+        name: 📋 Check commit message format
+        stages: [commit-msg]
+
+# Configuration for specific tools can be added to pyproject.toml or setup.cfg
+# To skip specific hooks for a commit:
+# SKIP=hook_name git commit -m "message"
+# Example: SKIP=vulture,mypy git commit -m "WIP: experimental feature"
+#
+# To skip all hooks (use sparingly):
+# git commit --no-verify -m "emergency fix"
+#
+# To run hooks manually:
+# pre-commit run --all-files
+# pre-commit run hook_name --all-files

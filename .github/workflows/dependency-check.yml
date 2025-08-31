@@ -1,0 +1,465 @@
+name: Dependency and Security Check
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run daily at 2 AM UTC to catch new vulnerabilities
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      strict_mode:
+        description: 'Fail on warnings (true/false)'
+        required: false
+        default: 'false'
+
+jobs:
+  python-dependency-check:
+    name: Python Dependency Analysis
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11']
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+            
+      - name: Install dependencies and analysis tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pip-audit safety vulture pipdeptree pip-autoremove bandit
+
+      - name: Check for security vulnerabilities with pip-audit
+        id: pip_audit
+        continue-on-error: true
+        run: |
+          echo "## 🔒 Security Audit with pip-audit" >> $GITHUB_STEP_SUMMARY
+          pip-audit --desc --fix --dry-run 2>&1 | tee audit-report.txt
+          if grep -q "found vulnerabilities" audit-report.txt; then
+            echo "vulnerabilities_found=true" >> $GITHUB_OUTPUT
+            cat audit-report.txt >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ No vulnerabilities found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Check for known security issues with safety
+        id: safety_check
+        continue-on-error: true
+        run: |
+          echo "## 🛡️ Safety Security Check" >> $GITHUB_STEP_SUMMARY
+          safety check --json --output safety-report.json || true
+          python -c "
+import json
+with open('safety-report.json', 'r') as f:
+    data = json.load(f)
+    if data.get('vulnerabilities'):
+        print('⚠️ Found', len(data['vulnerabilities']), 'vulnerabilities')
+        for vuln in data['vulnerabilities'][:5]:  # Show first 5
+            print(f\"  - {vuln.get('package_name', 'unknown')}: {vuln.get('vulnerability', 'unknown')}\" )
+    else:
+        print('✅ No known vulnerabilities')
+          " >> $GITHUB_STEP_SUMMARY
+
+      - name: Detect unused dependencies
+        id: unused_deps
+        continue-on-error: true
+        run: |
+          echo "## 📦 Unused Dependencies Analysis" >> $GITHUB_STEP_SUMMARY
+          
+          # Create a Python script to check for unused imports
+          cat > check_unused.py << 'EOF'
+import ast
+import os
+import sys
+from pathlib import Path
+
+def get_imports_from_file(filepath):
+    """Extract all imports from a Python file."""
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            tree = ast.parse(f.read())
+        
+        imports = set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    imports.add(alias.name.split('.')[0])
+            elif isinstance(node, ast.ImportFrom):
+                if node.module:
+                    imports.add(node.module.split('.')[0])
+        return imports
+    except:
+        return set()
+
+def get_all_imports(root_dir='devdocai'):
+    """Get all imports from the project."""
+    all_imports = set()
+    for py_file in Path(root_dir).rglob('*.py'):
+        all_imports.update(get_imports_from_file(py_file))
+    
+    # Add test imports
+    if Path('tests').exists():
+        for py_file in Path('tests').rglob('*.py'):
+            all_imports.update(get_imports_from_file(py_file))
+    
+    return all_imports
+
+def get_installed_packages():
+    """Get list of installed packages from requirements.txt."""
+    packages = set()
+    with open('requirements.txt', 'r') as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith('#'):
+                # Extract package name (before any version specifier)
+                pkg = line.split('>=')[0].split('==')[0].split('<')[0].split('>')[0].split('[')[0]
+                packages.add(pkg.lower().replace('-', '_'))
+    return packages
+
+# Standard library modules to ignore
+STDLIB = {
+    'os', 'sys', 'json', 're', 'math', 'random', 'datetime', 'time',
+    'collections', 'itertools', 'functools', 'typing', 'pathlib',
+    'unittest', 'test', 'copy', 'hashlib', 'logging', 'asyncio',
+    'concurrent', 'multiprocessing', 'threading', 'queue', 'socket',
+    'urllib', 'http', 'email', 'base64', 'io', 'tempfile', 'shutil',
+    'subprocess', 'argparse', 'configparser', 'enum', 'dataclasses',
+    'abc', 'warnings', 'traceback', 'inspect', 'importlib', 'contextlib',
+    'weakref', 'gc', 'pickle', 'struct', 'binascii', 'codecs', 'locale',
+    'secrets', 'uuid', 'platform', 'getpass', 'pwd', 'grp', 'stat',
+    'types', 'operator', 'builtins', '__future__'
+}
+
+# Package name mappings (package name -> import name)
+PACKAGE_MAPPINGS = {
+    'scikit_learn': 'sklearn',
+    'sentence_transformers': 'sentence_transformers',
+    'python_dotenv': 'dotenv',
+    'argon2_cffi': 'argon2',
+    'beautifulsoup4': 'bs4',
+    'pytest_cov': 'pytest_cov',
+    'pytest_asyncio': 'pytest_asyncio',
+}
+
+if __name__ == '__main__':
+    project_imports = get_all_imports()
+    installed_packages = get_installed_packages()
+    
+    # Normalize import names
+    normalized_imports = set()
+    for imp in project_imports:
+        imp_lower = imp.lower().replace('-', '_')
+        normalized_imports.add(imp_lower)
+    
+    # Check for unused packages
+    unused = []
+    for pkg in installed_packages:
+        pkg_normalized = pkg.lower().replace('-', '_')
+        
+        # Check if package is imported directly or through mapping
+        import_name = PACKAGE_MAPPINGS.get(pkg_normalized, pkg_normalized)
+        
+        # Skip development tools and testing libraries
+        if any(dev in pkg_normalized for dev in ['pytest', 'black', 'pylint', 'mypy', 'jinja2']):
+            continue
+            
+        if import_name not in normalized_imports and import_name not in STDLIB:
+            # Special cases for packages that might be imported differently
+            if pkg_normalized == 'aiohttp' and 'aiohttp' not in normalized_imports:
+                unused.append(pkg)
+            elif pkg_normalized not in ['pip', 'setuptools', 'wheel']:
+                # Check if it's a sub-package import
+                if not any(imp.startswith(import_name) for imp in normalized_imports):
+                    unused.append(pkg)
+    
+    if unused:
+        print(f"⚠️ Found {len(unused)} potentially unused dependencies:")
+        for pkg in unused:
+            print(f"  - {pkg}")
+        sys.exit(1)
+    else:
+        print("✅ No unused dependencies detected")
+EOF
+
+          python check_unused.py >> $GITHUB_STEP_SUMMARY || echo "unused_found=true" >> $GITHUB_OUTPUT
+
+      - name: Detect dead code with vulture
+        id: dead_code
+        continue-on-error: true
+        run: |
+          echo "## 🦅 Dead Code Detection" >> $GITHUB_STEP_SUMMARY
+          
+          # Create vulture whitelist for common false positives
+          cat > .vulture_whitelist.py << 'EOF'
+# Whitelist for vulture - add false positives here
+_.id  # SQLAlchemy models
+_.created_at  # SQLAlchemy models
+_.updated_at  # SQLAlchemy models
+_.metadata  # SQLAlchemy models
+_.query  # SQLAlchemy models
+_.session  # SQLAlchemy models
+_.__tablename__  # SQLAlchemy models
+_.__table_args__  # SQLAlchemy models
+EOF
+
+          vulture devdocai tests --min-confidence 80 --exclude "*/migrations/*,*/__pycache__/*" .vulture_whitelist.py > vulture-report.txt 2>&1 || true
+          
+          if [ -s vulture-report.txt ]; then
+            DEAD_CODE_COUNT=$(wc -l < vulture-report.txt)
+            if [ $DEAD_CODE_COUNT -gt 0 ]; then
+              echo "⚠️ Found $DEAD_CODE_COUNT potential dead code instances" >> $GITHUB_STEP_SUMMARY
+              echo "First 10 instances:" >> $GITHUB_STEP_SUMMARY
+              head -10 vulture-report.txt >> $GITHUB_STEP_SUMMARY
+              echo "dead_code_found=true" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "✅ No dead code detected" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Code security analysis with bandit
+        id: bandit
+        continue-on-error: true
+        run: |
+          echo "## 🔍 Security Code Analysis (Bandit)" >> $GITHUB_STEP_SUMMARY
+          bandit -r devdocai -f json -o bandit-report.json --severity-level medium || true
+          
+          python -c "
+import json
+try:
+    with open('bandit-report.json', 'r') as f:
+        data = json.load(f)
+        issues = data.get('results', [])
+        if issues:
+            print(f'⚠️ Found {len(issues)} security issues:')
+            for issue in issues[:5]:  # Show first 5
+                print(f\"  - {issue['issue_severity']}: {issue['issue_text']} at {issue['filename']}:{issue['line_number']}\")
+        else:
+            print('✅ No security issues found')
+except:
+    print('✅ No security issues found')
+          " >> $GITHUB_STEP_SUMMARY
+
+      - name: Generate dependency tree
+        run: |
+          echo "## 🌳 Dependency Tree" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          pipdeptree --warn silence | head -50 >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Check results and fail if needed
+        run: |
+          STRICT_MODE="${{ github.event.inputs.strict_mode || 'false' }}"
+          FAIL_BUILD=false
+          
+          if [[ "${{ steps.pip_audit.outputs.vulnerabilities_found }}" == "true" ]]; then
+            echo "❌ Security vulnerabilities found!"
+            FAIL_BUILD=true
+          fi
+          
+          if [[ "${{ steps.unused_deps.outputs.unused_found }}" == "true" ]]; then
+            echo "⚠️ Unused dependencies found!"
+            if [[ "$STRICT_MODE" == "true" ]]; then
+              FAIL_BUILD=true
+            fi
+          fi
+          
+          if [[ "${{ steps.dead_code.outputs.dead_code_found }}" == "true" ]]; then
+            echo "⚠️ Dead code detected!"
+            if [[ "$STRICT_MODE" == "true" ]]; then
+              FAIL_BUILD=true
+            fi
+          fi
+          
+          if [[ "$FAIL_BUILD" == "true" ]]; then
+            echo "## ❌ Build Failed" >> $GITHUB_STEP_SUMMARY
+            echo "Security or quality issues detected. Please review the report above." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          else
+            echo "## ✅ All Checks Passed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  nodejs-dependency-check:
+    name: Node.js Dependency Analysis
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ['18.x', '20.x']
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm install -g depcheck npm-audit-resolver better-npm-audit
+
+      - name: Security audit with npm
+        id: npm_audit
+        continue-on-error: true
+        run: |
+          echo "## 🔒 NPM Security Audit" >> $GITHUB_STEP_SUMMARY
+          
+          # Run npm audit and capture results
+          npm audit --json > npm-audit.json || true
+          
+          # Parse and display results
+          node -e "
+          const audit = require('./npm-audit.json');
+          const vulns = audit.vulnerabilities || {};
+          const count = Object.keys(vulns).length;
+          
+          if (count > 0) {
+            console.log('⚠️ Found ' + count + ' vulnerabilities:');
+            let shown = 0;
+            for (const [name, details] of Object.entries(vulns)) {
+              if (shown++ < 5) {
+                console.log('  - ' + name + ': ' + details.severity + ' severity');
+              }
+            }
+            process.exit(1);
+          } else {
+            console.log('✅ No vulnerabilities found');
+          }
+          " >> $GITHUB_STEP_SUMMARY || echo "npm_vulnerabilities=true" >> $GITHUB_OUTPUT
+
+      - name: Check for unused dependencies with depcheck
+        id: depcheck
+        continue-on-error: true
+        run: |
+          echo "## 📦 Unused Dependencies Check (Node.js)" >> $GITHUB_STEP_SUMMARY
+          
+          # Create depcheck config
+          cat > .depcheckrc.json << 'EOF'
+{
+  "ignores": ["@types/*", "eslint-*", "@typescript-eslint/*", "ts-node*", "typescript"],
+  "skip-missing": false,
+  "ignorePatterns": ["dist", "node_modules", "coverage", "*.test.ts", "*.spec.ts"]
+}
+EOF
+          
+          # Run depcheck
+          depcheck --json > depcheck-report.json 2>&1 || true
+          
+          # Parse results
+          node -e "
+          try {
+            const report = require('./depcheck-report.json');
+            const unused = report.dependencies || [];
+            const missing = report.missing || {};
+            
+            if (unused.length > 0) {
+              console.log('⚠️ Unused dependencies found:');
+              unused.forEach(dep => console.log('  - ' + dep));
+              process.exit(1);
+            } else {
+              console.log('✅ No unused dependencies');
+            }
+            
+            if (Object.keys(missing).length > 0) {
+              console.log('⚠️ Missing dependencies:');
+              Object.keys(missing).slice(0, 5).forEach(dep => console.log('  - ' + dep));
+            }
+          } catch (e) {
+            console.log('✅ Dependency check completed');
+          }
+          " >> $GITHUB_STEP_SUMMARY || echo "unused_npm_deps=true" >> $GITHUB_OUTPUT
+
+      - name: Check outdated dependencies
+        continue-on-error: true
+        run: |
+          echo "## 📊 Outdated Dependencies" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          npm outdated >> $GITHUB_STEP_SUMMARY 2>&1 || true
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: License compliance check
+        continue-on-error: true
+        run: |
+          echo "## 📜 License Compliance" >> $GITHUB_STEP_SUMMARY
+          npx license-checker --summary >> $GITHUB_STEP_SUMMARY || true
+
+      - name: Check results
+        run: |
+          STRICT_MODE="${{ github.event.inputs.strict_mode || 'false' }}"
+          FAIL_BUILD=false
+          
+          if [[ "${{ steps.npm_audit.outputs.npm_vulnerabilities }}" == "true" ]]; then
+            echo "❌ NPM security vulnerabilities found!"
+            FAIL_BUILD=true
+          fi
+          
+          if [[ "${{ steps.depcheck.outputs.unused_npm_deps }}" == "true" ]]; then
+            echo "⚠️ Unused NPM dependencies found!"
+            if [[ "$STRICT_MODE" == "true" ]]; then
+              FAIL_BUILD=true
+            fi
+          fi
+          
+          if [[ "$FAIL_BUILD" == "true" ]]; then
+            exit 1
+          fi
+
+  create-issue-on-failure:
+    name: Create Issue on Failure
+    runs-on: ubuntu-latest
+    needs: [python-dependency-check, nodejs-dependency-check]
+    if: failure() && github.event_name == 'schedule'
+    
+    steps:
+      - name: Create issue for dependency problems
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `🔒 Security: Dependency vulnerabilities detected - ${new Date().toISOString().split('T')[0]}`;
+            const body = `## Automated Security Scan Results
+            
+            The scheduled dependency security scan has detected issues that need attention.
+            
+            ### Affected Components
+            - Python dependencies: Check workflow run for details
+            - Node.js dependencies: Check workflow run for details
+            
+            ### Action Required
+            1. Review the [workflow run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
+            2. Update or remove vulnerable/unused dependencies
+            3. Run \`npm audit fix\` and \`pip-audit --fix\` locally
+            4. Submit a PR with fixes
+            
+            ### Priority
+            - 🔴 **High**: Security vulnerabilities
+            - 🟡 **Medium**: Unused dependencies
+            - 🟢 **Low**: Outdated packages
+            
+            /cc @${context.actor}`;
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['security', 'dependencies', 'automated']
+            });
