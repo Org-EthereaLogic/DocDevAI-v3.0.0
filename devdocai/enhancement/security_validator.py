@@ -634,12 +634,11 @@ class SecurityValidator:
                 'span': ['style'],
                 'p': ['style'],
             })
-            strip = True
             sanitized = bleach.clean(
                 sanitized,
                 tags=allowed_tags,
                 attributes=allowed_attributes,
-                strip=strip,
+                strip=True,
             )
         
         # URL sanitization
