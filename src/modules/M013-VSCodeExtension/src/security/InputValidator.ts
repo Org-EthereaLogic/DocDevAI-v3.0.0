@@ -413,7 +413,7 @@ export class InputValidator {
         
         // XSS patterns
         this.xssPatterns = [
-            /<script[^>]*>.*?<\/script>/gi,
+            /<script\b[^>]*>[\s\S]*?<\/script[^>]*>/gi,
             /javascript:/gi,
             /on\w+\s*=\s*["'][^"']*["']/gi,
             /eval\s*\(/gi,
