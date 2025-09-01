@@ -21,6 +21,13 @@ import { LanguageService } from './services/LanguageService';
 import { Logger } from './utils/Logger';
 import { ExtensionContext } from './utils/ExtensionContext';
 
+// Security Components
+import { InputValidator } from './security/InputValidator';
+import { ConfigSecure } from './security/ConfigSecure';
+import { PermissionManager } from './security/PermissionManager';
+import { AuditLogger } from './security/AuditLogger';
+import { ThreatDetector } from './security/ThreatDetector';
+
 // Extension state
 let extensionContext: ExtensionContext;
 let commandManager: CommandManager;
@@ -30,6 +37,13 @@ let statusBarManager: StatusBarManager;
 let configManager: ConfigurationManager;
 let languageService: LanguageService;
 let logger: Logger;
+
+// Security Components
+let inputValidator: InputValidator;
+let configSecure: ConfigSecure;
+let permissionManager: PermissionManager;
+let auditLogger: AuditLogger;
+let threatDetector: ThreatDetector;
 
 /**
  * Activates the DevDocAI extension
@@ -44,15 +58,46 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         // Initialize extension context
         extensionContext = new ExtensionContext(context);
         
-        // Initialize configuration manager
+        // SECURITY: Initialize security components first (layered security approach)
+        logger.info('🛡️ Initializing security infrastructure...');
+        
+        // Layer 1: Input validation and sanitization
+        inputValidator = new InputValidator(context);
+        
+        // Layer 2: Secure configuration with encrypted secrets
+        configSecure = new ConfigSecure(context, inputValidator);
+        await configSecure.initialize();
+        
+        // Layer 3: Role-based access control
+        permissionManager = new PermissionManager(context, inputValidator);
+        
+        // Layer 4: Security event logging and audit
+        auditLogger = new AuditLogger(context, inputValidator);
+        
+        // Layer 5: Real-time threat detection and response
+        threatDetector = new ThreatDetector(context, inputValidator, auditLogger, permissionManager);
+        
+        // Log security initialization completion
+        await auditLogger.logEvent(
+            2, // EventSeverity.MEDIUM
+            'system_access', // EventCategory.SYSTEM_ACCESS
+            'security_init',
+            'extension',
+            true,
+            'Security infrastructure initialized successfully'
+        );
+        
+        logger.info('✅ Security infrastructure initialized');
+        
+        // Initialize configuration manager (now with security)
         configManager = new ConfigurationManager(context);
         await configManager.initialize();
         
-        // Initialize CLI service
+        // Initialize CLI service (now with input validation)
         cliService = new CLIService(configManager, logger);
         await cliService.initialize();
         
-        // Initialize webview manager
+        // Initialize webview manager (now with XSS protection)
         webviewManager = new WebviewManager(context, logger);
         
         // Initialize status bar
@@ -63,13 +108,15 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         languageService = new LanguageService(context, cliService, logger);
         await languageService.initialize();
         
-        // Initialize command manager and register commands
+        // Initialize command manager with security integration
         commandManager = new CommandManager(
             context,
             cliService,
             webviewManager,
             configManager,
-            logger
+            logger,
+            permissionManager,  // Add permission manager for authorization
+            auditLogger        // Add audit logger for command tracking
         );
         commandManager.registerCommands();
         
@@ -87,6 +134,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         // Update status bar
         statusBarManager.setStatus('ready', 'DevDocAI Ready');
         
+        // Log successful activation
+        await auditLogger.logAuthentication('session_start', true, 'Extension activated successfully');
+        
         logger.info('DevDocAI extension activated successfully');
         
         // Report activation telemetry (if enabled)
@@ -94,6 +144,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         
     } catch (error) {
         logger.error('Failed to activate DevDocAI extension', error);
+        
+        // Log activation failure
+        if (auditLogger) {
+            await auditLogger.logAuthentication('session_start', false, 
+                `Extension activation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+        
         vscode.window.showErrorMessage(
             `Failed to activate DevDocAI: ${error instanceof Error ? error.message : 'Unknown error'}`
         );
@@ -109,18 +166,46 @@ export async function deactivate(): Promise<void> {
     logger?.info('Deactivating DevDocAI extension');
     
     try {
+        // Log deactivation start
+        if (auditLogger) {
+            await auditLogger.logAuthentication('session_end', true, 'Extension deactivation initiated');
+        }
+        
         // Cleanup services
         await cliService?.dispose();
         await webviewManager?.dispose();
         await statusBarManager?.dispose();
         await languageService?.dispose();
         
+        // SECURITY: Cleanup security components (in reverse order of initialization)
+        if (threatDetector) {
+            threatDetector.dispose();
+        }
+        if (auditLogger) {
+            await auditLogger.dispose();
+        }
+        if (permissionManager) {
+            await permissionManager.dispose();
+        }
+        if (configSecure) {
+            configSecure.dispose();
+        }
+        if (inputValidator) {
+            inputValidator.dispose();
+        }
+        
         // Save state
         await extensionContext?.saveState();
         
         logger?.info('DevDocAI extension deactivated successfully');
+        
     } catch (error) {
         logger?.error('Error during deactivation', error);
+        
+        // Log deactivation failure
+        if (auditLogger) {
+            await auditLogger.logError(error, 'extension_deactivation');
+        }
     }
 }
 

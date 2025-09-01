@@ -18,6 +18,7 @@ import * as readline from 'readline';
 import { EventEmitter } from 'events';
 import { ConfigurationManager } from './ConfigurationManager';
 import { Logger } from '../utils/Logger';
+import { InputValidator, ValidationResult } from '../security/InputValidator';
 
 interface CLIProcessPool {
     available: ChildProcess[];
@@ -46,6 +47,9 @@ export class OptimizedCLIService extends EventEmitter {
     private isProcessing: boolean = false;
     private isInitialized: boolean = false;
     
+    // Security components
+    private inputValidator: InputValidator;
+    
     private pythonPath: string;
     private cliPath: string;
     private operationMode: string;
@@ -63,6 +67,10 @@ export class OptimizedCLIService extends EventEmitter {
         private logger: Logger
     ) {
         super();
+        
+        // Initialize security validator
+        this.inputValidator = new InputValidator(configManager['context']);
+        
         this.pythonPath = this.configManager.getConfig().pythonPath || 'python';
         this.cliPath = this.resolveCLIPath();
         this.operationMode = this.configManager.getConfig().operationMode || 'BASIC';
@@ -93,13 +101,19 @@ export class OptimizedCLIService extends EventEmitter {
     }
     
     /**
-     * Generates documentation with streaming and progress
+     * Generates documentation with streaming and progress (Security Hardened)
      */
     public async generateDocumentation(
         filePath: string,
         template: string,
         options?: any
     ): Promise<any> {
+        // SECURITY: Validate all inputs before processing
+        const securityValidation = await this.validateDocumentationInputs(filePath, template, options);
+        if (!securityValidation.isValid) {
+            throw new Error(`Security validation failed: ${securityValidation.errors.join(', ')}`);
+        }
+        
         return vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
             title: "Generating Documentation",
@@ -107,19 +121,28 @@ export class OptimizedCLIService extends EventEmitter {
         }, async (progress, token) => {
             progress.report({ increment: 0, message: "Analyzing code..." });
             
+            // Use validated/sanitized inputs
+            const sanitizedInputs = securityValidation.sanitized;
+            
             const args = [
                 'generate',
-                filePath,
-                '--template', template,
+                sanitizedInputs.filePath,
+                '--template', sanitizedInputs.template,
                 '--mode', this.operationMode,
                 '--stream' // Enable streaming output
             ];
             
-            if (options?.selection) {
-                args.push('--selection', options.selection);
+            if (sanitizedInputs.options?.selection) {
+                args.push('--selection', sanitizedInputs.options.selection);
             }
-            if (options?.useMIAIR) {
+            if (sanitizedInputs.options?.useMIAIR) {
                 args.push('--miair');
+            }
+            
+            // Final validation of complete argument array
+            const argsValidation = this.inputValidator.validateCliArguments(args);
+            if (!argsValidation.isValid) {
+                throw new Error(`CLI arguments validation failed: ${argsValidation.errors.join(', ')}`);
             }
             
             let result: any = {};
@@ -127,7 +150,7 @@ export class OptimizedCLIService extends EventEmitter {
             
             await this.executeStreamingCommand({
                 id: `generate-${Date.now()}`,
-                args,
+                args: argsValidation.sanitized,
                 onData: (data) => {
                     outputBuffer += data;
                     
@@ -169,26 +192,43 @@ export class OptimizedCLIService extends EventEmitter {
     }
     
     /**
-     * Analyzes quality with real-time updates
+     * Analyzes quality with real-time updates (Security Hardened)
      */
     public async analyzeQuality(documentPath: string): Promise<any> {
+        // SECURITY: Validate inputs and rate limiting
+        const securityValidation = await this.validateQualityInputs(documentPath);
+        if (!securityValidation.isValid) {
+            throw new Error(`Security validation failed: ${securityValidation.errors.join(', ')}`);
+        }
+        
+        const rateLimitCheck = this.checkRateLimit('analyze');
+        if (!rateLimitCheck.isValid) {
+            throw new Error(`Rate limit exceeded: ${rateLimitCheck.errors.join(', ')}`);
+        }
+        
         return vscode.window.withProgress({
             location: vscode.ProgressLocation.Window,
             title: "Analyzing Quality"
         }, async (progress) => {
             const args = [
                 'analyze',
-                documentPath,
+                securityValidation.sanitized,
                 '--json',
                 '--mode', this.operationMode,
                 '--stream'
             ];
             
+            // Validate CLI arguments
+            const argsValidation = this.inputValidator.validateCliArguments(args);
+            if (!argsValidation.isValid) {
+                throw new Error(`CLI arguments validation failed: ${argsValidation.errors.join(', ')}`);
+            }
+            
             let result: any = {};
             
             await this.executeStreamingCommand({
                 id: `analyze-${Date.now()}`,
-                args,
+                args: argsValidation.sanitized,
                 onData: (data) => {
                     // Parse intermediate results
                     try {
@@ -603,21 +643,129 @@ export class OptimizedCLIService extends EventEmitter {
     }
     
     /**
+     * SECURITY: Validates documentation generation inputs
+     */
+    private async validateDocumentationInputs(
+        filePath: string,
+        template: string,
+        options?: any
+    ): Promise<ValidationResult> {
+        const result: ValidationResult = {
+            isValid: true,
+            sanitized: {
+                filePath: '',
+                template: '',
+                options: {}
+            },
+            errors: [],
+            warnings: [],
+            securityScore: 100
+        };
+        
+        // Validate file path for traversal attacks
+        const filePathValidation = this.inputValidator.validateFilePath(
+            filePath,
+            { requireWorkspaceScope: true, preventExecutables: true }
+        );
+        
+        if (!filePathValidation.isValid) {
+            result.isValid = false;
+            result.errors.push(...filePathValidation.errors);
+            result.securityScore = Math.min(result.securityScore, filePathValidation.securityScore);
+        } else {
+            result.sanitized.filePath = filePathValidation.sanitized;
+        }
+        
+        // Validate template name
+        const templateValidation = this.inputValidator.validateParameter(
+            'template',
+            template,
+            { maxLength: 100, requireAlphanumeric: true }
+        );
+        
+        if (!templateValidation.isValid) {
+            result.isValid = false;
+            result.errors.push(...templateValidation.errors);
+            result.securityScore = Math.min(result.securityScore, templateValidation.securityScore);
+        } else {
+            result.sanitized.template = templateValidation.sanitized;
+        }
+        
+        // Validate options object
+        if (options) {
+            const optionsValidation = this.inputValidator.validateDataObject(options);
+            if (!optionsValidation.isValid) {
+                result.warnings.push(...optionsValidation.warnings);
+                result.securityScore = Math.min(result.securityScore, optionsValidation.securityScore);
+            }
+            result.sanitized.options = optionsValidation.sanitized;
+        }
+        
+        return result;
+    }
+    
+    /**
+     * SECURITY: Validates quality analysis inputs
+     */
+    private async validateQualityInputs(documentPath: string): Promise<ValidationResult> {
+        return this.inputValidator.validateFilePath(
+            documentPath,
+            { requireWorkspaceScope: true }
+        );
+    }
+    
+    /**
+     * SECURITY: Validates security scan inputs
+     */
+    private async validateSecurityScanInputs(targetPath: string): Promise<ValidationResult> {
+        return this.inputValidator.validateFilePath(
+            targetPath,
+            { requireWorkspaceScope: true }
+        );
+    }
+    
+    /**
+     * SECURITY: Rate limiting check for CLI operations
+     */
+    private checkRateLimit(operation: string): ValidationResult {
+        const rateLimitKey = `cli-${operation}`;
+        return this.inputValidator.validateRateLimit(rateLimitKey, 50); // 50 ops/minute
+    }
+    
+    /**
      * Additional optimized methods
      */
     
     public async runSecurityScan(targetPath: string): Promise<any> {
+        // SECURITY: Validate inputs and rate limiting
+        const securityValidation = await this.validateSecurityScanInputs(targetPath);
+        if (!securityValidation.isValid) {
+            throw new Error(`Security validation failed: ${securityValidation.errors.join(', ')}`);
+        }
+        
+        const rateLimitCheck = this.checkRateLimit('security-scan');
+        if (!rateLimitCheck.isValid) {
+            throw new Error(`Rate limit exceeded: ${rateLimitCheck.errors.join(', ')}`);
+        }
+        
         return vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
             title: "Security Scan",
             cancellable: true
         }, async (progress, token) => {
-            const args = ['security', 'scan', targetPath, '--json', '--stream'];
+            const args = ['security', 'scan', securityValidation.sanitized, '--json', '--stream'];
+            
+            // Validate CLI arguments
+            const argsValidation = this.inputValidator.validateCliArguments(args);
+            if (!argsValidation.isValid) {
+                throw new Error(`CLI arguments validation failed: ${argsValidation.errors.join(', ')}`);
+            }
+            
             let result: any = {};
             
             await this.executeStreamingCommand({
                 id: `security-${Date.now()}`,
-                args,
+                args: argsValidation.sanitized,
                 onData: (data) => {
                     const match = data.match(/scanning:(.+)/);
                     if (match) {

@@ -14,6 +14,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { Logger } from '../utils/Logger';
+import { InputValidator, ValidationResult } from '../security/InputValidator';
 
 interface WebviewCache {
     html: Map<string, string>;
@@ -33,6 +34,9 @@ interface WebviewMetrics {
 export class OptimizedWebviewManager {
     private panels: Map<string, vscode.WebviewPanel> = new Map();
     private disposables: vscode.Disposable[] = [];
+    
+    // Security components
+    private inputValidator: InputValidator;
     
     // LRU Cache for webview content
     private cache: WebviewCache = {
@@ -59,6 +63,9 @@ export class OptimizedWebviewManager {
         private context: vscode.ExtensionContext,
         private logger: Logger
     ) {
+        // Initialize security validator
+        this.inputValidator = new InputValidator(context);
+        
         // Load persisted state from global state
         this.loadPersistedState();
         
@@ -291,12 +298,12 @@ export class OptimizedWebviewManager {
     }
     
     /**
-     * Generates optimized dashboard HTML
+     * Generates optimized dashboard HTML with security hardening
      */
     private generateDashboardHtml(webview: vscode.Webview): string {
         const template = this.templates.get('dashboard') || '';
         
-        // Get cached resources
+        // Get cached resources with validation
         const scriptUri = this.getCachedResource('dashboard-script', () => 
             webview.asWebviewUri(vscode.Uri.file(
                 path.join(this.context.extensionPath, 'dist', 'dashboard.min.js')
@@ -309,15 +316,37 @@ export class OptimizedWebviewManager {
             ))
         );
         
-        // Replace template variables
-        return template
-            .replace('{{SCRIPT_URI}}', scriptUri.toString())
-            .replace('{{STYLE_URI}}', styleUri.toString())
-            .replace('{{NONCE}}', this.getNonce());
+        // Generate secure nonce
+        const nonce = this.getSecureNonce();
+        
+        // SECURITY FIX: Validate URIs before template substitution
+        const scriptUriValidation = this.inputValidator.validateParameter(
+            'scriptUri', 
+            scriptUri.toString(),
+            { maxLength: 1000, requireAlphanumeric: false }
+        );
+        
+        const styleUriValidation = this.inputValidator.validateParameter(
+            'styleUri',
+            styleUri.toString(), 
+            { maxLength: 1000, requireAlphanumeric: false }
+        );
+        
+        if (!scriptUriValidation.isValid || !styleUriValidation.isValid) {
+            this.logger.error('URI validation failed for webview resources');
+            throw new Error('Invalid resource URIs detected');
+        }
+        
+        // Secure template variable replacement
+        return this.secureTemplateReplace(template, {
+            'SCRIPT_URI': scriptUriValidation.sanitized,
+            'STYLE_URI': styleUriValidation.sanitized,
+            'NONCE': nonce
+        });
     }
     
     /**
-     * Gets dashboard template (minified)
+     * Gets dashboard template (minified) with security hardening
      */
     private getDashboardTemplate(): string {
         return `<!DOCTYPE html>
@@ -325,7 +354,7 @@ export class OptimizedWebviewManager {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src {{STYLE_URI}} 'unsafe-inline'; script-src 'nonce-{{NONCE}}';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src {{STYLE_URI}}; script-src 'nonce-{{NONCE}}'; img-src data: https:; font-src data:; connect-src 'none'; object-src 'none'; media-src 'none'; child-src 'none'; frame-src 'none'; worker-src 'none'; form-action 'none'; base-uri 'none';">
     <title>DevDocAI Dashboard</title>
     <link href="{{STYLE_URI}}" rel="stylesheet">
 </head>
@@ -526,24 +555,46 @@ export class OptimizedWebviewManager {
     }
     
     /**
-     * Setup message handling with state persistence
+     * Setup message handling with state persistence and security validation
      */
     private setupMessageHandling(
         panel: vscode.WebviewPanel,
         panelId: string,
         handler: (message: any) => Promise<void>
     ): void {
-        // Handle messages
+        // Handle messages with security validation
         panel.webview.onDidReceiveMessage(
             async (message) => {
-                // Save state updates
-                if (message.command === 'saveState') {
-                    this.cache.state.set(panelId, message.state);
-                    this.persistState();
+                // SECURITY: Validate incoming webview message
+                const validation = this.validateWebviewMessage(message);
+                if (!validation.isValid) {
+                    this.logger.error('Invalid webview message received:', validation.errors);
+                    // Send error response back to webview
+                    panel.webview.postMessage({
+                        command: 'error',
+                        message: 'Invalid message format',
+                        code: 'VALIDATION_FAILED'
+                    });
+                    return;
                 }
                 
-                // Handle command
-                await handler(message);
+                // Use sanitized message
+                const sanitizedMessage = validation.sanitized;
+                
+                // Save state updates
+                if (sanitizedMessage.command === 'saveState') {
+                    // Validate state data before caching
+                    const stateValidation = this.inputValidator.validateDataObject(sanitizedMessage.state);
+                    if (stateValidation.isValid) {
+                        this.cache.state.set(panelId, stateValidation.sanitized);
+                        this.persistState();
+                    } else {
+                        this.logger.warn('Invalid state data, not saving:', stateValidation.warnings);
+                    }
+                }
+                
+                // Handle command with sanitized message
+                await handler(sanitizedMessage);
             },
             undefined,
             this.disposables
@@ -621,15 +672,60 @@ export class OptimizedWebviewManager {
     }
     
     /**
-     * Generates nonce for CSP
+     * Generates nonce for CSP (DEPRECATED - use getSecureNonce)
      */
     private getNonce(): string {
-        let text = '';
-        const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        for (let i = 0; i < 32; i++) {
-            text += possible.charAt(Math.floor(Math.random() * possible.length));
+        return this.getSecureNonce();
+    }
+    
+    /**
+     * Generates cryptographically secure nonce for CSP
+     */
+    private getSecureNonce(): string {
+        const crypto = require('crypto');
+        return crypto.randomBytes(16).toString('base64');
+    }
+    
+    /**
+     * Secure template variable replacement to prevent XSS
+     */
+    private secureTemplateReplace(template: string, variables: { [key: string]: string }): string {
+        let result = template;
+        
+        for (const [key, value] of Object.entries(variables)) {
+            // Validate the variable name
+            const keyValidation = this.inputValidator.validateParameter(
+                'templateVar',
+                key,
+                { maxLength: 50, requireAlphanumeric: true }
+            );
+            
+            if (!keyValidation.isValid) {
+                this.logger.error(`Invalid template variable name: ${key}`);
+                continue;
+            }
+            
+            // Create safe placeholder pattern
+            const placeholder = new RegExp(`\\{\\{${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\}\\}`, 'g');
+            
+            // Replace with validated value
+            result = result.replace(placeholder, value);
         }
-        return text;
+        
+        // Check if there are any unreplaced placeholders (security risk)
+        const unreplacedPlaceholders = result.match(/\{\{[^}]+\}\}/g);
+        if (unreplacedPlaceholders) {
+            this.logger.warn('Unreplaced template placeholders found:', unreplacedPlaceholders);
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Validates and sanitizes webview messages
+     */
+    private validateWebviewMessage(message: any): ValidationResult {
+        return this.inputValidator.validateWebviewMessage(message);
     }
     
     /**

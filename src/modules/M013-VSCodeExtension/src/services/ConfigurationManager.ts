@@ -8,12 +8,18 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import { ConfigSecure } from '../security/ConfigSecure';
+import { InputValidator } from '../security/InputValidator';
 
 export class ConfigurationManager {
     private config: DevDocAIConfig;
     private watchers: vscode.Disposable[] = [];
+    private secureConfig: ConfigSecure;
+    private inputValidator: InputValidator;
     
     constructor(private context: vscode.ExtensionContext) {
+        this.inputValidator = new InputValidator(context);
+        this.secureConfig = new ConfigSecure(context, this.inputValidator);
         this.config = this.loadConfiguration();
     }
     
@@ -21,6 +27,9 @@ export class ConfigurationManager {
      * Initializes the configuration manager
      */
     public async initialize(): Promise<void> {
+        // Initialize secure configuration
+        await this.secureConfig.initialize();
+        
         // Watch for configuration changes
         this.watchers.push(
             vscode.workspace.onDidChangeConfiguration((e) => {
@@ -206,26 +215,16 @@ export class ConfigurationManager {
     
     /**
      * Checks if LLM credentials are configured
+     * SECURITY FIX: Now uses secure storage instead of plain text globalState
      */
-    private hasLLMCredentials(): boolean {
-        const secrets = this.context.secrets;
-        
-        switch (this.config.llmProvider) {
-            case 'openai':
-                return this.context.globalState.get('openai_api_key') !== undefined;
-            
-            case 'anthropic':
-                return this.context.globalState.get('anthropic_api_key') !== undefined;
-            
-            case 'google':
-                return this.context.globalState.get('google_api_key') !== undefined;
-            
-            case 'local':
-                return true; // Local doesn't need credentials
-            
-            default:
-                return false;
+    private async hasLLMCredentials(): Promise<boolean> {
+        // SECURITY UPGRADE: Migrate to secure storage if not already done
+        if (!this.secureConfig) {
+            console.warn('Secure configuration not initialized, falling back to legacy check');
+            return false;
         }
+        
+        return await this.secureConfig.hasSecureLLMCredentials();
     }
     
     /**
