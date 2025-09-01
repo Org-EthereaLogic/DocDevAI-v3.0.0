@@ -173,7 +173,7 @@ const emptyStateConfigs = {
     ],
     encouragements: [
       'Achievement unlocked: Task Master!',
-      'You're on fire today! 🔥',
+      'You\'re on fire today!',
       'Productivity level: Expert!',
     ],
     actionLabel: 'What\'s Next?',
