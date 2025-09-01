@@ -236,54 +236,67 @@ const TrackingMatrixWidget: React.FC<TrackingMatrixWidgetProps> = ({
       <Box sx={{ flexGrow: 1, position: 'relative' }}>
         {viewMode === 'graph' ? (
           <Box sx={{ height: '100%', minHeight: 200 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <ScatterChart
-                data={filteredData}
-                margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
-              >
-                <XAxis type="number" dataKey="x" hide />
-                <YAxis type="number" dataKey="y" hide />
-                <RechartsTooltip
-                  content={({ active, payload }) => {
-                    if (active && payload && payload[0]) {
-                      const data = payload[0].payload;
-                      return (
-                        <Paper
-                          sx={{
-                            p: 2,
-                            backgroundColor: theme.palette.background.paper,
-                            border: `1px solid ${theme.palette.divider}`,
-                            borderRadius: 1,
-                            boxShadow: theme.shadows[3]
-                          }}
-                        >
-                          <Typography variant="subtitle2" gutterBottom>
-                            {data.name}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            Type: {data.type}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            Status: {data.status}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            Quality: {data.qualityScore}%
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            Size: {data.z} lines
-                          </Typography>
-                        </Paper>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                <Scatter
-                  dataKey="z"
-                  fill={(entry: any) => STATUS_COLORS[entry.status as keyof typeof STATUS_COLORS] || STATUS_COLORS.ready}
-                />
-              </ScatterChart>
-            </ResponsiveContainer>
+            {/** Add per-point fill color to each data point */}
+            {/*
+              We map filteredData to add a fill property based on status.
+              This ensures each point is colored correctly in the Scatter plot.
+            */}
+            {(() => {
+              const coloredData = filteredData.map((entry: any) => ({
+                ...entry,
+                fill: STATUS_COLORS[entry.status as keyof typeof STATUS_COLORS] || STATUS_COLORS.ready
+              }));
+              return (
+                <ResponsiveContainer width="100%" height="100%">
+                  <ScatterChart
+                    data={coloredData}
+                    margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
+                  >
+                    <XAxis type="number" dataKey="x" hide />
+                    <YAxis type="number" dataKey="y" hide />
+                    <RechartsTooltip
+                      content={({ active, payload }) => {
+                        if (active && payload && payload[0]) {
+                          const data = payload[0].payload;
+                          return (
+                            <Paper
+                              sx={{
+                                p: 2,
+                                backgroundColor: theme.palette.background.paper,
+                                border: `1px solid ${theme.palette.divider}`,
+                                borderRadius: 1,
+                                boxShadow: theme.shadows[3]
+                              }}
+                            >
+                              <Typography variant="subtitle2" gutterBottom>
+                                {data.name}
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                Type: {data.type}
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                Status: {data.status}
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                Quality: {data.qualityScore}%
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                Size: {data.z} lines
+                              </Typography>
+                            </Paper>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Scatter
+                      dataKey="z"
+                      data={coloredData}
+                    />
+                  </ScatterChart>
+                </ResponsiveContainer>
+              );
+            })()}
 
             {/* Legend */}
             <Box
