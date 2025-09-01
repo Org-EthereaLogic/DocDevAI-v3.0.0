@@ -2,12 +2,12 @@
  * Dashboard component types and interfaces
  */
 
-import { ComponentProps } from '../../core/interfaces';
+import * as React from 'react';
 
 /**
  * Dashboard widget base props
  */
-export interface WidgetProps extends ComponentProps {
+export interface WidgetProps extends React.ComponentProps<any> {
   title?: string;
   loading?: boolean;
   error?: string | null;
