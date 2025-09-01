@@ -16,6 +16,9 @@ import { configManager, OperationMode } from '../../config/unified-config';
 import confetti from 'canvas-confetti';
 import CryptoJS from 'crypto-js';
 
+// For HTML sanitization
+import createDOMPurify from 'dompurify';
+import { JSDOM } from 'jsdom';
 /**
  * Performance Monitoring Utilities
  * Active in PERFORMANCE and ENTERPRISE modes
@@ -420,17 +423,10 @@ export const SecurityUtils = {
   sanitizeHTML: (html: string): string => {
     if (!configManager.isFeatureEnabled('sanitization')) return html;
     
-    // Remove script tags
-    html = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-    
-    // Remove event handlers
-    html = html.replace(/on\w+="[^"]*"/gi, '');
-    html = html.replace(/on\w+='[^']*'/gi, '');
-    
-    // Remove javascript: protocol
-    html = html.replace(/javascript:/gi, '');
-    
-    return html;
+    // Use DOMPurify for robust, standards-compliant sanitization
+    const window = new JSDOM('').window;
+    const DOMPurify = createDOMPurify(window as any);
+    return DOMPurify.sanitize(html);
   },
   
   /**
