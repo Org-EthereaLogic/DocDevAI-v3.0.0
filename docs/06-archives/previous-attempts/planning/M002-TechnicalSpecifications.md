@@ -478,6 +478,7 @@ export class DatabaseConnection {
 ### 3.1 Data Storage Strategy
 
 #### Document Storage
+
 - **Primary Storage**: SQLite database with normalized schema
 - **Binary Data**: Stored as BLOB columns for attachments
 - **Large Documents**: Automatic chunking for documents >1MB
@@ -485,6 +486,7 @@ export class DatabaseConnection {
 - **Versioning**: Copy-on-write for version history
 
 #### Metadata Storage
+
 - **Indexed Fields**: All searchable metadata fields indexed
 - **JSON Fields**: Custom fields stored as JSON with indexing
 - **Full-Text Search**: FTS5 virtual tables for content search
@@ -493,6 +495,7 @@ export class DatabaseConnection {
 ### 3.2 Encryption Strategy
 
 #### Multi-Layer Encryption
+
 ```typescript
 class StorageEncryption {
   // Layer 1: Database-level encryption (SQLCipher)
@@ -529,6 +532,7 @@ class StorageEncryption {
 ```
 
 #### Key Management
+
 - **Master Key**: Derived from user password + salt using PBKDF2
 - **Database Key**: Derived from master key for SQLCipher
 - **Field Keys**: Unique keys per field type derived from master
@@ -538,6 +542,7 @@ class StorageEncryption {
 ### 3.3 Query Optimization Strategy
 
 #### Index Strategy
+
 ```sql
 -- Primary indexes
 CREATE INDEX idx_documents_type_status ON documents(type, status);
@@ -556,6 +561,7 @@ CREATE INDEX idx_metadata_custom ON metadata(json_extract(custom_fields, '$.proj
 ```
 
 #### Query Optimization
+
 - **Query Plans**: Analyze with EXPLAIN QUERY PLAN
 - **Prepared Statements**: Cache and reuse for common queries
 - **Query Batching**: Combine multiple queries when possible

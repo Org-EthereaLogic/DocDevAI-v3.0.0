@@ -1,6 +1,7 @@
 # Security Policy
 
 ## Table of Contents
+
 - [Security Overview](#security-overview)
 - [Reporting Security Vulnerabilities](#reporting-security-vulnerabilities)
 - [Security Features](#security-features)
@@ -24,6 +25,7 @@ DocDevAI v3.0.0 is designed with security and privacy as fundamental principles.
 ### Security Architecture
 
 The project implements security across all 13 modules (M001-M013) with particular emphasis on:
+
 - **M002 Local Storage**: SQLCipher encryption for all database operations
 - **M007 Review Engine**: PII detection and data sanitization
 - **M010 Security Module**: Advanced security features and threat detection
@@ -62,6 +64,7 @@ When reporting a vulnerability, please provide:
 ### Responsible Disclosure
 
 We request that you:
+
 - Allow us reasonable time to address the vulnerability before public disclosure
 - Avoid accessing or modifying other users' data during testing
 - Delete any data obtained during security research
@@ -74,12 +77,14 @@ DocDevAI implements comprehensive security measures across all modules:
 ### Encryption
 
 #### Data at Rest
+
 - **Database Encryption**: SQLCipher with AES-256 in CBC mode
 - **Configuration Encryption**: AES-256-GCM for sensitive configuration data
 - **API Key Storage**: Encrypted using AES-256-GCM with unique salts
 - **Document Encryption**: Optional AES-256-GCM encryption for generated documents
 
 #### Key Management
+
 - **Key Derivation**: Argon2id with recommended parameters:
   - Memory: 64 MB
   - Iterations: 3
@@ -98,6 +103,7 @@ DocDevAI implements comprehensive security measures across all modules:
 ### Input Validation
 
 All modules implement strict input validation:
+
 - **Schema Validation**: Zod schemas for all configuration inputs
 - **Sanitization**: DOMPurify for HTML content, custom sanitizers for other formats
 - **Injection Prevention**: Parameterized queries, prepared statements
@@ -107,12 +113,14 @@ All modules implement strict input validation:
 ### Privacy Protection
 
 #### PII Detection (M007)
+
 - **Pattern Matching**: Regex-based detection for common PII patterns
 - **ML-Based Detection**: Optional ML model for advanced PII identification
 - **Redaction**: Automatic PII redaction in generated documents
 - **Audit Logging**: PII detection events logged for compliance
 
 #### Data Minimization
+
 - **No Telemetry**: Zero telemetry collection by default
 - **Local Processing**: All processing performed locally
 - **Ephemeral Data**: Temporary data automatically purged
@@ -183,6 +191,7 @@ All modules implement strict input validation:
 All code contributions must implement:
 
 1. **Input Validation**
+
    ```typescript
    // Example: Zod schema validation
    const configSchema = z.object({
@@ -289,6 +298,7 @@ Periodic manual security assessments include:
 ### Security Test Coverage
 
 Minimum security test coverage requirements:
+
 - Authentication/Authorization: 100%
 - Encryption functions: 100%
 - Input validation: 95%
@@ -324,6 +334,7 @@ Minimum security test coverage requirements:
 ### Third-Party Integrations
 
 For optional integrations:
+
 - Security review required before integration
 - Minimal permission principle
 - Regular security audits
@@ -376,6 +387,7 @@ While DocDevAI is designed for solo developers, it implements controls supportin
 ### Response Team
 
 The security response team includes:
+
 - Project maintainers
 - Security module (M010) owners
 - Designated security reviewers
@@ -389,6 +401,7 @@ We maintain a [Security Hall of Fame](https://github.com/Org-EthereaLogic/DocDev
 ### Notification Channels
 
 Security updates are announced via:
+
 - GitHub Security Advisories
 - Release notes for affected versions
 - Project mailing list (opt-in)
@@ -407,6 +420,7 @@ Security updates are announced via:
 ### Verification
 
 All security updates include:
+
 - GPG signature for verification
 - SHA-256 checksum
 - Detailed changelog
@@ -422,6 +436,6 @@ For questions about this security policy or security concerns not covered here, 
 
 ---
 
-*Last Updated: January 2025*  
-*Policy Version: 1.0.0*  
-*Next Review: April 2025*
+_Last Updated: January 2025_  
+_Policy Version: 1.0.0_  
+_Next Review: April 2025_

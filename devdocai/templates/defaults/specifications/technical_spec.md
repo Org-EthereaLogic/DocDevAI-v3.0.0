@@ -40,10 +40,13 @@ variables:
 ## 1. Executive Summary
 
 ### 1.1 Purpose
+
 This document provides a comprehensive technical specification for {{project_name}}, detailing the system architecture, design decisions, and implementation requirements.
 
 ### 1.2 Scope
+
 The specification covers:
+
 - System architecture and components
 - Data models and database design  
 - API specifications
@@ -52,6 +55,7 @@ The specification covers:
 - Deployment and infrastructure
 
 ### 1.3 Overview
+
 {{project_name}} is a [brief description of the system and its primary purpose].
 
 ## 2. System Architecture
@@ -75,6 +79,7 @@ The specification covers:
 ### 2.2 Component Architecture
 
 #### 2.2.1 Frontend Layer
+
 - **Technology:** React 18+, TypeScript
 - **State Management:** Redux Toolkit
 - **Routing:** React Router
@@ -82,6 +87,7 @@ The specification covers:
 - **Build Tool:** Vite
 
 #### 2.2.2 Backend Layer
+
 - **Technology:** Node.js 18+, Express.js
 - **Language:** TypeScript
 - **Authentication:** JWT with refresh tokens
@@ -89,6 +95,7 @@ The specification covers:
 - **Documentation:** OpenAPI/Swagger
 
 #### 2.2.3 Data Layer
+
 - **Primary Database:** PostgreSQL 14+
 - **Cache:** Redis 6+
 - **Search:** Elasticsearch (if needed)
@@ -128,6 +135,7 @@ erDiagram
 ### 3.2 Data Models
 
 #### 3.2.1 User Model
+
 ```typescript
 interface User {
   id: string;
@@ -148,6 +156,7 @@ enum UserRole {
 ```
 
 #### 3.2.2 Project Model
+
 ```typescript
 interface Project {
   id: string;
@@ -172,13 +181,16 @@ interface ProjectSettings {
 ### 4.1 REST API Design
 
 #### 4.1.1 Base URL
+
 ```
 Production: https://api.{{project_name}}.com/v1
 Staging: https://staging-api.{{project_name}}.com/v1
 ```
 
 #### 4.1.2 Authentication
+
 All API endpoints require authentication via Bearer token:
+
 ```http
 Authorization: Bearer <jwt_token>
 ```
@@ -186,6 +198,7 @@ Authorization: Bearer <jwt_token>
 #### 4.1.3 Core Endpoints
 
 **Users**
+
 ```
 GET    /users           # List users
 POST   /users           # Create user
@@ -195,6 +208,7 @@ DELETE /users/{id}      # Delete user
 ```
 
 **Projects**
+
 ```
 GET    /projects        # List user projects
 POST   /projects        # Create project
@@ -206,6 +220,7 @@ DELETE /projects/{id}   # Delete project
 ### 4.2 Request/Response Format
 
 #### 4.2.1 Standard Response Format
+
 ```json
 {
   "success": boolean,
@@ -221,6 +236,7 @@ DELETE /projects/{id}   # Delete project
 ```
 
 #### 4.2.2 Error Response Format
+
 ```json
 {
   "success": false,
@@ -239,18 +255,21 @@ DELETE /projects/{id}   # Delete project
 ## 5. Security Requirements
 
 ### 5.1 Authentication & Authorization
+
 - JWT-based authentication with refresh tokens
 - Role-based access control (RBAC)
 - Multi-factor authentication (optional)
 - Session management and timeout
 
 ### 5.2 Data Protection
+
 - Encryption at rest (AES-256)
 - Encryption in transit (TLS 1.3)
 - PII data anonymization
 - Secure data deletion
 
 ### 5.3 Security Headers
+
 ```http
 Content-Security-Policy: default-src 'self'
 X-Frame-Options: DENY
@@ -261,16 +280,19 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains
 ## 6. Performance Requirements
 
 ### 6.1 Response Time Requirements
+
 - API endpoints: < 200ms (95th percentile)
 - Page load time: < 3 seconds
 - Database queries: < 100ms average
 
 ### 6.2 Throughput Requirements
+
 - Concurrent users: 1000+
 - Requests per second: 500+
 - Database connections: 100 max
 
 ### 6.3 Scalability
+
 - Horizontal scaling capability
 - Auto-scaling based on load
 - CDN integration for static assets
@@ -278,6 +300,7 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains
 ## 7. Infrastructure & Deployment
 
 ### 7.1 Cloud Architecture
+
 ```
 ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
 │  Load       │    │ Application │    │  Database   │
@@ -287,6 +310,7 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains
 ```
 
 ### 7.2 Technology Stack
+
 - **Cloud Provider:** AWS
 - **Container Platform:** Docker + Kubernetes/ECS
 - **Database:** Amazon RDS (PostgreSQL)
@@ -295,6 +319,7 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains
 - **Monitoring:** CloudWatch, DataDog
 
 ### 7.3 Deployment Pipeline
+
 1. **Development** → Git push to feature branch
 2. **CI/CD** → Automated tests and builds
 3. **Staging** → Deploy to staging environment
@@ -304,18 +329,21 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains
 ## 8. Monitoring & Observability
 
 ### 8.1 Logging
+
 - Structured logging (JSON format)
 - Log levels: ERROR, WARN, INFO, DEBUG
 - Centralized logging with ELK stack
 - Log retention: 30 days
 
 ### 8.2 Metrics
+
 - Application metrics (response times, error rates)
 - Infrastructure metrics (CPU, memory, disk)
 - Business metrics (user activity, feature usage)
 - Custom dashboards in Grafana
 
 ### 8.3 Alerting
+
 - Critical alerts: < 2 minutes response
 - Performance alerts: Response time > 5s
 - Error rate alerts: Error rate > 5%
@@ -324,6 +352,7 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains
 ## 9. Testing Strategy
 
 ### 9.1 Testing Pyramid
+
 ```
     ┌─────────────┐
     │     E2E     │  10%
@@ -335,6 +364,7 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains
 ```
 
 ### 9.2 Test Types
+
 - **Unit Tests:** 90%+ coverage using Jest
 - **Integration Tests:** API and database integration
 - **E2E Tests:** Critical user journeys using Playwright
@@ -344,12 +374,14 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains
 ## 10. Migration & Data Strategy
 
 ### 10.1 Database Migrations
+
 - Version-controlled migration scripts
 - Rollback procedures for each migration
 - Data backup before major migrations
 - Zero-downtime migration strategies
 
 ### 10.2 Data Backup & Recovery
+
 - Daily automated backups
 - Point-in-time recovery capability
 - Cross-region backup replication
@@ -359,12 +391,14 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains
 ## 11. Compliance & Regulations
 
 ### 11.1 Data Privacy
+
 - GDPR compliance for EU users
 - CCPA compliance for California users
 - Data portability and deletion rights
 - Privacy policy and consent management
 
 ### 11.2 Security Standards
+
 - SOC 2 Type II compliance
 - OWASP Top 10 vulnerability prevention
 - Regular security audits and penetration testing
@@ -373,12 +407,14 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains
 ## 12. Appendices
 
 ### Appendix A: Glossary
+
 - **API:** Application Programming Interface
 - **JWT:** JSON Web Token
 - **RBAC:** Role-Based Access Control
 - **CDN:** Content Delivery Network
 
 ### Appendix B: References
+
 - [REST API Design Guidelines](https://example.com)
 - [Security Best Practices](https://example.com)
 - [Performance Optimization Guide](https://example.com)
@@ -386,6 +422,7 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains
 ---
 
 **Document Control:**
+
 - **Version:** {{version}}
 - **Last Modified:** {{date}}
 - **Next Review:** {{date + 6 months}}

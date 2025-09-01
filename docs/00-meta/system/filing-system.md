@@ -54,7 +54,9 @@ docs/
 ## Filing Rules
 
 ### 1. Immutability Rule
+
 Files in `01-specifications/` are **IMMUTABLE** once approved. These represent the agreed-upon design and must not be modified during implementation. Any changes require:
+
 - Formal change request
 - Impact analysis
 - Stakeholder approval
@@ -63,42 +65,49 @@ Files in `01-specifications/` are **IMMUTABLE** once approved. These represent t
 ### 2. Categorization Rules
 
 #### 00-meta: Meta Documentation
+
 - **Purpose**: Documentation system maintenance
 - **Content**: Templates, conventions, system docs
 - **Maintenance**: Update as system evolves
 - **Access**: Primarily for documentation maintainers
 
 #### 01-specifications: Design Specifications
+
 - **Purpose**: Source of truth for system design
 - **Content**: Architecture, requirements, API specs
 - **Maintenance**: Frozen after approval
 - **Access**: All team members reference
 
 #### 02-implementation: Active Development
+
 - **Purpose**: Track development progress
 - **Content**: Plans, progress, decisions
 - **Maintenance**: Continuously updated
 - **Access**: Development team primary
 
 #### 03-guides: User and Developer Guides
+
 - **Purpose**: How-to instructions
 - **Content**: Tutorials, guides, procedures
 - **Maintenance**: Update with features
 - **Access**: End users and developers
 
 #### 04-reference: Quick References
+
 - **Purpose**: Quick lookup materials
 - **Content**: API refs, commands, glossaries
 - **Maintenance**: Keep synchronized with code
 - **Access**: All users
 
 #### 05-quality: Quality Documentation
+
 - **Purpose**: Quality assurance and standards
 - **Content**: Tests, security, performance
 - **Maintenance**: Continuous updates
 - **Access**: QA and development teams
 
 #### 06-archives: Historical Records
+
 - **Purpose**: Historical reference
 - **Content**: Old versions, deprecated docs
 - **Maintenance**: Add only, no modifications
@@ -107,6 +116,7 @@ Files in `01-specifications/` are **IMMUTABLE** once approved. These represent t
 ### 3. File Naming Conventions
 
 #### Standard Patterns
+
 ```
 DESIGN-[module]-[type].md     # Design specifications
 TEMPLATE-[purpose].md          # Reusable templates
@@ -116,6 +126,7 @@ TEMPLATE-[purpose].md          # Reusable templates
 ```
 
 #### Rules
+
 1. Use lowercase with hyphens (kebab-case)
 2. No spaces or special characters
 3. Include prefixes for document types
@@ -125,17 +136,20 @@ TEMPLATE-[purpose].md          # Reusable templates
 ### 4. Cross-Reference Rules
 
 #### Internal Links
+
 - Use relative paths from current location
 - Always verify links work before committing
 - Update links when moving files
 - Include section anchors for deep links
 
 Example:
+
 ```markdown
 [See Architecture](../01-specifications/architecture/DESIGN-devdocsai-architecture.md#overview)
 ```
 
 #### External Links
+
 - Include access date for web resources
 - Archive critical external content
 - Note version dependencies
@@ -144,12 +158,14 @@ Example:
 ### 5. Version Control Rules
 
 #### Document Versions
+
 - Design specs: Use semantic versioning in metadata
 - Guides: Update version with significant changes
 - Archives: Preserve original version numbers
 - Templates: Version independently
 
 #### Change Tracking
+
 ```yaml
 ---
 version: 1.2.0
@@ -176,6 +192,7 @@ changes:
 ### 7. Document Lifecycle
 
 #### Creation
+
 1. Determine correct category
 2. Use appropriate template
 3. Follow naming conventions
@@ -183,12 +200,14 @@ changes:
 5. Create in correct directory
 
 #### Maintenance
+
 1. Regular reviews per schedule
 2. Update with code changes
 3. Maintain cross-references
 4. Archive when deprecated
 
 #### Archival
+
 1. Move to 06-archives
 2. Add archival metadata
 3. Update references
@@ -197,6 +216,7 @@ changes:
 ## Search and Discovery
 
 ### Organization Benefits
+
 - **Numbered directories**: Natural sorting order
 - **Clear categories**: Easy to locate content
 - **Consistent naming**: Predictable file locations
@@ -210,6 +230,7 @@ changes:
 4. **By Date**: Check archives chronologically
 
 ### Search Tips
+
 - Use ripgrep for fast searching: `rg "search term" docs/`
 - Search specific categories: `rg "API" docs/01-specifications/`
 - Find broken links: Use markdown-link-check
@@ -218,20 +239,24 @@ changes:
 ## Maintenance Procedures
 
 ### Daily
+
 - Update progress tracking in 02-implementation
 - Check for broken links in changed files
 
 ### Weekly
+
 - Review and merge documentation PRs
 - Update sprint documentation
 - Archive completed sprint docs
 
 ### Monthly
+
 - Full link validation check
 - Review and update roadmap
 - Archive deprecated content
 
 ### Quarterly
+
 - Documentation audit
 - Convention review and update
 - Template improvements
@@ -240,7 +265,9 @@ changes:
 ## Quality Standards
 
 ### Required Elements
+
 Every document must have:
+
 - [ ] Clear title and purpose
 - [ ] Table of contents (if >3 sections)
 - [ ] Metadata header
@@ -248,7 +275,9 @@ Every document must have:
 - [ ] Working cross-references
 
 ### Quality Checks
+
 Before committing documentation:
+
 - [ ] Spell check passed
 - [ ] Links verified
 - [ ] Format conventions followed
@@ -260,24 +289,29 @@ Before committing documentation:
 ### Common Issues
 
 #### Wrong Category
+
 **Problem**: Document in wrong directory
 **Solution**: Move to correct location, update all references
 
 #### Broken Links
+
 **Problem**: Links return 404
 **Solution**: Update paths, use relative links, verify before commit
 
 #### Naming Conflicts
+
 **Problem**: Similar file names causing confusion
 **Solution**: Use clear prefixes and descriptive names
 
 #### Version Confusion
+
 **Problem**: Unclear which version is current
 **Solution**: Use clear versioning in metadata, archive old versions
 
 ## Tools and Automation
 
 ### Recommended Tools
+
 - **VS Code**: With Markdown extensions
 - **markdownlint**: Format validation
 - **markdown-link-check**: Link validation
@@ -285,6 +319,7 @@ Before committing documentation:
 - **git hooks**: Pre-commit validation
 
 ### Automation Scripts
+
 ```bash
 # Validate all links
 npm run docs:check-links

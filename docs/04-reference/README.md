@@ -5,20 +5,25 @@ Quick reference materials for DevDocAI including API references, command guides,
 ## Structure
 
 ### [api/](api/)
+
 API reference documentation including endpoints, parameters, and responses.
 
 ### [commands/](commands/)
+
 CLI command reference with options and examples.
 
 ### [glossary/](glossary/)
+
 Technical terms and acronyms used throughout the project.
 
 ### [dependencies/](dependencies/)
+
 Module dependency graphs and third-party library references.
 
 ## Quick Reference
 
 ### CLI Commands
+
 ```bash
 devdocai init              # Initialize documentation suite
 devdocai generate [type]   # Generate documentation
@@ -29,6 +34,7 @@ devdocai config [key]      # Configuration management
 ```
 
 ### Configuration Keys
+
 ```yaml
 core:
   project_name: string
@@ -84,6 +90,7 @@ quality:
 ### File Formats
 
 #### Documentation Suite (.devdocai)
+
 ```json
 {
   "version": "3.6.0",
@@ -95,6 +102,7 @@ quality:
 ```
 
 #### Template Format (.template.md)
+
 ```yaml
 ---
 name: Template Name
@@ -139,18 +147,21 @@ DEVDOCAI_LOG_LEVEL     # Logging level
 ## Usage Tips
 
 ### Performance Optimization
+
 - Use batch operations for multiple files
 - Enable caching for repeated operations
 - Configure appropriate memory mode
 - Optimize template selection
 
 ### Security Best Practices
+
 - Always enable encryption for sensitive data
 - Rotate API keys regularly
 - Use local models for sensitive content
 - Review generated content before publishing
 
 ### Integration Patterns
+
 - Git hooks for auto-documentation
 - CI/CD pipeline integration
 - IDE plugin configuration

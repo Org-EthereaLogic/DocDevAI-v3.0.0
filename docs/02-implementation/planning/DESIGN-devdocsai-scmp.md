@@ -1033,17 +1033,17 @@ License: [License type]
 
 ---
 
-*Document Control:*
+_Document Control:_
 
-- *Version:* 2.0
-- *Status:* Revised
-- *Date:* August 20, 2025
-- *Author:* Configuration Manager
-- *Reviewed by:* Technical Lead, Community Manager, QA Lead
-- *Approved by:* Core Maintainers
-- *Next Review:* February 20, 2026
+- _Version:_ 2.0
+- _Status:_ Revised
+- _Date:_ August 20, 2025
+- _Author:_ Configuration Manager
+- _Reviewed by:_ Technical Lead, Community Manager, QA Lead
+- _Approved by:_ Core Maintainers
+- _Next Review:_ February 20, 2026
 
-*Distribution:*
+_Distribution:_
 
 - Public (GitHub Repository)
 - Development Team

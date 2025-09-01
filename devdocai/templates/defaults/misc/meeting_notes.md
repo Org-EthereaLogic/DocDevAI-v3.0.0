@@ -28,14 +28,17 @@ variables:
 **Note Taker:** [Name]
 
 ## Attendees
+
 - [Name] - [Role]
 - [Name] - [Role]
 - [Name] - [Role]
 
 ## Absent
+
 - [Name] - [Role] - [Reason if known]
 
 ## Agenda
+
 1. [Agenda item 1]
 2. [Agenda item 2]
 3. [Agenda item 3]
@@ -45,11 +48,13 @@ variables:
 ## Discussion Points
 
 ### [Topic 1]
+
 - **Discussion:** Key points discussed
 - **Decisions:** Decisions made
 - **Concerns:** Any concerns raised
 
 ### [Topic 2]
+
 - **Discussion:** Key points discussed
 - **Decisions:** Decisions made
 - **Concerns:** Any concerns raised
@@ -62,15 +67,18 @@ variables:
 | [Action description] | [Name] | [Date] | In Progress |
 
 ## Decisions Made
+
 - **Decision 1:** [Description]
 - **Decision 2:** [Description]
 
 ## Next Meeting
+
 - **Date:** [Next meeting date]
 - **Time:** [Time]
 - **Agenda Items:** [Key items for next meeting]
 
 ## Follow-up Required
+
 - [ ] Send meeting notes to all attendees
 - [ ] Update project documentation
 - [ ] Schedule follow-up meetings

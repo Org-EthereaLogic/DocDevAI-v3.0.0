@@ -9,6 +9,7 @@ This guide will help you rebuild the entire development environment from scratch
 ## Part 1: GitHub Repository Setup
 
 ### 1.1 Create New Repository
+
 ```bash
 # On GitHub.com:
 # 1. Click "New repository"
@@ -20,6 +21,7 @@ This guide will help you rebuild the entire development environment from scratch
 ```
 
 ### 1.2 Clone and Initialize Locally
+
 ```bash
 # Clone the empty repository
 git clone https://github.com/YOUR-ORG/DevDocAI.git
@@ -43,6 +45,7 @@ npm pkg set engines.npm=">=9.0.0"
 ## Part 2: Core Dependencies Installation
 
 ### 2.1 Install TypeScript and Core Dev Tools
+
 ```bash
 # TypeScript and types
 npm install --save-dev typescript @types/node ts-node tsx
@@ -62,6 +65,7 @@ npm install --save-dev rimraf cross-env dotenv
 ```
 
 ### 2.2 Install Production Dependencies
+
 ```bash
 # Core runtime dependencies
 npm install dotenv
@@ -72,6 +76,7 @@ npm install dotenv
 ## Part 3: Configuration Files Setup
 
 ### 3.1 TypeScript Configuration
+
 ```bash
 cat > tsconfig.json << 'EOF'
 {
@@ -109,6 +114,7 @@ EOF
 ```
 
 ### 3.2 Jest Configuration
+
 ```bash
 cat > jest.config.js << 'EOF'
 module.exports = {
@@ -150,6 +156,7 @@ EOF
 ```
 
 ### 3.3 ESLint Configuration
+
 ```bash
 cat > .eslintrc.js << 'EOF'
 module.exports = {
@@ -186,6 +193,7 @@ EOF
 ```
 
 ### 3.4 Prettier Configuration
+
 ```bash
 cat > .prettierrc << 'EOF'
 {
@@ -203,6 +211,7 @@ EOF
 ```
 
 ### 3.5 Git Ignore
+
 ```bash
 cat > .gitignore << 'EOF'
 # Dependencies
@@ -249,6 +258,7 @@ EOF
 ```
 
 ### 3.6 Environment Template
+
 ```bash
 cat > .env.example << 'EOF'
 # Environment
@@ -283,6 +293,7 @@ cp .env.example .env
 ## Part 4: NPM Scripts Setup
 
 ### 4.1 Update package.json Scripts
+
 ```bash
 npm pkg set scripts.build="tsc"
 npm pkg set scripts.clean="rimraf dist coverage"
@@ -308,6 +319,7 @@ npm pkg set scripts.prepare="husky install"
 ## Part 5: Git Hooks Setup
 
 ### 5.1 Initialize Husky
+
 ```bash
 # Initialize husky
 npm run prepare
@@ -335,6 +347,7 @@ chmod +x .husky/commit-msg
 ```
 
 ### 5.2 Lint-Staged Configuration
+
 ```bash
 cat > .lintstagedrc.json << 'EOF'
 {
@@ -350,6 +363,7 @@ EOF
 ```
 
 ### 5.3 CommitLint Configuration
+
 ```bash
 cat > commitlint.config.js << 'EOF'
 module.exports = {
@@ -372,6 +386,7 @@ EOF
 ## Part 6: Source Code Structure
 
 ### 6.1 Create Directory Structure
+
 ```bash
 # Create source directories
 mkdir -p src
@@ -382,6 +397,7 @@ mkdir -p .github/workflows
 ```
 
 ### 6.2 Create Initial Source Files
+
 ```bash
 # Main entry point
 cat > src/index.ts << 'EOF'
@@ -446,6 +462,7 @@ EOF
 ## Part 7: GitHub Actions Setup
 
 ### 7.1 CI/CD Pipeline
+
 ```bash
 cat > .github/workflows/ci.yml << 'EOF'
 name: CI/CD Pipeline
@@ -500,6 +517,7 @@ EOF
 ```
 
 ### 7.2 Codacy Analysis Workflow
+
 ```bash
 cat > .github/workflows/codacy-analysis.yml << 'EOF'
 name: Codacy Analysis
@@ -540,6 +558,7 @@ EOF
 ## Part 8: Codacy Integration
 
 ### 8.1 Create Codacy Configuration
+
 ```bash
 cat > .codacy.yml << 'EOF'
 ---
@@ -578,6 +597,7 @@ EOF
 ```
 
 ### 8.2 Set Up GitHub Secrets
+
 ```bash
 # On GitHub.com:
 # 1. Go to Settings > Secrets and variables > Actions
@@ -588,6 +608,7 @@ EOF
 ```
 
 ### 8.3 Configure Codacy Project
+
 ```
 On Codacy.com:
 1. Add your repository
@@ -603,6 +624,7 @@ On Codacy.com:
 ## Part 9: Initial Commit and Push
 
 ### 9.1 Initialize Git and Push
+
 ```bash
 # Add all files
 git add .
@@ -618,6 +640,7 @@ git push -u origin main
 ```
 
 ### 9.2 Verify Everything Works
+
 ```bash
 # Run local tests
 npm test
@@ -637,17 +660,20 @@ npm run build
 ## Part 10: Post-Setup Verification
 
 ### 10.1 GitHub Actions
+
 - Check Actions tab - all workflows should be green
 - CI/CD Pipeline should run on push
 - Codacy Analysis should complete
 
 ### 10.2 Codacy Dashboard
+
 - Navigate to your Codacy project
 - Check that commits show as "Analyzed"
 - Verify coverage is displayed
 - Review any code quality issues
 
 ### 10.3 Local Development
+
 ```bash
 # Test that everything works
 npm run dev         # Development server
@@ -661,6 +687,7 @@ npm run lint       # No linting errors
 ## Part 11: Additional Quality Tools (Optional)
 
 ### 11.1 Add More GitHub Actions
+
 ```bash
 # Create security scanning
 cat > .github/workflows/security.yml << 'EOF'
@@ -685,6 +712,7 @@ EOF
 ```
 
 ### 11.2 Add Pre-push Hook
+
 ```bash
 cat > .husky/pre-push << 'EOF'
 #!/usr/bin/env sh
@@ -704,6 +732,7 @@ chmod +x .husky/pre-push
 ## Part 12: Documentation
 
 ### 12.1 Create README
+
 ```bash
 cat > README.md << 'EOF'
 # DevDocAI
@@ -758,6 +787,7 @@ EOF
 ```
 
 ### 12.2 Create CLAUDE.md for AI Assistance
+
 ```bash
 cat > CLAUDE.md << 'EOF'
 # CLAUDE.md
@@ -793,17 +823,20 @@ EOF
 ## Troubleshooting Tips
 
 ### If Codacy Shows "Commit not analyzed"
+
 1. Ensure the GitHub webhook is configured in Codacy settings
 2. Make sure the CODACY_PROJECT_TOKEN is set in GitHub secrets
 3. The codacy-analysis workflow must run successfully
 4. Check Codacy project settings for proper GitHub integration
 
 ### If Tests Fail
+
 1. Ensure Node.js version matches requirements (>=18)
 2. Clear node_modules and reinstall: `rm -rf node_modules && npm ci`
 3. Check that all config files are properly formatted
 
 ### If GitHub Actions Fail
+
 1. Verify all secrets are properly set
 2. Check workflow syntax is valid
 3. Ensure permissions are set correctly in repository settings
@@ -813,6 +846,7 @@ EOF
 ## Summary
 
 This guide provides a complete, working setup that includes:
+
 - ✅ TypeScript with strict configuration
 - ✅ Jest testing with coverage
 - ✅ ESLint and Prettier formatting

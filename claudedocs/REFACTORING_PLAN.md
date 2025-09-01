@@ -7,6 +7,7 @@ Comprehensive refactoring of M001-M003 modules following the successful three-pa
 ## Current State Analysis
 
 ### Module Status
+
 1. **M001 Configuration Manager** (92% coverage, 13.8M ops/sec)
    - Location: `devdocai/core/config.py`
    - Status: Mature, stable, production-ready
@@ -25,18 +26,21 @@ Comprehensive refactoring of M001-M003 modules following the successful three-pa
 ## Identified Problems
 
 ### 1. Code Duplication
+
 - **Encryption**: Argon2id, AES-256-GCM implemented in M001, M002, M003
 - **Validation**: Input validation scattered across modules
 - **Resource Monitoring**: Duplicate implementations in M003
 - **Error Handling**: Inconsistent patterns across modules
 
 ### 2. Architectural Issues
+
 - No shared utilities library
 - Inconsistent interfaces between modules
 - Multiple implementations of same functionality
 - Tight coupling in some areas
 
 ### 3. Test Coverage Gaps
+
 - M002 at only 45% coverage (target: 80%+)
 - Missing integration tests between modules
 - No performance regression tests
@@ -46,6 +50,7 @@ Comprehensive refactoring of M001-M003 modules following the successful three-pa
 ### Phase 1: Create Common Modules (Priority: HIGH)
 
 #### 1.1 Create `devdocai/common/` directory structure
+
 ```
 devdocai/common/
 ├── __init__.py
@@ -57,7 +62,9 @@ devdocai/common/
 ```
 
 #### 1.2 Security Module (`devdocai/common/security.py`)
+
 Consolidate:
+
 - Argon2id key derivation from M001, M002
 - AES-256-GCM encryption from M001, M002
 - Input validation from M003
@@ -65,7 +72,9 @@ Consolidate:
 - Audit logging from M003
 
 #### 1.3 Performance Module (`devdocai/common/performance.py`)
+
 Extract:
+
 - LRU caching utilities
 - Connection pooling
 - Batch processing helpers
@@ -74,8 +83,10 @@ Extract:
 ### Phase 2: Consolidate M003 MIAIR Engine (Priority: HIGH)
 
 #### 2.1 Merge Engine Implementations
+
 - Combine `engine.py`, `engine_optimized.py`, `engine_secure.py`
 - Create single `engine.py` with configurable modes:
+
   ```python
   class MIAIREngine:
       def __init__(self, mode='standard'):
@@ -83,12 +94,14 @@ Extract:
   ```
 
 #### 2.2 Consolidate Component Versions
+
 - Merge entropy calculators
 - Merge quality scorers
 - Merge pattern recognizers
 - Use strategy pattern for different implementations
 
 #### 2.3 Expected Outcome
+
 - Reduce ~2000 lines to ~800 lines
 - Single configurable engine
 - Maintain all functionality
@@ -96,8 +109,10 @@ Extract:
 ### Phase 3: Refactor M002 Storage System (Priority: MEDIUM)
 
 #### 3.1 Consolidate Storage Implementations
+
 - Merge `local_storage.py`, `fast_storage.py`, `optimized_storage.py`, `secure_storage.py`
 - Create layered architecture:
+
   ```python
   class StorageSystem:
       def __init__(self, optimization_level='standard'):
@@ -105,11 +120,13 @@ Extract:
   ```
 
 #### 3.2 Extract Shared Components
+
 - Move encryption to `common/security.py`
 - Move PII detection to `common/security.py`
 - Simplify remaining code
 
 #### 3.3 Improve Test Coverage
+
 - Add missing unit tests
 - Target: 80%+ coverage
 - Add integration tests with M001 and M003
@@ -117,31 +134,37 @@ Extract:
 ### Phase 4: Clean Up M001 Configuration (Priority: LOW)
 
 #### 4.1 Remove Duplicate Code
+
 - Use `common/security.py` for encryption
 - Standardize validation patterns
 
 #### 4.2 Maintain Compatibility
+
 - Ensure no breaking changes
 - Keep performance at 13.8M ops/sec
 
 ## Implementation Timeline
 
 ### Week 1: Common Modules
+
 - [ ] Day 1-2: Create common module structure
 - [ ] Day 3-4: Implement security.py with tests
 - [ ] Day 5: Implement performance.py, logging.py, errors.py
 
 ### Week 2: M003 Consolidation
+
 - [ ] Day 1-2: Merge engine implementations
 - [ ] Day 3-4: Consolidate components
 - [ ] Day 5: Update tests, verify performance
 
 ### Week 3: M002 Refactoring
+
 - [ ] Day 1-2: Consolidate storage implementations
 - [ ] Day 3-4: Improve test coverage to 80%+
 - [ ] Day 5: Integration testing
 
 ### Week 4: Final Polish
+
 - [ ] Day 1: M001 cleanup
 - [ ] Day 2-3: Performance benchmarking
 - [ ] Day 4-5: Documentation and final testing
@@ -149,24 +172,28 @@ Extract:
 ## Success Metrics
 
 ### Code Quality
+
 - [ ] Cyclomatic complexity < 10 for all methods
 - [ ] No duplicate code blocks > 20 lines
 - [ ] Consistent error handling patterns
 - [ ] SOLID principles applied
 
 ### Test Coverage
+
 - [ ] M001: Maintain 92%+
 - [ ] M002: Increase to 80%+
 - [ ] M003: Maintain 90%+
 - [ ] Integration tests added
 
 ### Performance
+
 - [ ] M001: No regression from 13.8M ops/sec
 - [ ] M002: No regression from 72K queries/sec
 - [ ] M003: No regression from 361K docs/min
 - [ ] Memory usage reduced by 10-20%
 
 ### Lines of Code
+
 - [ ] M003: Reduce from ~6000 to ~3000 lines
 - [ ] M002: Reduce from ~4000 to ~2500 lines
 - [ ] Common modules: ~1500 lines extracted
@@ -228,5 +255,5 @@ Before considering refactoring complete:
 
 ---
 
-*Generated: 2025-08-29*
-*Method: Pass 4 - Refactoring (following Implementation → Performance → Security)*
+_Generated: 2025-08-29_
+_Method: Pass 4 - Refactoring (following Implementation → Performance → Security)_

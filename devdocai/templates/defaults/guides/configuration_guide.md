@@ -21,6 +21,7 @@ This guide explains how to configure {{app_name}} for different environments.
 ## Configuration Files
 
 ### Main Configuration
+
 Location: `config/app.yml`
 
 ```yaml
@@ -51,6 +52,7 @@ logging:
 ```
 
 ### Environment Variables
+
 ```bash
 # Required
 DATABASE_PASSWORD=your_secure_password
@@ -65,6 +67,7 @@ CACHE_ENABLED=true
 ## Environment-Specific Configuration
 
 ### Development
+
 ```yaml
 app:
   debug: true
@@ -78,6 +81,7 @@ logging:
 ```
 
 ### Production
+
 ```yaml
 app:
   debug: false
@@ -94,6 +98,7 @@ logging:
 ## Security Configuration
 
 ### SSL/TLS
+
 ```yaml
 ssl:
   enabled: true
@@ -102,6 +107,7 @@ ssl:
 ```
 
 ### Authentication
+
 ```yaml
 auth:
   jwt:
@@ -114,7 +120,9 @@ auth:
 ```
 
 ## Validation
+
 Test your configuration:
+
 ```bash
 {{app_name}} config validate
 ```

@@ -9,6 +9,7 @@ The M005 Quality Engine has been refactored to consolidate multiple implementati
 ### 1. File Consolidation
 
 **Before (7,561 lines):**
+
 ```
 analyzer.py              (796 lines)
 analyzer_optimized.py    (792 lines)
@@ -20,6 +21,7 @@ dimensions_original.py   (823 lines)
 ```
 
 **After (6,363 lines - 16% reduction):**
+
 ```
 analyzer_unified.py      (438 lines) - Single unified analyzer
 dimensions_unified.py    (1074 lines) - All dimensions consolidated
@@ -31,6 +33,7 @@ utils.py                (432 lines) - Common utilities
 ### 2. Import Changes
 
 **Old imports:**
+
 ```python
 from devdocai.quality.analyzer import QualityAnalyzer
 from devdocai.quality.analyzer_optimized import OptimizedQualityAnalyzer
@@ -38,6 +41,7 @@ from devdocai.quality.analyzer_secure import SecureQualityAnalyzer
 ```
 
 **New imports:**
+
 ```python
 from devdocai.quality import QualityAnalyzer  # Unified analyzer
 # OR
@@ -50,6 +54,7 @@ from devdocai.quality import QualityEngineConfig, OperationMode
 ### 3. Configuration-Based Operation Modes
 
 **Old approach (separate classes):**
+
 ```python
 # Basic analyzer
 analyzer = QualityAnalyzer(config)
@@ -62,6 +67,7 @@ analyzer = SecureQualityAnalyzer(security_config)
 ```
 
 **New approach (single class with modes):**
+
 ```python
 # Basic mode
 config = QualityEngineConfig.from_mode(OperationMode.BASIC)
@@ -82,12 +88,14 @@ analyzer = UnifiedQualityAnalyzer()  # Uses balanced mode
 ### 4. Dimension Analyzers
 
 **Old structure:**
+
 ```python
 from devdocai.quality.dimensions import CompletenessAnalyzer
 from devdocai.quality.dimensions_optimized import OptimizedCompletenessAnalyzer
 ```
 
 **New structure:**
+
 ```python
 from devdocai.quality.dimensions_unified import UnifiedCompletenessAnalyzer
 
@@ -269,6 +277,7 @@ print(config.to_dict())  # Check actual settings
 ## Support
 
 For questions or issues with the migration, please refer to:
+
 - This migration guide
 - The unified implementation source code
 - The comprehensive test suite in `test_unified_analyzer.py`

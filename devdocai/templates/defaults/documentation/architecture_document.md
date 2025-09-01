@@ -17,9 +17,11 @@ variables:
 # {{system_name}} Architecture Document
 
 ## Overview
+
 {{system_name}} is designed as a scalable, maintainable system following modern architectural principles.
 
 ## Architecture Principles
+
 - **Separation of Concerns**
 - **Single Responsibility**
 - **Loose Coupling**
@@ -30,6 +32,7 @@ variables:
 ## System Architecture
 
 ### High-Level View
+
 ```
 ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
 │  Frontend   │───▶│   Gateway   │───▶│  Services   │
@@ -44,6 +47,7 @@ variables:
 ```
 
 ### Component Diagram
+
 - **Frontend Layer:** React, Redux, Material-UI
 - **API Gateway:** Authentication, Rate limiting, Routing
 - **Service Layer:** Business logic, Microservices
@@ -52,12 +56,14 @@ variables:
 ## Technology Stack
 
 ### Frontend
+
 - **Framework:** React 18+
 - **State Management:** Redux Toolkit
 - **UI Library:** Material-UI
 - **Build Tool:** Vite
 
 ### Backend
+
 - **Runtime:** Node.js 18+
 - **Framework:** Express.js
 - **Database:** PostgreSQL
@@ -65,12 +71,14 @@ variables:
 - **Message Queue:** RabbitMQ
 
 ### DevOps
+
 - **Containerization:** Docker
 - **Orchestration:** Kubernetes
 - **CI/CD:** GitHub Actions
 - **Monitoring:** Prometheus, Grafana
 
 ## Security Architecture
+
 - JWT-based authentication
 - Role-based access control
 - API rate limiting
@@ -78,6 +86,7 @@ variables:
 - HTTPS/TLS encryption
 
 ## Scalability Considerations
+
 - Horizontal scaling capability
 - Database read replicas
 - Caching strategies
@@ -85,6 +94,7 @@ variables:
 - Auto-scaling policies
 
 ## Deployment Architecture
+
 Production deployment uses a multi-tier architecture with redundancy at each level.
 
 ```
@@ -92,6 +102,7 @@ Internet ──▶ Load Balancer ──▶ Web Servers ──▶ App Servers ─
 ```
 
 ## Monitoring and Observability
+
 - Application Performance Monitoring (APM)
 - Distributed tracing
 - Centralized logging

@@ -32,14 +32,17 @@ This style guide establishes conventions for {{language}} code in {{project_name
 ## Code Formatting
 
 ### Indentation
+
 - Use 2 spaces for indentation
 - No hard tabs
 
 ### Line Length
+
 - Maximum 100 characters per line
 - Break long lines appropriately
 
 ### Naming Conventions
+
 - Variables: camelCase
 - Functions: camelCase
 - Classes: PascalCase

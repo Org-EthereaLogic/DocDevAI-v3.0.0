@@ -123,6 +123,7 @@ Error responses include detailed information:
 Authenticate and obtain an access token.
 
 **Request:**
+
 ```json
 {
   "email": "user@example.com",
@@ -131,6 +132,7 @@ Authenticate and obtain an access token.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -153,12 +155,14 @@ Authenticate and obtain an access token.
 Retrieve a list of users.
 
 **Parameters:**
+
 - `page` (integer, optional): Page number (default: 1)
 - `limit` (integer, optional): Items per page (default: 10, max: 100)
 - `sort` (string, optional): Sort field (default: created_at)
 - `order` (string, optional): Sort order (asc/desc, default: desc)
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -187,9 +191,11 @@ Retrieve a list of users.
 Retrieve a specific user by ID.
 
 **Parameters:**
+
 - `id` (string, required): User ID
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -214,6 +220,7 @@ Retrieve a specific user by ID.
 Create a new user.
 
 **Request:**
+
 ```json
 {
   "email": "newuser@example.com",
@@ -223,6 +230,7 @@ Create a new user.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -243,9 +251,11 @@ Create a new user.
 Update an existing user.
 
 **Parameters:**
+
 - `id` (string, required): User ID
 
 **Request:**
+
 ```json
 {
   "name": "Jane Doe",
@@ -256,6 +266,7 @@ Update an existing user.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -279,9 +290,11 @@ Update an existing user.
 Delete a user.
 
 **Parameters:**
+
 - `id` (string, required): User ID
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -362,6 +375,7 @@ For API support, please contact us at [{{contact_email}}](mailto:{{contact_email
 ## Changelog
 
 ### v{{api_version}}
+
 - Initial API release
 - User management endpoints
 - Authentication system

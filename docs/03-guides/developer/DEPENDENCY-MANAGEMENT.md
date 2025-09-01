@@ -42,6 +42,7 @@ Scripts and tools for deeper investigation:
 ```
 
 This script will:
+
 1. Check prerequisites (Python, Node.js, Git)
 2. Install security tools (pre-commit, vulture, bandit, safety, etc.)
 3. Configure pre-commit hooks
@@ -146,6 +147,7 @@ better-npm-audit audit  # Enhanced audit with fewer false positives
 Vulture might flag code that's actually used (e.g., SQLAlchemy models, Django views):
 
 1. Add to `.vulture_whitelist.py`:
+
 ```python
 # SQLAlchemy attributes
 _.id
@@ -157,6 +159,7 @@ _.my_special_method
 ```
 
 2. Or use inline comments:
+
 ```python
 def rarely_used_function():  # noqa: vulture
     pass
@@ -167,6 +170,7 @@ def rarely_used_function():  # noqa: vulture
 Some packages aren't imported directly but are still needed:
 
 1. Edit `scripts/check_unused_deps.py`:
+
 ```python
 JUSTIFIED_UNUSED = {
     'package-name': "Used by CLI tool, not imported",
@@ -175,6 +179,7 @@ JUSTIFIED_UNUSED = {
 ```
 
 2. Or document in requirements.txt:
+
 ```txt
 # Required for CLI operations (not imported directly)
 alembic>=1.12.0
@@ -216,11 +221,13 @@ npm audit  # Check for vulnerabilities
 ### Removing Dependencies
 
 1. **Check usage**: Ensure it's truly unused
+
 ```bash
 python scripts/check_unused_deps.py --verbose
 ```
 
 2. **Remove package**:
+
 ```bash
 # Python
 pip uninstall package-name
@@ -231,6 +238,7 @@ npm uninstall package-name
 ```
 
 3. **Test thoroughly**: Run full test suite
+
 ```bash
 pytest
 npm test
@@ -239,6 +247,7 @@ npm test
 ### Updating Dependencies
 
 1. **Check for updates**:
+
 ```bash
 # Python
 pip list --outdated
@@ -248,6 +257,7 @@ npm outdated
 ```
 
 2. **Update safely**:
+
 ```bash
 # Python - update specific package
 pip install --upgrade package-name
@@ -261,6 +271,7 @@ npm update
 ```
 
 3. **Test after updating**:
+
 ```bash
 # Run security checks
 pip-audit
@@ -369,6 +380,7 @@ pre-commit run --all-files --verbose
 
 1. Check the workflow run logs in GitHub Actions
 2. Run the same checks locally:
+
 ```bash
 # Replicate CI environment
 python scripts/check_unused_deps.py --strict

@@ -5,21 +5,27 @@ This directory contains all quality-related documentation including testing, sec
 ## Structure
 
 ### [testing/](testing/)
+
 Test plans, strategies, and test case documentation:
+
 - [Test Plan](testing/DESIGN-devdocai-test-plan.md) - Comprehensive testing strategy
 
 ### [security/](security/)
+
 Security policies, vulnerability management, and audit reports.
 
 ### [performance/](performance/)
+
 Performance benchmarks, optimization guides, and monitoring setup.
 
 ### [compliance/](compliance/)
+
 Regulatory compliance documentation and audit trails.
 
 ## Quality Standards
 
 ### Code Quality Requirements
+
 - **Test Coverage**: 85% minimum (enforced)
 - **Code Review**: All PRs require approval
 - **Linting**: ESLint + Prettier compliance
@@ -29,6 +35,7 @@ Regulatory compliance documentation and audit trails.
 ### Testing Strategy
 
 #### Test Pyramid
+
 ```
          /\
         /E2E\        5% - End-to-end tests
@@ -40,6 +47,7 @@ Regulatory compliance documentation and audit trails.
 ```
 
 #### Test Categories
+
 1. **Unit Tests** (80%)
    - Individual function testing
    - Module isolation
@@ -61,6 +69,7 @@ Regulatory compliance documentation and audit trails.
 ### Security Requirements
 
 #### Threat Model
+
 - **Data at Rest**: AES-256-GCM encryption
 - **Data in Transit**: TLS 1.3 minimum
 - **Authentication**: Token-based with rotation
@@ -69,6 +78,7 @@ Regulatory compliance documentation and audit trails.
 - **Dependencies**: Regular vulnerability scanning
 
 #### Security Checklist
+
 - [ ] OWASP Top 10 addressed
 - [ ] Dependency vulnerabilities scanned
 - [ ] Secrets management configured
@@ -81,6 +91,7 @@ Regulatory compliance documentation and audit trails.
 ### Performance Benchmarks
 
 #### Target Metrics
+
 | Operation | Target | Maximum |
 |-----------|--------|---------|
 | Startup | <500ms | 1000ms |
@@ -91,6 +102,7 @@ Regulatory compliance documentation and audit trails.
 | Search | <100ms | 500ms |
 
 #### Memory Modes
+
 | Mode | RAM | Features |
 |------|-----|----------|
 | Baseline | <2GB | Core only |
@@ -101,12 +113,14 @@ Regulatory compliance documentation and audit trails.
 ### Compliance Standards
 
 #### SBOM Requirements
+
 - **Format**: SPDX 2.3 and CycloneDX 1.4
 - **Coverage**: 100% of dependencies
 - **Updates**: Every release
 - **Validation**: Automated checks
 
 #### Privacy Compliance
+
 - **GDPR**: Data portability, right to deletion
 - **CCPA**: Data disclosure, opt-out mechanisms
 - **PII Detection**: 95% accuracy target
@@ -144,6 +158,7 @@ Each release must pass:
 ### Monitoring & Metrics
 
 #### Key Metrics
+
 - Test pass rate (target: >99%)
 - Code coverage (minimum: 85%)
 - Bug discovery rate
@@ -152,6 +167,7 @@ Each release must pass:
 - Documentation coverage
 
 #### Continuous Monitoring
+
 - Automated test runs on commit
 - Nightly security scans
 - Weekly performance profiling
@@ -161,6 +177,7 @@ Each release must pass:
 ### Issue Management
 
 #### Bug Severity Levels
+
 - **P0 Critical**: System down, data loss
 - **P1 High**: Major feature broken
 - **P2 Medium**: Feature degraded
@@ -168,6 +185,7 @@ Each release must pass:
 - **P4 Enhancement**: Improvement request
 
 #### Response Times
+
 | Severity | Response | Resolution |
 |----------|----------|------------|
 | P0 | 1 hour | 24 hours |

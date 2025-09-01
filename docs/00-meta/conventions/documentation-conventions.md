@@ -42,6 +42,7 @@ Links to related documents and external resources.
 | Process | `[CAPS-NAME].md` | `CONTRIBUTING.md` |
 
 ### Naming Rules
+
 - Use lowercase with hyphens for word separation
 - No spaces or special characters except hyphens
 - Keep names descriptive but concise
@@ -138,24 +139,28 @@ Use tables for structured data:
 ## Documentation Types
 
 ### Technical Specifications
+
 - Use formal language
 - Include all technical details
 - Provide diagrams where helpful
 - Reference standards and protocols
 
 ### User Guides
+
 - Write for end users
 - Include step-by-step instructions
 - Add screenshots where helpful
 - Provide troubleshooting sections
 
 ### API Documentation
+
 - Document all endpoints/methods
 - Include request/response examples
 - Specify error codes and handling
 - Note rate limits and constraints
 
 ### Developer Guides
+
 - Focus on implementation details
 - Include code examples
 - Explain design decisions
@@ -164,12 +169,14 @@ Use tables for structured data:
 ## Diagrams and Visuals
 
 ### When to Use Diagrams
+
 - Architecture overviews
 - Data flow illustrations
 - Process workflows
 - Complex relationships
 
 ### Diagram Standards
+
 - Use Mermaid for version-controlled diagrams
 - Keep diagrams simple and focused
 - Include legends for symbols
@@ -200,6 +207,7 @@ Refs: #issue-number
 ```
 
 Types:
+
 - `add`: New documentation
 - `update`: Update existing docs
 - `fix`: Fix errors or typos
@@ -209,6 +217,7 @@ Types:
 ### Documentation Reviews
 
 All documentation should be reviewed for:
+
 - Technical accuracy
 - Completeness
 - Clarity and readability
@@ -218,12 +227,14 @@ All documentation should be reviewed for:
 ## Cross-References
 
 ### Internal References
+
 - Use relative paths for internal links
 - Maintain link integrity when moving files
 - Update references when archiving documents
 - Include section anchors for deep linking
 
 ### External References
+
 - Verify external links remain valid
 - Include access dates for web resources
 - Archive important external content
@@ -234,6 +245,7 @@ All documentation should be reviewed for:
 ### Required Metadata
 
 Each document should include:
+
 ```yaml
 ---
 title: Document Title
@@ -246,6 +258,7 @@ status: draft|review|approved|deprecated
 ```
 
 ### Optional Metadata
+
 - `tags`: For categorization
 - `related`: Links to related docs
 - `supersedes`: Previous version
@@ -269,12 +282,14 @@ Before publishing documentation:
 ## Maintenance
 
 ### Regular Reviews
+
 - Quarterly accuracy reviews
 - Link validation checks
 - Consistency audits
 - User feedback integration
 
 ### Update Triggers
+
 - Feature releases
 - API changes
 - Bug fixes affecting behavior
@@ -284,6 +299,7 @@ Before publishing documentation:
 ## Tools and Resources
 
 ### Recommended Tools
+
 - **Markdown Editor**: VS Code with Markdown extensions
 - **Spell Checker**: CSpell or similar
 - **Link Checker**: markdown-link-check
@@ -291,9 +307,11 @@ Before publishing documentation:
 - **Diagrams**: Mermaid, PlantUML
 
 ### Templates
+
 Find document templates in `/docs/00-meta/templates/`
 
 ### Style References
+
 - [Google Developer Documentation Style Guide](https://developers.google.com/style)
 - [Microsoft Writing Style Guide](https://docs.microsoft.com/style-guide)
 - [Write the Docs](https://www.writethedocs.org)

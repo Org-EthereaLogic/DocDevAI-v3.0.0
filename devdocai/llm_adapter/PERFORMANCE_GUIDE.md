@@ -7,6 +7,7 @@ This guide documents the performance optimizations implemented in Pass 2 of the 
 ## Performance Achievements
 
 ### Key Metrics
+
 - **Response Time**: <1 second for simple requests (50% improvement)
 - **Cache Hit Rate**: >30% with semantic similarity matching
 - **Concurrent Requests**: 100+ simultaneous requests supported
@@ -19,12 +20,14 @@ This guide documents the performance optimizations implemented in Pass 2 of the 
 ### 1. Advanced Caching System (`cache.py`)
 
 #### Features
+
 - **LRU Cache**: Efficient memory management with 1000 entry capacity
 - **Semantic Similarity**: Mock embedding-based matching (92% threshold)
 - **TTL Management**: Configurable expiration per content type
 - **Provider-Specific Caches**: Optimized for each LLM provider
 
 #### Usage
+
 ```python
 from devdocai.llm_adapter.cache import ResponseCache
 
@@ -44,6 +47,7 @@ if not cached:
 ```
 
 #### Best Practices
+
 - Set appropriate TTL based on content volatility
 - Use semantic matching for FAQ-style queries
 - Monitor cache hit rates and adjust size accordingly
@@ -52,12 +56,14 @@ if not cached:
 ### 2. Request Batching & Coalescing (`batch_processor.py`)
 
 #### Features
+
 - **Automatic Batching**: Groups requests up to batch size limit
 - **Request Coalescing**: Deduplicates identical requests
 - **Priority Queue**: Handles requests by priority level
 - **Smart Batching**: Cost and latency optimized grouping
 
 #### Usage
+
 ```python
 from devdocai.llm_adapter.batch_processor import BatchProcessor, RequestPriority
 
@@ -77,6 +83,7 @@ response = await processor.submit(
 ```
 
 #### Configuration
+
 ```python
 # Batch size recommendations by model
 batch_configs = {
@@ -89,12 +96,14 @@ batch_configs = {
 ### 3. Streaming Optimization (`streaming.py`)
 
 #### Features
+
 - **Stream Buffering**: Aggregates small chunks for efficiency
 - **Progress Tracking**: Real-time metrics per stream
 - **Multiplexing**: Single stream to multiple consumers
 - **Adaptive Buffering**: Based on chunk size and frequency
 
 #### Usage
+
 ```python
 from devdocai.llm_adapter.streaming import StreamingManager
 
@@ -110,6 +119,7 @@ async for chunk in streaming.create_stream(request_id, provider, source):
 ```
 
 #### Performance Tips
+
 - Enable buffering for small, frequent chunks
 - Use multiplexing for broadcast scenarios
 - Monitor TTFT metrics to meet SLA requirements
@@ -117,12 +127,14 @@ async for chunk in streaming.create_stream(request_id, provider, source):
 ### 4. Connection Pooling (`connection_pool.py`)
 
 #### Features
+
 - **HTTP/2 Support**: Multiplexed requests over single connection
 - **Keep-Alive**: Persistent connections reduce latency
 - **Auto-Scaling**: Dynamic pool size based on load
 - **Health Monitoring**: Automatic bad connection replacement
 
 #### Usage
+
 ```python
 from devdocai.llm_adapter.connection_pool import ConnectionManager
 
@@ -142,6 +154,7 @@ await conn_manager.create_pool(
 ```
 
 #### Configuration
+
 - **Min Connections**: 2 per provider (warm standby)
 - **Max Connections**: 10 per provider (prevent overload)
 - **Keep-Alive Timeout**: 60 seconds
@@ -150,12 +163,14 @@ await conn_manager.create_pool(
 ### 5. Token Optimization (`token_optimizer.py`)
 
 #### Features
+
 - **Prompt Compression**: Removes redundancy and filler words
 - **Context Management**: Intelligent truncation for long conversations
 - **Abbreviation Substitution**: Common term replacement
 - **Whitespace Normalization**: Reduces unnecessary spacing
 
 #### Usage
+
 ```python
 from devdocai.llm_adapter.token_optimizer import TokenOptimizer
 
@@ -175,6 +190,7 @@ optimized_messages, stats = optimizer.optimize_request(
 ```
 
 #### Compression Strategies
+
 1. **Conservative Mode** (Default):
    - Whitespace normalization
    - Duplicate removal
@@ -251,6 +267,7 @@ pytest tests/performance/test_m008_performance.py::TestCachePerformance -v
 ## Configuration Recommendations
 
 ### Development Environment
+
 ```python
 config = {
     "cache_size": 500,
@@ -262,6 +279,7 @@ config = {
 ```
 
 ### Production Environment
+
 ```python
 config = {
     "cache_size": 2000,
@@ -274,6 +292,7 @@ config = {
 ```
 
 ### High-Load Scenarios
+
 ```python
 config = {
     "cache_size": 5000,
@@ -348,6 +367,7 @@ print(f"Tokens Saved: {stats['overall_metrics']['tokens_saved']}")
 ## Future Optimizations
 
 ### Planned Enhancements
+
 1. **Real Embeddings**: Replace mock embeddings with actual API
 2. **Distributed Caching**: Redis/Memcached integration
 3. **Advanced Batching**: ML-based batch optimization
@@ -355,6 +375,7 @@ print(f"Tokens Saved: {stats['overall_metrics']['tokens_saved']}")
 5. **Predictive Caching**: Pre-fetch based on usage patterns
 
 ### Performance Targets (Pass 3)
+
 - Response time: <500ms for simple requests
 - Cache hit rate: >50% with real embeddings
 - Concurrent requests: 500+
@@ -364,6 +385,7 @@ print(f"Tokens Saved: {stats['overall_metrics']['tokens_saved']}")
 ## Conclusion
 
 The Pass 2 performance optimizations successfully achieve all targets:
+
 - ✅ 50% response time improvement
 - ✅ 30%+ cache hit rate
 - ✅ 100+ concurrent request handling

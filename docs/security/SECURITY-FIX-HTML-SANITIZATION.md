@@ -7,6 +7,7 @@ CodeQL detected HIGH severity "Bad HTML filtering regexp" vulnerabilities across
 ## Vulnerability Details
 
 ### Affected Files
+
 - `/devdocai/generator/utils/validators.py:57`
 - `/devdocai/generator/utils/unified_validators.py:70`
 - `/devdocai/generator/utils/security_validator.py:58`
@@ -33,12 +34,14 @@ re.compile(r'<script[^>]*>.*?</script>', re.IGNORECASE | re.DOTALL)
 The regex approach could be bypassed through:
 
 #### 1. Malformed HTML
+
 ```html
 <script>alert(1)  <!-- No closing tag, still executes -->
 <script src=x>    <!-- Self-closing, no content to match -->
 ```
 
 #### 2. Encoding Variants
+
 ```html
 &lt;script&gt;alert(1)&lt;/script&gt;           <!-- HTML entities -->
 &#60;script&#62;alert(1)&#60;/script&#62;       <!-- Numeric entities -->
@@ -46,6 +49,7 @@ The regex approach could be bypassed through:
 ```
 
 #### 3. Alternative XSS Vectors
+
 ```html
 <img src=x onerror=alert(1)>                    <!-- Event handlers -->
 <svg onload=alert(1)>                            <!-- SVG elements -->
@@ -90,6 +94,7 @@ class HtmlSanitizer:
 ## Impact Analysis
 
 ### Security Impact
+
 - **Risk Level**: HIGH
 - **CVSS Score**: 7.5 (High)
 - **Attack Vector**: Network
@@ -98,6 +103,7 @@ class HtmlSanitizer:
 - **User Interaction**: Required
 
 ### Potential Consequences (if unexploited)
+
 1. Cross-Site Scripting (XSS) attacks
 2. Session hijacking through cookie theft
 3. Defacement of generated documentation
@@ -108,14 +114,16 @@ class HtmlSanitizer:
 
 ### 1. Development Guidelines
 
-#### DO:
+#### DO
+
 - ✅ Use established HTML sanitization libraries (bleach, DOMPurify)
 - ✅ Use proper HTML parsers (BeautifulSoup, lxml) for HTML manipulation
 - ✅ Implement defense in depth with Content Security Policy headers
 - ✅ Validate and sanitize at multiple layers
 - ✅ Keep sanitization libraries updated
 
-#### DON'T:
+#### DON'T
+
 - ❌ Use regex to parse or filter HTML
 - ❌ Write custom HTML sanitizers
 - ❌ Trust user input without sanitization

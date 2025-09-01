@@ -68,15 +68,20 @@ This project adheres to a Code of Conduct. By participating, you are expected to
 
 1. Fork the repository on GitHub
 2. Clone your fork locally:
+
    ```bash
    git clone {{repository_url}}
    cd {{project_name}}
    ```
+
 3. Add the upstream repository:
+
    ```bash
    git remote add upstream {{repository_url}}
    ```
+
 4. Install dependencies:
+
    ```bash
    npm install
    ```
@@ -123,15 +128,20 @@ Enhancement suggestions are welcome! Please:
 
 1. Clone and setup the project (see [Getting Started](#getting-started))
 2. Create a new branch:
+
    ```bash
    git checkout -b feature/your-feature-name
    ```
+
 3. Make your changes
 4. Run the test suite:
+
    ```bash
    npm test
    ```
+
 5. Run the linter:
+
    ```bash
    npm run lint
    ```

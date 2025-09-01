@@ -33,12 +33,14 @@ This report presents the performance test results for {{application_name}}. The 
 ## Test Environment
 
 ### Hardware
+
 - **CPU:** Intel i7-8700K @ 3.7GHz
 - **RAM:** 32GB DDR4
 - **Storage:** NVMe SSD
 - **Network:** 1Gbps Ethernet
 
 ### Software
+
 - **OS:** Ubuntu 20.04 LTS
 - **Database:** PostgreSQL 13
 - **Cache:** Redis 6.2
@@ -47,33 +49,39 @@ This report presents the performance test results for {{application_name}}. The 
 ## Test Scenarios
 
 ### Scenario 1: Normal Load
+
 - **Users:** 100 concurrent users
 - **Duration:** 30 minutes
 - **Ramp-up:** 10 users/minute
 
 **Results:**
+
 - Average Response Time: 245ms
 - 95th Percentile: 450ms
 - Throughput: 85 requests/second
 - Error Rate: 0.2%
 
 ### Scenario 2: Peak Load
+
 - **Users:** 500 concurrent users
 - **Duration:** 15 minutes
 - **Ramp-up:** 50 users/minute
 
 **Results:**
+
 - Average Response Time: 892ms
 - 95th Percentile: 1.2s
 - Throughput: 380 requests/second
 - Error Rate: 1.8%
 
 ### Scenario 3: Stress Test
+
 - **Users:** Up to 1000 concurrent users
 - **Duration:** 60 minutes
 - **Breaking Point:** 850 users
 
 **Results:**
+
 - System remained stable up to 800 users
 - Response time degradation started at 650 users
 - Memory usage peaked at 85%
@@ -104,11 +112,13 @@ This report presents the performance test results for {{application_name}}. The 
 ## Recommendations
 
 ### Short-term
+
 1. Optimize database queries
 2. Implement response caching
 3. Increase server resources
 
 ### Long-term
+
 1. Implement horizontal scaling
 2. Consider database sharding
 3. Add CDN for static assets

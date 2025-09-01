@@ -1637,9 +1637,9 @@ Available at: `https://docs.devdocai.com/performance/benchmarks`
 
 ---
 
-*DevDocAI API Design Specification v3.6.0*
-*Status: FINAL - Suite Aligned*
-*Last Updated: August 23, 2025*
-*© 2025 DevDocAI Open Source Project*
-*Licensed under Apache-2.0 (Core) and MIT (SDK)*
+_DevDocAI API Design Specification v3.6.0_
+_Status: FINAL - Suite Aligned_
+_Last Updated: August 23, 2025_
+_© 2025 DevDocAI Open Source Project_
+_Licensed under Apache-2.0 (Core) and MIT (SDK)_
 </updated_api_design>

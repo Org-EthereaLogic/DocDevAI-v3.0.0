@@ -20,6 +20,7 @@ variables:
 ## Code Quality
 
 ### Writing Clean Code
+
 - **Meaningful Names:** Use descriptive variable and function names
 - **Small Functions:** Keep functions short and focused
 - **Single Responsibility:** Each function should do one thing well
@@ -52,6 +53,7 @@ function getUserEmail(userId) {
 ```
 
 ### Error Handling
+
 - Always handle errors explicitly
 - Use appropriate error types
 - Provide meaningful error messages
@@ -71,6 +73,7 @@ try {
 ## Testing Best Practices
 
 ### Unit Testing
+
 - Test one thing at a time
 - Use descriptive test names
 - Follow AAA pattern (Arrange, Act, Assert)
@@ -97,6 +100,7 @@ describe('UserService', () => {
 ```
 
 ### Test Coverage
+
 - Aim for 80%+ code coverage
 - Focus on critical paths
 - Test edge cases and error conditions
@@ -105,18 +109,21 @@ describe('UserService', () => {
 ## Performance Best Practices
 
 ### Optimization Guidelines
+
 - Profile before optimizing
 - Cache expensive computations
 - Use appropriate data structures
 - Minimize API calls
 
 ### Memory Management
+
 - Avoid memory leaks
 - Clean up event listeners
 - Dispose of resources properly
 - Monitor memory usage
 
 ### Database Optimization
+
 - Use indexes effectively
 - Avoid N+1 queries
 - Implement proper pagination
@@ -125,18 +132,21 @@ describe('UserService', () => {
 ## Security Best Practices
 
 ### Input Validation
+
 - Validate all user input
 - Sanitize data before processing
 - Use parameterized queries
 - Implement rate limiting
 
 ### Authentication & Authorization
+
 - Use secure session management
 - Implement proper password policies
 - Use HTTPS everywhere
 - Follow principle of least privilege
 
 ### Data Protection
+
 - Encrypt sensitive data
 - Hash passwords with salt
 - Implement secure data deletion
@@ -145,12 +155,14 @@ describe('UserService', () => {
 ## Documentation
 
 ### Code Documentation
+
 - Document complex algorithms
 - Explain business logic
 - Keep documentation up-to-date
 - Use consistent formatting
 
 ### API Documentation
+
 - Document all endpoints
 - Include request/response examples
 - Specify error codes
@@ -159,12 +171,14 @@ describe('UserService', () => {
 ## Version Control
 
 ### Git Practices
+
 - Use meaningful commit messages
 - Keep commits small and focused
 - Use branching strategies consistently
 - Review code before merging
 
 ### Commit Message Format
+
 ```
 type(scope): description
 
@@ -176,6 +190,7 @@ docs(readme): update installation instructions
 ## Code Reviews
 
 ### Review Checklist
+
 - [ ] Code follows style guidelines
 - [ ] Tests are included and passing
 - [ ] Documentation is updated
@@ -183,6 +198,7 @@ docs(readme): update installation instructions
 - [ ] Performance considerations addressed
 
 ### Review Culture
+
 - Be respectful and constructive
 - Focus on the code, not the person
 - Ask questions for clarification
@@ -191,12 +207,14 @@ docs(readme): update installation instructions
 ## Deployment
 
 ### Pre-deployment
+
 - Run full test suite
 - Perform security scans
 - Check for breaking changes
 - Plan rollback strategy
 
 ### Production Monitoring
+
 - Set up logging and monitoring
 - Implement health checks
 - Monitor performance metrics
@@ -205,12 +223,14 @@ docs(readme): update installation instructions
 ## Team Practices
 
 ### Communication
+
 - Regular stand-ups
 - Clear documentation
 - Knowledge sharing sessions
 - Post-mortem analysis
 
 ### Continuous Learning
+
 - Stay updated with technology
 - Share knowledge with team
 - Attend conferences and workshops

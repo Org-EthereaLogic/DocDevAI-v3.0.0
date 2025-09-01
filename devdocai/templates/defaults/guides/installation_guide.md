@@ -39,10 +39,12 @@ This guide will help you install and set up {{project_name}} on your system.
 ## System Requirements
 
 ### Minimum Requirements
+
 - {{minimum_requirements}}
 - Internet connection for downloading dependencies
 
 ### Supported Platforms
+
 - {{supported_platforms}}
 
 ## Prerequisites
@@ -99,6 +101,7 @@ npm install -g .
 ### Initial Setup
 
 1. Run the setup command:
+
    ```bash
    {{project_name}} init
    ```
@@ -143,6 +146,7 @@ Verify your installation by running:
 ```
 
 Expected output:
+
 ```
 {{project_name}} version X.X.X
 Installation: OK
@@ -155,12 +159,15 @@ All systems operational
 ### Common Issues
 
 #### Issue: Command not found
+
 **Solution:** Ensure the binary is in your PATH or run the full path to the executable.
 
 #### Issue: Permission denied
+
 **Solution:** Run with administrative privileges or install in user directory.
 
 #### Issue: Dependency conflicts
+
 **Solution:** Use a virtual environment or update conflicting packages.
 
 ### Getting Help

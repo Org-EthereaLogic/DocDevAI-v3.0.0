@@ -21,6 +21,7 @@ This guide helps you diagnose and resolve common issues with {{product_name}}.
 ## Quick Diagnostics
 
 ### Check System Status
+
 ```bash
 # Check if {{product_name}} is running
 systemctl status {{product_name}}
@@ -37,17 +38,20 @@ curl -I http://localhost:3000/health
 ### Issue: Application Won't Start
 
 **Symptoms:**
+
 - Application exits immediately
 - Error messages in logs
 - Port already in use
 
 **Diagnosis:**
+
 1. Check system requirements
 2. Verify configuration files
 3. Check port availability
 4. Review error logs
 
 **Solutions:**
+
 ```bash
 # Check if port is in use
 netstat -tulpn | grep :3000
@@ -65,17 +69,20 @@ sudo kill -9 $(lsof -ti:3000)
 ### Issue: Slow Performance
 
 **Symptoms:**
+
 - High response times
 - Timeouts
 - High CPU/Memory usage
 
 **Diagnosis:**
+
 1. Check system resources
 2. Monitor database performance
 3. Review application metrics
 4. Analyze network connectivity
 
 **Solutions:**
+
 ```bash
 # Monitor system resources
 htop
@@ -93,17 +100,20 @@ df -h
 ### Issue: Database Connection Failed
 
 **Symptoms:**
+
 - Connection timeout errors
 - Authentication failures
 - Network unreachable errors
 
 **Diagnosis:**
+
 1. Verify database server is running
 2. Check network connectivity
 3. Validate credentials
 4. Review firewall settings
 
 **Solutions:**
+
 ```bash
 # Test database connection
 psql -h localhost -U username -d database_name
@@ -132,12 +142,14 @@ sudo -u postgres psql
 ## Advanced Debugging
 
 ### Enable Debug Mode
+
 ```bash
 export DEBUG=*
 {{product_name}} start
 ```
 
 ### Collect System Information
+
 ```bash
 # Generate system report
 {{product_name}} debug report
@@ -150,6 +162,7 @@ ls -la /etc/{{product_name}}/
 ```
 
 ### Memory and CPU Profiling
+
 ```bash
 # Monitor memory usage
 valgrind --tool=massif {{product_name}}
@@ -162,6 +175,7 @@ perf report
 ## Getting Help
 
 ### Before Contacting Support
+
 1. ✅ Check this troubleshooting guide
 2. ✅ Search the documentation
 3. ✅ Review recent changes
@@ -169,6 +183,7 @@ perf report
 5. ✅ Note error messages and codes
 
 ### What to Include in Support Requests
+
 - **System Information:** OS, version, hardware specs
 - **Error Messages:** Full error text and codes
 - **Steps to Reproduce:** Detailed steps to trigger the issue
@@ -176,6 +191,7 @@ perf report
 - **Configuration:** Sanitized config files (remove secrets)
 
 ### Contact Information
+
 - 📧 **Email:** support@{{product_name}}.com
 - 💬 **Chat:** [Support Portal](https://support.{{product_name}}.com)
 - 🐛 **Bug Reports:** [GitHub Issues](https://github.com/{{product_name}}/issues)

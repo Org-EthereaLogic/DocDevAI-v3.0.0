@@ -75,6 +75,7 @@ This document describes the comprehensive security architecture for the M009 Enh
 **Purpose**: First line of defense against malicious input
 
 **Architecture:**
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │              SecurityValidator                      │
@@ -99,6 +100,7 @@ This document describes the comprehensive security architecture for the M009 Enh
 ```
 
 **Security Features:**
+
 - 40+ prompt injection patterns
 - XSS, SQL injection, path traversal detection
 - PII detection and masking integration
@@ -111,6 +113,7 @@ This document describes the comprehensive security architecture for the M009 Enh
 **Purpose**: Traffic control and abuse prevention
 
 **Architecture:**
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │           MultiLevelRateLimiter                     │
@@ -131,6 +134,7 @@ This document describes the comprehensive security architecture for the M009 Enh
 ```
 
 **Security Features:**
+
 - Token bucket algorithm with configurable rates
 - Multi-dimensional rate limiting (user, IP, cost, global)
 - Sliding window for burst protection
@@ -143,6 +147,7 @@ This document describes the comprehensive security architecture for the M009 Enh
 **Purpose**: System resource protection and DoS prevention
 
 **Architecture:**
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │                ResourceGuard                        │
@@ -167,6 +172,7 @@ This document describes the comprehensive security architecture for the M009 Enh
 ```
 
 **Security Features:**
+
 - Real-time resource monitoring
 - Configurable memory and CPU limits
 - Operation timeout enforcement
@@ -179,6 +185,7 @@ This document describes the comprehensive security architecture for the M009 Enh
 **Purpose**: Encrypted data caching with isolation
 
 **Architecture:**
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │                SecureCache                          │
@@ -203,6 +210,7 @@ This document describes the comprehensive security architecture for the M009 Enh
 ```
 
 **Security Features:**
+
 - AES-256-GCM encryption with key rotation
 - Cache isolation by user/tenant/session
 - Integrity checking with HMAC
@@ -215,6 +223,7 @@ This document describes the comprehensive security architecture for the M009 Enh
 **Purpose**: Comprehensive security event logging
 
 **Architecture:**
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │                AuditLogger                          │
@@ -239,6 +248,7 @@ This document describes the comprehensive security architecture for the M009 Enh
 ```
 
 **Security Features:**
+
 - HMAC-based tamper protection
 - Comprehensive PII masking
 - Structured JSON logging
@@ -251,6 +261,7 @@ This document describes the comprehensive security architecture for the M009 Enh
 **Purpose**: Centralized security policy management
 
 **Architecture:**
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │            SecurityConfigManager                    │
@@ -275,6 +286,7 @@ This document describes the comprehensive security architecture for the M009 Enh
 ```
 
 **Security Features:**
+
 - Environment-specific security profiles
 - Compliance standard templates (GDPR, SOC2, OWASP)
 - Policy rule engine with violation tracking

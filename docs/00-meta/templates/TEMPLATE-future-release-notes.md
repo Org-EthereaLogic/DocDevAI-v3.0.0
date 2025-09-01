@@ -1028,7 +1028,7 @@ SHA256: [64-character hex string]
 
 ---
 
-*DevDocAI v[X.Y.Z] - Professional Documentation for Every Developer*
+_DevDocAI v[X.Y.Z] - Professional Documentation for Every Developer_
 
 **Release Notes Template Version:** 3.6.0
 **Compatible with DevDocAI:** v3.5.0+

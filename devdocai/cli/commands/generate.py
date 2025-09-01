@@ -1,0 +1,295 @@
+"""
+Document generation commands for DevDocAI CLI.
+
+Integrates with M004 Document Generator module.
+"""
+
+import os
+import sys
+from pathlib import Path
+from typing import Optional, List, Dict, Any
+import json
+
+import click
+from click import Context
+
+# Import M004 Document Generator
+try:
+    from devdocai.generator.generator_unified import DocumentGeneratorUnified
+    from devdocai.generator.config_unified import GeneratorConfig, OperationMode
+    from devdocai.templates.registry_unified import TemplateRegistryUnified
+    GENERATOR_AVAILABLE = True
+except ImportError as e:
+    GENERATOR_AVAILABLE = False
+    IMPORT_ERROR = str(e)
+
+
+@click.group('generate', invoke_without_command=True)
+@click.pass_context
+def generate_group(ctx: Context):
+    """Generate documentation from source code and other inputs."""
+    if ctx.invoked_subcommand is None:
+        click.echo(ctx.get_help())
+
+
+@generate_group.command('file')
+@click.argument('path', type=click.Path(exists=True))
+@click.option('--template', '-t', default='general', 
+              help='Template to use for generation')
+@click.option('--output', '-o', type=click.Path(),
+              help='Output file path (default: stdout)')
+@click.option('--format', '-f', type=click.Choice(['markdown', 'html', 'rst', 'json']),
+              default='markdown', help='Output format')
+@click.option('--batch', '-b', is_flag=True,
+              help='Process all files in directory')
+@click.option('--recursive', '-r', is_flag=True,
+              help='Process directories recursively')
+@click.option('--pattern', '-p', default='*.py',
+              help='File pattern for batch processing (e.g., *.py)')
+@click.option('--mode', type=click.Choice(['basic', 'optimized', 'secure', 'balanced']),
+              default='balanced', help='Operation mode')
+@click.pass_obj
+def generate_file(cli_ctx, path: str, template: str, output: Optional[str],
+                   format: str, batch: bool, recursive: bool, pattern: str, mode: str):
+    """
+    Generate documentation for a file or directory.
+    
+    Examples:
+    
+        # Generate docs for a single file
+        devdocai generate file api.py --template api-endpoint
+        
+        # Generate docs for all Python files in a directory
+        devdocai generate file src/ --batch --pattern "*.py"
+        
+        # Generate HTML documentation
+        devdocai generate file module.py --format html --output docs.html
+    """
+    if not GENERATOR_AVAILABLE:
+        cli_ctx.log(f"Document generator not available: {IMPORT_ERROR}", "error")
+        sys.exit(1)
+    
+    try:
+        # Initialize generator with selected mode
+        op_mode = OperationMode[mode.upper()]
+        config = GeneratorConfig(operation_mode=op_mode)
+        generator = DocumentGeneratorUnified(config)
+        
+        # Initialize template registry
+        template_registry = TemplateRegistryUnified()
+        
+        path_obj = Path(path)
+        files_to_process = []
+        
+        if batch or path_obj.is_dir():
+            # Batch processing
+            if recursive:
+                files_to_process = list(path_obj.rglob(pattern))
+            else:
+                files_to_process = list(path_obj.glob(pattern))
+            
+            if not files_to_process:
+                cli_ctx.log(f"No files matching pattern '{pattern}' found", "warning")
+                return
+                
+            cli_ctx.log(f"Found {len(files_to_process)} files to process", "info")
+        else:
+            # Single file processing
+            files_to_process = [path_obj]
+        
+        # Process files
+        results = []
+        with click.progressbar(files_to_process, label='Generating documentation') as files:
+            for file_path in files:
+                try:
+                    # Read source code
+                    source_code = file_path.read_text()
+                    
+                    # Get template
+                    template_obj = template_registry.get_template(template)
+                    if not template_obj:
+                        cli_ctx.log(f"Template '{template}' not found, using default", "warning")
+                        template_obj = template_registry.get_template('general')
+                    
+                    # Generate documentation
+                    context = {
+                        'source_code': source_code,
+                        'file_path': str(file_path),
+                        'file_name': file_path.name,
+                        'language': file_path.suffix[1:] if file_path.suffix else 'unknown'
+                    }
+                    
+                    doc = generator.generate(
+                        source_code=source_code,
+                        template=template_obj.content,
+                        context=context,
+                        output_format=format
+                    )
+                    
+                    results.append({
+                        'file': str(file_path),
+                        'documentation': doc,
+                        'template': template,
+                        'format': format
+                    })
+                    
+                except Exception as e:
+                    cli_ctx.log(f"Error processing {file_path}: {str(e)}", "error")
+                    if cli_ctx.debug:
+                        import traceback
+                        traceback.print_exc()
+        
+        # Output results
+        if output:
+            output_path = Path(output)
+            if batch:
+                # Save batch results
+                if format == 'json':
+                    with open(output_path, 'w') as f:
+                        json.dump(results, f, indent=2)
+                else:
+                    # Concatenate all documentation
+                    all_docs = '\n\n---\n\n'.join([r['documentation'] for r in results])
+                    with open(output_path, 'w') as f:
+                        f.write(all_docs)
+                cli_ctx.log(f"Documentation saved to {output_path}", "success")
+            else:
+                # Save single result
+                with open(output_path, 'w') as f:
+                    if format == 'json':
+                        json.dump(results[0], f, indent=2)
+                    else:
+                        f.write(results[0]['documentation'])
+                cli_ctx.log(f"Documentation saved to {output_path}", "success")
+        else:
+            # Output to stdout
+            if cli_ctx.json_output or format == 'json':
+                cli_ctx.output(results, format_type='json')
+            else:
+                for result in results:
+                    if batch:
+                        click.echo(f"\n{'='*60}")
+                        click.echo(f"File: {result['file']}")
+                        click.echo(f"{'='*60}\n")
+                    click.echo(result['documentation'])
+        
+        cli_ctx.log(f"Successfully generated documentation for {len(results)} file(s)", "success")
+        
+    except Exception as e:
+        cli_ctx.log(f"Generation failed: {str(e)}", "error")
+        if cli_ctx.debug:
+            import traceback
+            traceback.print_exc()
+        sys.exit(1)
+
+
+@generate_group.command('api')
+@click.argument('spec_file', type=click.Path(exists=True))
+@click.option('--format', '-f', type=click.Choice(['openapi', 'swagger', 'postman']),
+              default='openapi', help='API specification format')
+@click.option('--output', '-o', type=click.Path(),
+              help='Output directory for generated docs')
+@click.pass_obj
+def generate_api(cli_ctx, spec_file: str, format: str, output: Optional[str]):
+    """
+    Generate API documentation from specification files.
+    
+    Examples:
+    
+        # Generate from OpenAPI spec
+        devdocai generate api openapi.yaml
+        
+        # Generate from Swagger spec
+        devdocai generate api swagger.json --format swagger
+    """
+    cli_ctx.log(f"Generating API documentation from {spec_file}", "info")
+    
+    if not GENERATOR_AVAILABLE:
+        cli_ctx.log("Document generator not available", "error")
+        sys.exit(1)
+    
+    try:
+        # Read specification file
+        spec_path = Path(spec_file)
+        spec_content = spec_path.read_text()
+        
+        # Parse based on format
+        if spec_path.suffix in ['.yaml', '.yml']:
+            import yaml
+            spec_data = yaml.safe_load(spec_content)
+        else:
+            spec_data = json.loads(spec_content)
+        
+        # Initialize generator
+        config = GeneratorConfig(operation_mode=OperationMode.BALANCED)
+        generator = DocumentGeneratorUnified(config)
+        
+        # Generate documentation
+        template_registry = TemplateRegistryUnified()
+        api_template = template_registry.get_template('api-endpoint')
+        
+        if not api_template:
+            cli_ctx.log("API template not found", "error")
+            sys.exit(1)
+        
+        doc = generator.generate(
+            source_code=spec_content,
+            template=api_template.content,
+            context={'spec': spec_data, 'format': format},
+            output_format='markdown'
+        )
+        
+        # Save or output
+        if output:
+            output_path = Path(output)
+            output_path.mkdir(parents=True, exist_ok=True)
+            doc_file = output_path / f"{spec_path.stem}_docs.md"
+            doc_file.write_text(doc)
+            cli_ctx.log(f"API documentation saved to {doc_file}", "success")
+        else:
+            click.echo(doc)
+        
+    except Exception as e:
+        cli_ctx.log(f"API generation failed: {str(e)}", "error")
+        if cli_ctx.debug:
+            import traceback
+            traceback.print_exc()
+        sys.exit(1)
+
+
+@generate_group.command('database')
+@click.argument('connection_string')
+@click.option('--tables', '-t', multiple=True,
+              help='Specific tables to document (default: all)')
+@click.option('--schema', '-s', help='Database schema to use')
+@click.option('--output', '-o', type=click.Path(),
+              help='Output file path')
+@click.pass_obj
+def generate_database(cli_ctx, connection_string: str, tables: List[str],
+                      schema: Optional[str], output: Optional[str]):
+    """
+    Generate database documentation from schema.
+    
+    Examples:
+    
+        # Document all tables
+        devdocai generate database "postgresql://localhost/mydb"
+        
+        # Document specific tables
+        devdocai generate database "sqlite:///data.db" -t users -t posts
+    """
+    cli_ctx.log("Database documentation generation", "info")
+    
+    # This would integrate with database introspection tools
+    # For now, show a placeholder implementation
+    cli_ctx.log("Database documentation generation is planned for future release", "warning")
+    
+    # Placeholder output
+    doc_structure = {
+        'connection': connection_string,
+        'tables': list(tables) if tables else ['all'],
+        'schema': schema or 'default',
+        'status': 'pending_implementation'
+    }
+    
+    cli_ctx.output(doc_structure)

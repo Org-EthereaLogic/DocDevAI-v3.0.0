@@ -1925,7 +1925,7 @@ For commercial licensing and enterprise support, contact <enterprise@devdocai.or
 
 ---
 
-*DevDocAI v3.5.0 - Empowering Solo Developers with Enterprise-Grade Documentation*
+_DevDocAI v3.5.0 - Empowering Solo Developers with Enterprise-Grade Documentation_
 
 **Document Version**: 3.5.0
 **Last Updated**: August 2025

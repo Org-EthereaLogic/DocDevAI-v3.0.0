@@ -64,6 +64,7 @@ The Enhanced PII Testing Framework has been successfully implemented, extending 
 ## 🏗️ Framework Architecture
 
 ### Directory Structure Created
+
 ```
 tests/pii/
 ├── accuracy/               ✅ F1-score measurement & false positive/negative testing
@@ -175,6 +176,7 @@ tests/pii/
 ## 🚀 Framework Usage Examples
 
 ### Basic Usage
+
 ```python
 # Create enhanced detector with M001 integration
 from tests.pii import create_enhanced_detector
@@ -184,6 +186,7 @@ matches = detector.enhanced_detect("Contact John Doe: john@company.eu")
 ```
 
 ### Comprehensive Validation
+
 ```python
 # Run full compliance validation suite
 from tests.pii import run_comprehensive_pii_validation
@@ -193,6 +196,7 @@ print(f"F1-Score: {results['accuracy']['summary']['overall_f1_score']:.3f}")
 ```
 
 ### Environment-Specific Configuration
+
 ```python
 # Configure for different deployment environments
 environments = ['development', 'production', 'eu_production', 'ca_production']

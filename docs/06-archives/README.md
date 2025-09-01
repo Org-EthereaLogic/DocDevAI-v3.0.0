@@ -5,12 +5,15 @@ This directory contains historical documentation, deprecated features, and lesso
 ## Structure
 
 ### [versions/](versions/)
+
 Previous versions of documentation for historical reference.
 
 ### [deprecated/](deprecated/)
+
 Documentation for deprecated features and APIs.
 
 ### [lessons-learned/](lessons-learned/)
+
 Post-mortems, retrospectives, and learning documents.
 
 ## Purpose
@@ -99,6 +102,7 @@ lessons-learned/
 ### Using Archived Documentation
 
 **Important Notes**:
+
 - Archived documentation may not reflect current implementation
 - Always refer to current documentation for active development
 - Use archives for historical context and migration planning
@@ -107,18 +111,21 @@ lessons-learned/
 ## Notable Archives
 
 ### Key Decisions
+
 - Initial architecture selection rationale
 - Technology stack choices
 - Security model evolution
 - Performance optimization strategies
 
 ### Major Migrations
+
 - Version 2.x to 3.x API changes
 - Storage system redesign
 - AI provider abstraction layer
 - Plugin system introduction
 
 ### Incident Learnings
+
 - Performance degradation root causes
 - Security vulnerability discoveries
 - Data migration challenges
@@ -169,7 +176,9 @@ lessons-learned/
 ## Search and Discovery
 
 ### Tags
+
 Archives should be tagged for easier discovery:
+
 - `#architecture` - Architecture decisions
 - `#security` - Security-related archives
 - `#performance` - Performance optimizations

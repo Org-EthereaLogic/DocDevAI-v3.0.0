@@ -139,6 +139,7 @@ gh pr create --title "Fix workflow permissions" \
 ### 7. Monitor Workflow Runs
 
 After merging:
+
 1. Check Actions tab for workflow execution
 2. Monitor for any failures
 3. Review logs if issues occur
@@ -256,6 +257,7 @@ If a workflow is blocking critical operations:
    - Merge immediately
 
 2. **Quick Fix via CLI**:
+
 ```bash
 # Revert last commit
 git revert HEAD
@@ -295,6 +297,7 @@ git commit -m "fix: update workflow"
 ```
 
 **What Gets Checked:**
+
 1. **YAML Syntax**: Basic YAML structure and formatting via `yamllint`
 2. **GitHub Actions Syntax**: Comprehensive workflow validation via `actionlint`
 3. **Common Field Ordering**: Detects workflow-level permissions blocks (primary failure cause)

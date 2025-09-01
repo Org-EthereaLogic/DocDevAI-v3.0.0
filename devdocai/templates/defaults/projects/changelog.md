@@ -36,35 +36,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - New feature descriptions go here
 
 ### Changed
+
 - Changes to existing functionality
 
 ### Deprecated
+
 - Soon-to-be removed features
 
 ### Removed
+
 - Features removed in this release
 
 ### Fixed
+
 - Bug fixes
 
 ### Security
+
 - Vulnerability fixes
 
 ## [{{latest_version}}] - {{current_date}}
 
 ### Added
+
 - Initial release of {{project_name}}
 - Core functionality implemented
 - Basic documentation
 - Unit tests with 90%+ coverage
 
 ### Changed
+
 - N/A (initial release)
 
 ### Fixed
+
 - N/A (initial release)
 
 ## Template for Future Releases

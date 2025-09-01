@@ -1,4 +1,5 @@
 # UI Testing Framework Documentation
+
 ## Comprehensive Testing Suite for M011 Dashboard
 
 ### Executive Summary
@@ -67,12 +68,14 @@ results = await tester.test_all_criteria(page)
 #### 1.2 Success Criteria Coverage
 
 **Perceivable (1.x)**
+
 - ✅ 1.1.1: Non-text content alternatives
 - ✅ 1.2.1: Time-based media alternatives
 - ✅ 1.3.1-1.3.5: Info relationships & input purpose
 - ✅ 1.4.1-1.4.13: Color use, contrast, spacing
 
 **Operable (2.x)**
+
 - ✅ 2.1.1-2.1.4: Keyboard accessibility
 - ✅ 2.2.1-2.2.2: Timing adjustable
 - ✅ 2.3.1: Flash threshold
@@ -80,11 +83,13 @@ results = await tester.test_all_criteria(page)
 - ✅ 2.5.1-2.5.4: Pointer gestures
 
 **Understandable (3.x)**
+
 - ✅ 3.1.1-3.1.2: Language specification
 - ✅ 3.2.1-3.2.4: Predictable behavior
 - ✅ 3.3.1-3.3.4: Input assistance
 
 **Robust (4.x)**
+
 - ✅ 4.1.1: Parsing validity
 - ✅ 4.1.2: Name, role, value
 - ✅ 4.1.3: Status messages
@@ -695,6 +700,7 @@ jobs:
 ### Common Issues
 
 #### Issue: Playwright installation fails
+
 ```bash
 # Solution: Install system dependencies
 sudo apt-get update
@@ -703,6 +709,7 @@ playwright install-deps
 ```
 
 #### Issue: Tests timeout
+
 ```python
 # Solution: Increase timeout
 config = UITestConfig(
@@ -711,6 +718,7 @@ config = UITestConfig(
 ```
 
 #### Issue: Screenshot comparison fails
+
 ```python
 # Solution: Update baseline images
 await page.screenshot(

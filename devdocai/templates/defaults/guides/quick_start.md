@@ -40,11 +40,13 @@ Get up and running with {{project_name}} in just a few minutes! This guide will 
 ## ⚡ Installation
 
 ### Step 1: Install {{project_name}}
+
 ```bash
 {{install_command}}
 ```
 
 ### Step 2: Verify Installation
+
 ```bash
 {{project_name}} --version
 ```
@@ -52,6 +54,7 @@ Get up and running with {{project_name}} in just a few minutes! This guide will 
 ## 🏃 Getting Started
 
 ### Create Your First Project
+
 ```bash
 # Initialize a new project
 {{project_name}} init my-first-project
@@ -64,6 +67,7 @@ cd my-first-project
 ```
 
 ### Basic Usage Example
+
 ```javascript
 // Example usage
 const {{project_name}} = require('{{project_name}}');

@@ -217,7 +217,7 @@ Contributors can use this as a blueprint to build the described system.
 
 ---
 
-*End of DevDocAI v3.5.0 Traceability Matrix*
+_End of DevDocAI v3.5.0 Traceability Matrix_
 </updated_traceability_matrix>
 
 <summary_of_changes>
