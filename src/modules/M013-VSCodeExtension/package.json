@@ -1,0 +1,348 @@
+{
+  "name": "devdocai",
+  "displayName": "DevDocAI",
+  "description": "AI-powered documentation generation and analysis for solo developers",
+  "version": "3.0.0",
+  "publisher": "devdocai",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Org-EthereaLogic/DocDevAI-v3.0.0"
+  },
+  "engines": {
+    "vscode": "^1.70.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Other"
+  ],
+  "keywords": [
+    "documentation",
+    "ai",
+    "code quality",
+    "developer tools",
+    "markdown"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:devdocai.generateDocumentation",
+    "onCommand:devdocai.analyzeQuality",
+    "onCommand:devdocai.openDashboard",
+    "onCommand:devdocai.selectTemplate",
+    "onCommand:devdocai.configureSettings",
+    "onCommand:devdocai.runSecurityScan",
+    "onLanguage:python",
+    "onLanguage:typescript",
+    "onLanguage:javascript"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "devdocai.generateDocumentation",
+        "title": "Generate Documentation",
+        "category": "DevDocAI",
+        "icon": "$(file-text)"
+      },
+      {
+        "command": "devdocai.analyzeQuality",
+        "title": "Analyze Documentation Quality",
+        "category": "DevDocAI",
+        "icon": "$(checklist)"
+      },
+      {
+        "command": "devdocai.openDashboard",
+        "title": "Open Dashboard",
+        "category": "DevDocAI",
+        "icon": "$(dashboard)"
+      },
+      {
+        "command": "devdocai.selectTemplate",
+        "title": "Select Documentation Template",
+        "category": "DevDocAI",
+        "icon": "$(file-code)"
+      },
+      {
+        "command": "devdocai.configureSettings",
+        "title": "Configure Settings",
+        "category": "DevDocAI",
+        "icon": "$(settings-gear)"
+      },
+      {
+        "command": "devdocai.runSecurityScan",
+        "title": "Run Security Scan",
+        "category": "DevDocAI",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "devdocai.showMIAIRInsights",
+        "title": "Show MIAIR Optimization Insights",
+        "category": "DevDocAI",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "devdocai.refreshDocumentation",
+        "title": "Refresh Documentation",
+        "category": "DevDocAI",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "devdocai.exportDocumentation",
+        "title": "Export Documentation",
+        "category": "DevDocAI",
+        "icon": "$(export)"
+      },
+      {
+        "command": "devdocai.toggleAutoDoc",
+        "title": "Toggle Auto Documentation",
+        "category": "DevDocAI",
+        "icon": "$(sync)"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "devdocai.generateDocumentation",
+          "when": "editorHasSelection",
+          "group": "devdocai@1"
+        },
+        {
+          "command": "devdocai.analyzeQuality",
+          "when": "resourceExtname == .md",
+          "group": "devdocai@2"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "devdocai.generateDocumentation",
+          "when": "resourceLangId == python || resourceLangId == typescript || resourceLangId == javascript",
+          "group": "devdocai@1"
+        },
+        {
+          "command": "devdocai.runSecurityScan",
+          "group": "devdocai@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "devdocai.generateDocumentation",
+          "when": "editorIsOpen"
+        },
+        {
+          "command": "devdocai.analyzeQuality",
+          "when": "resourceExtname == .md"
+        }
+      ]
+    },
+    "configuration": {
+      "type": "object",
+      "title": "DevDocAI",
+      "properties": {
+        "devdocai.operationMode": {
+          "type": "string",
+          "enum": [
+            "BASIC",
+            "PERFORMANCE",
+            "SECURE",
+            "ENTERPRISE"
+          ],
+          "default": "BASIC",
+          "description": "Operation mode for DevDocAI",
+          "enumDescriptions": [
+            "Core functionality only",
+            "Optimized with caching and lazy loading",
+            "Full security features enabled",
+            "All features with maximum security and performance"
+          ]
+        },
+        "devdocai.autoDocumentation": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable automatic documentation generation on save"
+        },
+        "devdocai.cliPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to DevDocAI CLI executable (leave empty to use bundled CLI)"
+        },
+        "devdocai.pythonPath": {
+          "type": "string",
+          "default": "python",
+          "description": "Path to Python interpreter for running DevDocAI backend"
+        },
+        "devdocai.showStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show DevDocAI status in status bar"
+        },
+        "devdocai.defaultTemplate": {
+          "type": "string",
+          "enum": [
+            "api",
+            "class",
+            "function",
+            "module",
+            "project",
+            "readme",
+            "tutorial",
+            "reference",
+            "guide"
+          ],
+          "default": "module",
+          "description": "Default documentation template"
+        },
+        "devdocai.qualityThreshold": {
+          "type": "number",
+          "default": 70,
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Minimum quality score for documentation (0-100)"
+        },
+        "devdocai.enableMIAIR": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable MIAIR optimization engine"
+        },
+        "devdocai.enableSecurity": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable security scanning features"
+        },
+        "devdocai.enableLLM": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable LLM-powered enhancements (requires API key)"
+        },
+        "devdocai.llmProvider": {
+          "type": "string",
+          "enum": [
+            "openai",
+            "anthropic",
+            "google",
+            "local"
+          ],
+          "default": "local",
+          "description": "LLM provider for AI enhancements"
+        },
+        "devdocai.debug": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable debug logging"
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "devdocai",
+          "title": "DevDocAI",
+          "icon": "resources/icons/devdocai.svg"
+        }
+      ]
+    },
+    "views": {
+      "devdocai": [
+        {
+          "id": "devdocai.documents",
+          "name": "Documents",
+          "icon": "$(file-text)",
+          "contextualTitle": "DevDocAI Documents"
+        },
+        {
+          "id": "devdocai.quality",
+          "name": "Quality Metrics",
+          "icon": "$(dashboard)",
+          "contextualTitle": "Documentation Quality"
+        },
+        {
+          "id": "devdocai.templates",
+          "name": "Templates",
+          "icon": "$(file-code)",
+          "contextualTitle": "Documentation Templates"
+        }
+      ]
+    },
+    "statusBarItems": [
+      {
+        "id": "devdocai.status",
+        "name": "DevDocAI Status",
+        "text": "$(book) DevDocAI",
+        "tooltip": "DevDocAI: Click to open dashboard",
+        "command": "devdocai.openDashboard"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "devdocai.generateDocumentation",
+        "key": "ctrl+alt+d",
+        "mac": "cmd+alt+d",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "devdocai.analyzeQuality",
+        "key": "ctrl+alt+q",
+        "mac": "cmd+alt+q",
+        "when": "editorTextFocus && resourceExtname == .md"
+      },
+      {
+        "command": "devdocai.openDashboard",
+        "key": "ctrl+alt+shift+d",
+        "mac": "cmd+alt+shift+d"
+      }
+    ],
+    "languages": [
+      {
+        "id": "devdocai-markdown",
+        "aliases": [
+          "DevDocAI Markdown"
+        ],
+        "extensions": [
+          ".devdoc.md"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "codeActions": [
+      {
+        "kind": "quickfix",
+        "title": "Generate missing documentation",
+        "command": "devdocai.generateDocumentation"
+      },
+      {
+        "kind": "refactor",
+        "title": "Improve documentation quality",
+        "command": "devdocai.analyzeQuality"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^8.1.0",
+    "vscode-languageserver": "^8.1.0",
+    "vscode-languageserver-protocol": "^3.17.3"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.70.0",
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "20.x",
+    "@typescript-eslint/eslint-plugin": "^6.4.1",
+    "@typescript-eslint/parser": "^6.4.1",
+    "@vscode/test-electron": "^2.3.4",
+    "eslint": "^8.47.0",
+    "glob": "^10.3.3",
+    "mocha": "^10.2.0",
+    "typescript": "^5.1.6",
+    "vsce": "^2.15.0"
+  }
+}
