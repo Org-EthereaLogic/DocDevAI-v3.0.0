@@ -41,7 +41,7 @@ export const DEFAULT_SECURITY_CONFIG: SecurityConfig = {
  * XSS attack patterns for detection
  */
 const XSS_PATTERNS = [
-  /<script[^>]*>.*?<\/script>/gi,
+  /<script\b[^>]*>[\s\S]*?<\/script\b[^>]*>/gi,
   /javascript:/gi,
   /on\w+\s*=/gi,
   /<iframe[^>]*>/gi,
