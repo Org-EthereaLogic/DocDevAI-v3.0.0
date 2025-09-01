@@ -6,10 +6,9 @@ Provides a comprehensive CLI for documentation generation, analysis, and managem
 
 import os
 import sys
-import json
-import yaml
 from pathlib import Path
 from typing import Optional, Dict, Any
+from functools import lru_cache
 
 import click
 from click import Context
@@ -51,8 +50,12 @@ class CLIContext:
     def output(self, data: Any, format_type: Optional[str] = None):
         """Output data in the requested format."""
         if self.json_output or format_type == "json":
+            # Lazy import json
+            import json
             click.echo(json.dumps(data, indent=2, default=str))
         elif self.yaml_output or format_type == "yaml":
+            # Lazy import yaml
+            import yaml
             click.echo(yaml.dump(data, default_flow_style=False))
         else:
             # Default human-readable output
@@ -66,7 +69,43 @@ class CLIContext:
                 click.echo(str(data))
 
 
-@click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
+# Lazy loading wrapper for command groups - define before use
+class LazyGroup(click.Group):
+    """Click group that loads commands lazily."""
+    
+    def __init__(self, name=None, commands=None, **attrs):
+        super().__init__(name, commands or {}, **attrs)
+        self.lazy_loaders = {}
+    
+    def add_lazy_command(self, name: str, loader: str):
+        """Add a command that will be loaded lazily."""
+        self.lazy_loaders[name] = loader
+    
+    def get_command(self, ctx, name):
+        """Get command, loading it lazily if needed."""
+        if name in self.commands:
+            return self.commands[name]
+        
+        if name in self.lazy_loaders:
+            try:
+                import importlib
+                module_path, attr_name = self.lazy_loaders[name].rsplit('.', 1)
+                module = importlib.import_module(module_path)
+                command = getattr(module, attr_name)
+                self.commands[name] = command
+                return command
+            except Exception as e:
+                if ctx.obj:
+                    ctx.obj.log(f"Failed to load command '{name}': {e}", "error")
+                return None
+        return None
+    
+    def list_commands(self, ctx):
+        """List all available commands."""
+        return sorted(list(self.commands.keys()) + list(self.lazy_loaders.keys()))
+
+
+@click.group(cls=LazyGroup, context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
 @click.option('--version', is_flag=True, help='Show version information')
 @click.option('--debug', is_flag=True, help='Enable debug output')
 @click.option('--json', 'json_output', is_flag=True, help='Output in JSON format')
@@ -125,16 +164,13 @@ def cli(ctx: Context, version: bool, debug: bool, json_output: bool,
         click.echo(ctx.get_help())
 
 
-# Import command groups
-from .commands import generate, analyze, config, template, enhance, security
-
-# Register command groups
-cli.add_command(generate.generate_group)
-cli.add_command(analyze.analyze_group)
-cli.add_command(config.config_group)
-cli.add_command(template.template_group)
-cli.add_command(enhance.enhance_group)
-cli.add_command(security.security_group)
+# Register command groups with lazy loading
+cli.add_lazy_command('generate', 'devdocai.cli.commands.generate.generate_group')
+cli.add_lazy_command('analyze', 'devdocai.cli.commands.analyze.analyze_group')
+cli.add_lazy_command('config', 'devdocai.cli.commands.config.config_group')
+cli.add_lazy_command('template', 'devdocai.cli.commands.template.template_group')
+cli.add_lazy_command('enhance', 'devdocai.cli.commands.enhance.enhance_group')
+cli.add_lazy_command('security', 'devdocai.cli.commands.security.security_group')
 
 
 # Shell completion setup
@@ -181,6 +217,9 @@ def init_project(cli_ctx: CLIContext, template: str):
     """Initialize a new DevDocAI project in the current directory."""
     cli_ctx.log("Initializing DevDocAI project...", "info")
     
+    # Lazy import yaml only when needed
+    import yaml
+    
     # Create default configuration file
     config_content = {
         'version': VERSION,
@@ -208,6 +247,29 @@ def init_project(cli_ctx: CLIContext, template: str):
     
     cli_ctx.log(f"Project initialized with template '{template}'", "success")
     cli_ctx.log("Configuration saved to .devdocai.yml", "success")
+
+
+# Configuration caching for performance
+@lru_cache(maxsize=1)
+def load_global_config() -> Dict[str, Any]:
+    """Load and cache global configuration."""
+    config_path = Path.home() / '.devdocai' / 'config.yml'
+    if config_path.exists():
+        import yaml
+        with open(config_path) as f:
+            return yaml.safe_load(f) or {}
+    return {}
+
+
+@lru_cache(maxsize=1)
+def load_project_config() -> Dict[str, Any]:
+    """Load and cache project configuration."""
+    config_path = Path('.devdocai.yml')
+    if config_path.exists():
+        import yaml
+        with open(config_path) as f:
+            return yaml.safe_load(f) or {}
+    return {}
 
 
 if __name__ == '__main__':

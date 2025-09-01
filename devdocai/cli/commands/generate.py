@@ -9,19 +9,93 @@ import sys
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 import json
+from concurrent.futures import ProcessPoolExecutor, as_completed
+import multiprocessing as mp
+from functools import lru_cache
 
 import click
 from click import Context
 
-# Import M004 Document Generator
-try:
-    from devdocai.generator.generator_unified import DocumentGeneratorUnified
-    from devdocai.generator.config_unified import GeneratorConfig, OperationMode
-    from devdocai.templates.registry_unified import TemplateRegistryUnified
-    GENERATOR_AVAILABLE = True
-except ImportError as e:
-    GENERATOR_AVAILABLE = False
-    IMPORT_ERROR = str(e)
+# Lazy imports flag
+GENERATOR_AVAILABLE = None
+IMPORT_ERROR = None
+
+def _lazy_import_generator():
+    """Lazy import of generator modules."""
+    global GENERATOR_AVAILABLE, IMPORT_ERROR
+    
+    if GENERATOR_AVAILABLE is not None:
+        return GENERATOR_AVAILABLE
+    
+    try:
+        # Import only when actually needed
+        global DocumentGeneratorUnified, GeneratorConfig, OperationMode, TemplateRegistryUnified
+        from devdocai.generator.generator_unified import DocumentGeneratorUnified
+        from devdocai.generator.config_unified import GeneratorConfig, OperationMode
+        from devdocai.templates.registry_unified import TemplateRegistryUnified
+        GENERATOR_AVAILABLE = True
+    except ImportError as e:
+        GENERATOR_AVAILABLE = False
+        IMPORT_ERROR = str(e)
+    
+    return GENERATOR_AVAILABLE
+
+# Cache for generator instances
+@lru_cache(maxsize=4)
+def get_generator(mode: str):
+    """Get cached generator instance."""
+    if not _lazy_import_generator():
+        raise ImportError(f"Generator not available: {IMPORT_ERROR}")
+    
+    op_mode = OperationMode[mode.upper()]
+    config = GeneratorConfig(operation_mode=op_mode)
+    return DocumentGeneratorUnified(config)
+
+# Cache for template registry
+@lru_cache(maxsize=1)
+def get_template_registry():
+    """Get cached template registry."""
+    if not _lazy_import_generator():
+        raise ImportError(f"Template registry not available: {IMPORT_ERROR}")
+    
+    return TemplateRegistryUnified()
+
+def process_file_parallel(args):
+    """Process a single file (for parallel processing)."""
+    file_path, template, mode, format_type = args
+    
+    try:
+        generator = get_generator(mode)
+        registry = get_template_registry()
+        
+        # Read file content
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # Get template
+        template_obj = registry.get_template(template)
+        if not template_obj:
+            template_obj = registry.get_template('general')
+        
+        # Generate documentation
+        context = {
+            'source_code': content,
+            'file_path': str(file_path),
+            'file_name': file_path.name,
+            'language': file_path.suffix[1:] if file_path.suffix else 'unknown'
+        }
+        
+        doc = generator.generate(
+            source_code=content,
+            template=template_obj.content if template_obj else '',
+            context=context,
+            output_format=format_type
+        )
+        
+        return file_path, doc, None
+        
+    except Exception as e:
+        return file_path, None, str(e)
 
 
 @click.group('generate', invoke_without_command=True)
@@ -48,9 +122,11 @@ def generate_group(ctx: Context):
               help='File pattern for batch processing (e.g., *.py)')
 @click.option('--mode', type=click.Choice(['basic', 'optimized', 'secure', 'balanced']),
               default='balanced', help='Operation mode')
+@click.option('--parallel', '-P', type=int, default=0,
+              help='Number of parallel workers (0=auto, based on CPU count)')
 @click.pass_obj
 def generate_file(cli_ctx, path: str, template: str, output: Optional[str],
-                   format: str, batch: bool, recursive: bool, pattern: str, mode: str):
+                   format: str, batch: bool, recursive: bool, pattern: str, mode: str, parallel: int):
     """
     Generate documentation for a file or directory.
     
@@ -65,19 +141,12 @@ def generate_file(cli_ctx, path: str, template: str, output: Optional[str],
         # Generate HTML documentation
         devdocai generate file module.py --format html --output docs.html
     """
-    if not GENERATOR_AVAILABLE:
+    # Lazy check for generator availability
+    if not _lazy_import_generator():
         cli_ctx.log(f"Document generator not available: {IMPORT_ERROR}", "error")
         sys.exit(1)
     
     try:
-        # Initialize generator with selected mode
-        op_mode = OperationMode[mode.upper()]
-        config = GeneratorConfig(operation_mode=op_mode)
-        generator = DocumentGeneratorUnified(config)
-        
-        # Initialize template registry
-        template_registry = TemplateRegistryUnified()
-        
         path_obj = Path(path)
         files_to_process = []
         
@@ -97,47 +166,92 @@ def generate_file(cli_ctx, path: str, template: str, output: Optional[str],
             # Single file processing
             files_to_process = [path_obj]
         
-        # Process files
+        # Determine number of workers for parallel processing
+        if parallel == 0:
+            parallel = min(mp.cpu_count(), 4)  # Auto-detect, max 4
+        elif parallel == 1:
+            parallel = 0  # Disable parallel processing
+        
         results = []
-        with click.progressbar(files_to_process, label='Generating documentation') as files:
-            for file_path in files:
-                try:
-                    # Read source code
-                    source_code = file_path.read_text()
-                    
-                    # Get template
-                    template_obj = template_registry.get_template(template)
-                    if not template_obj:
-                        cli_ctx.log(f"Template '{template}' not found, using default", "warning")
-                        template_obj = template_registry.get_template('general')
-                    
-                    # Generate documentation
-                    context = {
-                        'source_code': source_code,
-                        'file_path': str(file_path),
-                        'file_name': file_path.name,
-                        'language': file_path.suffix[1:] if file_path.suffix else 'unknown'
-                    }
-                    
-                    doc = generator.generate(
-                        source_code=source_code,
-                        template=template_obj.content,
-                        context=context,
-                        output_format=format
-                    )
-                    
-                    results.append({
-                        'file': str(file_path),
-                        'documentation': doc,
-                        'template': template,
-                        'format': format
-                    })
-                    
-                except Exception as e:
-                    cli_ctx.log(f"Error processing {file_path}: {str(e)}", "error")
-                    if cli_ctx.debug:
-                        import traceback
-                        traceback.print_exc()
+        errors = []
+        
+        if parallel > 1 and len(files_to_process) > 1:
+            # Parallel processing
+            cli_ctx.log(f"Using {parallel} parallel workers", "debug")
+            
+            # Prepare arguments for parallel processing
+            args_list = [
+                (f, template, mode, format) 
+                for f in files_to_process
+            ]
+            
+            # Process in parallel
+            with ProcessPoolExecutor(max_workers=parallel) as executor:
+                futures = {executor.submit(process_file_parallel, args): args[0] 
+                          for args in args_list}
+                
+                with click.progressbar(length=len(files_to_process), 
+                                       label='Generating documentation') as bar:
+                    for future in as_completed(futures):
+                        file_path, doc, error = future.result()
+                        bar.update(1)
+                        
+                        if error:
+                            errors.append((file_path, error))
+                            cli_ctx.log(f"Error processing {file_path}: {error}", "error")
+                        else:
+                            results.append({
+                                'file': str(file_path),
+                                'documentation': doc,
+                                'template': template,
+                                'format': format
+                            })
+        else:
+            # Sequential processing (single file or parallel=1)
+            # Initialize generator for sequential use
+            generator = get_generator(mode)
+            template_registry = get_template_registry()
+            
+            with click.progressbar(files_to_process, label='Generating documentation') as files:
+                for file_path in files:
+                    try:
+                        # Read source code
+                        source_code = file_path.read_text()
+                        
+                        # Get template
+                        template_obj = template_registry.get_template(template)
+                        if not template_obj:
+                            cli_ctx.log(f"Template '{template}' not found, using default", "warning")
+                            template_obj = template_registry.get_template('general')
+                        
+                        # Generate documentation
+                        context = {
+                            'source_code': source_code,
+                            'file_path': str(file_path),
+                            'file_name': file_path.name,
+                            'language': file_path.suffix[1:] if file_path.suffix else 'unknown'
+                        }
+                        
+                        doc = generator.generate(
+                            source_code=source_code,
+                            template=template_obj.content,
+                            context=context,
+                            output_format=format
+                        )
+                        
+                        results.append({
+                            'file': str(file_path),
+                            'documentation': doc,
+                            'template': template,
+                            'format': format
+                        })
+                        
+                    except Exception as e:
+                        errors.append((file_path, str(e)))
+                        cli_ctx.log(f"Error processing {file_path}: {str(e)}", "error")
+                        if cli_ctx.debug:
+                            import traceback
+                            traceback.print_exc()
         
         # Output results
         if output:
