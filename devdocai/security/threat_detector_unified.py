@@ -351,7 +351,7 @@ class UnifiedThreatDetector:
             ],
             ThreatType.XSS: [
                 {
-                    'pattern': re.compile(r'<script[^>]*>.*?</script>', re.IGNORECASE | re.DOTALL),
+                    'pattern': re.compile(r'<script\b[^>]*>.*?</script\b[^>]*>', re.IGNORECASE | re.DOTALL),
                     'description': 'Script tag injection',
                     'severity': ThreatLevel.HIGH
                 },
