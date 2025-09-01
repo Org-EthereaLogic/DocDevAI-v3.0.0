@@ -136,7 +136,7 @@ export interface IPythonBackendIntegration {
   /** Execute Python module function */
   callPythonModule(
     module: PythonModule,
-    function: string,
+    functionName: string,
     args: any[]
   ): Promise<BackendResponse>;
   

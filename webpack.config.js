@@ -11,6 +11,7 @@
 
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const webpack = require('webpack');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 const TerserPlugin = require('terser-webpack-plugin');
 const CompressionPlugin = require('compression-webpack-plugin');
@@ -22,7 +23,7 @@ module.exports = (env, argv) => {
 
   return {
     entry: {
-      main: './src/modules/M011-UIComponents/index.ts',
+      main: './src/index.tsx',
       // Separate vendor bundle for dependencies
       vendor: [
         'react',
@@ -48,11 +49,10 @@ module.exports = (env, argv) => {
     resolve: {
       extensions: ['.ts', '.tsx', '.js', '.jsx'],
       alias: {
-        '@components': path.resolve(__dirname, 'src/modules/M011-UIComponents/components'),
-        '@core': path.resolve(__dirname, 'src/modules/M011-UIComponents/core'),
-        '@utils': path.resolve(__dirname, 'src/modules/M011-UIComponents/utils'),
-        '@services': path.resolve(__dirname, 'src/modules/M011-UIComponents/services'),
-        '@types': path.resolve(__dirname, 'src/modules/M011-UIComponents/types')
+        '@components': path.resolve(__dirname, 'src/components'),
+        '@services': path.resolve(__dirname, 'src/services'),
+        '@utils': path.resolve(__dirname, 'src/utils'),
+        '@types': path.resolve(__dirname, 'src/types')
       },
       // Prefer ES modules for better tree shaking
       mainFields: ['module', 'main']
@@ -61,7 +61,7 @@ module.exports = (env, argv) => {
     module: {
       rules: [
         {
-          test: /\\.tsx?$/,
+          test: /\.tsx?$/,
           use: [
             {
               loader: 'ts-loader',
@@ -81,7 +81,7 @@ module.exports = (env, argv) => {
           exclude: /node_modules/
         },
         {
-          test: /\\.css$/,
+          test: /\.css$/,
           use: [
             'style-loader',
             {
@@ -98,7 +98,7 @@ module.exports = (env, argv) => {
           ]
         },
         {
-          test: /\\.(png|svg|jpg|jpeg|gif)$/i,
+          test: /\.(png|svg|jpg|jpeg|gif)$/i,
           type: 'asset',
           parser: {
             dataUrlCondition: {
@@ -208,9 +208,15 @@ module.exports = (env, argv) => {
     },
 
     plugins: [
+      // Inject environment variables used in the client bundle
+      new webpack.EnvironmentPlugin({
+        NODE_ENV: argv.mode || 'development',
+        REACT_APP_API_URL: 'http://localhost:8000',
+        REACT_APP_BUILD_NUMBER: 'dev'
+      }),
       new HtmlWebpackPlugin({
         template: 'public/index.html',
-        favicon: 'public/favicon.ico',
+        // favicon: 'public/favicon.ico', // Uncomment when favicon is available
         minify: isProduction ? {
           removeComments: true,
           collapseWhitespace: true,
