@@ -5,12 +5,14 @@ Contains all command implementations for the CLI with unified mode-based behavio
 """
 
 # Import unified commands for mode-based operation
-from . import generate_unified
-from . import analyze_unified
-from . import config_unified
-from . import template_unified
-from . import enhance_unified
-from . import security_unified
+# NOTE: Commented out unified imports as they are not used by main.py
+# and were causing import errors
+# from . import generate_unified
+# from . import analyze_unified
+# from . import config_unified
+# from . import template_unified
+# from . import enhance_unified
+# from . import security_unified
 
 # Legacy imports (for backward compatibility during transition)
 try:

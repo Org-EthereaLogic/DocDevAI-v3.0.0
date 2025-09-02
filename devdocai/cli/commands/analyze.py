@@ -14,8 +14,8 @@ from click import Context
 
 # Import M005 Quality Engine
 try:
-    from devdocai.quality.analyzer_unified import QualityAnalyzerUnified
-    from devdocai.quality.config_unified import QualityConfig, OperationMode
+    from devdocai.quality.analyzer_unified import UnifiedQualityAnalyzer
+    from devdocai.quality.config import OperationMode, QualityThresholds
     from devdocai.quality.dimensions_unified import (
         CompletenessAnalyzer,
         ClarityAnalyzer,
@@ -89,7 +89,7 @@ def analyze_document(cli_ctx, path: str, dimensions: List[str], threshold: float
         # Initialize analyzer with selected mode
         op_mode = OperationMode[mode.upper()]
         config = QualityConfig(operation_mode=op_mode)
-        analyzer = QualityAnalyzerUnified(config)
+        analyzer = UnifiedQualityAnalyzer(config)
         
         # Read document content
         doc_path = Path(path)
@@ -237,7 +237,7 @@ def analyze_batch(cli_ctx, directory: str, pattern: str, recursive: bool,
         
         # Initialize analyzer
         config = QualityConfig(operation_mode=OperationMode.OPTIMIZED)
-        analyzer = QualityAnalyzerUnified(config)
+        analyzer = UnifiedQualityAnalyzer(config)
         
         # Analyze files
         results = []

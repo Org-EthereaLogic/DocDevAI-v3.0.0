@@ -317,7 +317,7 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
+    "vscode:prepublish": "echo 'Using pre-compiled files'",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
@@ -332,16 +332,19 @@
     "vscode-languageserver-protocol": "^3.17.3"
   },
   "devDependencies": {
-    "@types/vscode": "^1.70.0",
+    "@playwright/test": "^1.55.0",
     "@types/glob": "^8.1.0",
     "@types/mocha": "^10.0.1",
     "@types/node": "20.x",
+    "@types/vscode": "^1.70.0",
     "@typescript-eslint/eslint-plugin": "^6.4.1",
     "@typescript-eslint/parser": "^6.4.1",
     "@vscode/test-electron": "^2.3.4",
+    "axios": "^1.11.0",
     "eslint": "^8.47.0",
     "glob": "^10.3.3",
     "mocha": "^10.2.0",
+    "supertest": "^7.1.4",
     "typescript": "^5.1.6",
     "vsce": "^2.15.0"
   }

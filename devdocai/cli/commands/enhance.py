@@ -14,7 +14,7 @@ from click import Context
 
 # Import M009 Enhancement Pipeline
 try:
-    from devdocai.enhancement.enhancement_unified import EnhancementPipelineUnified
+    from devdocai.enhancement.enhancement_unified import UnifiedEnhancementPipeline
     from devdocai.enhancement.config_unified import EnhancementConfig, OperationMode
     ENHANCEMENT_AVAILABLE = True
 except ImportError as e:
@@ -96,7 +96,7 @@ def enhance_document(cli_ctx, path: str, strategy: List[str], iterations: int,
             max_iterations=iterations,
             quality_threshold=threshold
         )
-        pipeline = EnhancementPipelineUnified(config)
+        pipeline = UnifiedEnhancementPipeline(config)
         
         # Read document
         doc_path = Path(path)
@@ -257,7 +257,7 @@ def enhance_batch(cli_ctx, directory: str, pattern: str, recursive: bool,
             operation_mode=OperationMode.PERFORMANCE,
             enable_caching=True
         )
-        pipeline = EnhancementPipelineUnified(config)
+        pipeline = UnifiedEnhancementPipeline(config)
         
         # Process files
         results = []

@@ -34,7 +34,7 @@ try:
     from devdocai.miair.engine_unified import UnifiedMIAIREngine
     from devdocai.quality.analyzer_unified import UnifiedQualityAnalyzer
     from devdocai.llm_adapter.adapter_unified import UnifiedLLMAdapter
-    from devdocai.generator.core.document_generator import DocumentGenerator
+    from devdocai.generator.core.unified_engine import UnifiedDocumentGenerator
     INTEGRATIONS_AVAILABLE = True
 except ImportError as e:
     logging.warning(f"Some integrations not available: {e}")
