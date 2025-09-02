@@ -70,8 +70,8 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "devdocai=devdocai.cli.main:cli",
-            "dda=devdocai.cli.main:cli",  # Short alias
+            "devdocai=devdocai.cli.main_unified:main",
+            "dda=devdocai.cli.main_unified:main",  # Short alias
         ],
     },
     include_package_data=True,

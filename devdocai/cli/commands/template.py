@@ -15,8 +15,8 @@ from click import Context
 
 # Import M006 Template Registry
 try:
-    from devdocai.templates.registry_unified import TemplateRegistryUnified
-    from devdocai.templates.parser_unified import TemplateParserUnified
+    from devdocai.templates.registry_unified import UnifiedTemplateRegistry
+    from devdocai.templates.parser_unified import UnifiedTemplateParser
     TEMPLATE_AVAILABLE = True
 except ImportError as e:
     TEMPLATE_AVAILABLE = False
@@ -67,7 +67,7 @@ def template_list(cli_ctx, category: Optional[str], format: str, detailed: bool)
     
     try:
         # Initialize template registry
-        registry = TemplateRegistryUnified()
+        registry = UnifiedTemplateRegistry()
         
         # Get templates
         if category:
@@ -160,7 +160,7 @@ def template_show(cli_ctx, name: str, output: Optional[str]):
     
     try:
         # Initialize template registry
-        registry = TemplateRegistryUnified()
+        registry = UnifiedTemplateRegistry()
         
         # Get template
         template = registry.get_template(name)
@@ -237,7 +237,7 @@ def template_create(cli_ctx, name: str, category: str, description: Optional[str
     
     try:
         # Initialize template registry
-        registry = TemplateRegistryUnified()
+        registry = UnifiedTemplateRegistry()
         
         # Check if template already exists
         if registry.get_template(name):
@@ -367,7 +367,7 @@ def template_edit(cli_ctx, name: str, editor: Optional[str], output: Optional[st
     
     try:
         # Initialize template registry
-        registry = TemplateRegistryUnified()
+        registry = UnifiedTemplateRegistry()
         
         # Get template
         template = registry.get_template(name)
@@ -453,7 +453,7 @@ def template_delete(cli_ctx, name: str, force: bool):
     
     try:
         # Initialize template registry
-        registry = TemplateRegistryUnified()
+        registry = UnifiedTemplateRegistry()
         
         # Check if template exists
         template = registry.get_template(name)
@@ -510,7 +510,7 @@ def template_export(cli_ctx, category: Optional[str], output: str, format: str):
     
     try:
         # Initialize template registry
-        registry = TemplateRegistryUnified()
+        registry = UnifiedTemplateRegistry()
         
         # Get templates
         if category:

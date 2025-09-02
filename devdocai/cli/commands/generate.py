@@ -29,10 +29,9 @@ def _lazy_import_generator():
     
     try:
         # Import only when actually needed
-        global DocumentGeneratorUnified, GeneratorConfig, OperationMode, TemplateRegistryUnified
-        from devdocai.generator.generator_unified import DocumentGeneratorUnified
-        from devdocai.generator.config_unified import GeneratorConfig, OperationMode
-        from devdocai.templates.registry_unified import TemplateRegistryUnified
+        global UnifiedDocumentGenerator, UnifiedGenerationConfig, EngineMode, UnifiedTemplateRegistry
+        from devdocai.generator.core.unified_engine import UnifiedDocumentGenerator, UnifiedGenerationConfig, EngineMode
+        from devdocai.templates.registry_unified import UnifiedTemplateRegistry, OperationMode
         GENERATOR_AVAILABLE = True
     except ImportError as e:
         GENERATOR_AVAILABLE = False
@@ -47,9 +46,9 @@ def get_generator(mode: str):
     if not _lazy_import_generator():
         raise ImportError(f"Generator not available: {IMPORT_ERROR}")
     
-    op_mode = OperationMode[mode.upper()]
-    config = GeneratorConfig(operation_mode=op_mode)
-    return DocumentGeneratorUnified(config)
+    op_mode = EngineMode[mode.upper()] if mode.upper() in [e.name for e in EngineMode] else EngineMode.STANDARD
+    config = UnifiedGenerationConfig(mode=op_mode)
+    return UnifiedDocumentGenerator(config)
 
 # Cache for template registry
 @lru_cache(maxsize=1)
@@ -335,8 +334,8 @@ def generate_api(cli_ctx, spec_file: str, format: str, output: Optional[str]):
             spec_data = json.loads(spec_content)
         
         # Initialize generator
-        config = GeneratorConfig(operation_mode=OperationMode.BALANCED)
-        generator = DocumentGeneratorUnified(config)
+        config = UnifiedGenerationConfig(mode=EngineMode.STANDARD)
+        generator = UnifiedDocumentGenerator(config)
         
         # Generate documentation
         template_registry = TemplateRegistryUnified()

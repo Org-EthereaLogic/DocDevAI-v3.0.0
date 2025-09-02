@@ -272,5 +272,10 @@ def load_project_config() -> Dict[str, Any]:
     return {}
 
 
-if __name__ == '__main__':
+def main():
+    """Main entry point for the CLI."""
     cli()
+
+
+if __name__ == '__main__':
+    main()
