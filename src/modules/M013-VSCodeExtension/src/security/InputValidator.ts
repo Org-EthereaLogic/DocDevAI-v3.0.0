@@ -18,6 +18,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
+import { SecurityUtils, SECURITY_PATTERNS } from './SecurityUtils';
 
 // Rate limiting interface
 interface RateLimitEntry {
@@ -114,10 +115,10 @@ export class InputValidator {
             securityScore: 100
         };
         
-        // Check for path traversal patterns
-        if (this.pathTraversalPatterns.some(pattern => pattern.test(filePath))) {
+        // Use SecurityUtils for comprehensive path validation
+        if (!SecurityUtils.isValidFilePath(filePath)) {
             result.isValid = false;
-            result.errors.push('Path traversal attack detected');
+            result.errors.push('Invalid or potentially dangerous file path');
             result.securityScore = 0;
             return result;
         }
@@ -428,10 +429,12 @@ export class InputValidator {
         ];
         
         // Path traversal patterns
+        // Use secure patterns from SecurityUtils for comprehensive detection
         this.pathTraversalPatterns = [
-            /\.\.[\/\\]/,        // Directory traversal
-            /^[\/\\]/,           // Absolute paths
-            /~[\/\\]/,           // Home directory
+            SECURITY_PATTERNS.PATH_TRAVERSAL.PARENT_DIR,
+            SECURITY_PATTERNS.PATH_TRAVERSAL.ABSOLUTE_PATH,
+            SECURITY_PATTERNS.PATH_TRAVERSAL.HOME_DIR,
+            SECURITY_PATTERNS.PATH_TRAVERSAL.NULL_BYTE,
             /\$[A-Z_]+/,         // Environment variables
             /%[0-9A-F]{2}/,      // URL encoding
             /\\x[0-9A-F]{2}/,    // Hex encoding
@@ -491,35 +494,20 @@ export class InputValidator {
     }
     
     /**
-     * Sanitize HTML content
+     * Sanitize HTML content using DOMPurify
+     * Uses SecurityUtils for OWASP-compliant sanitization
      */
     private sanitizeHtml(html: string): string {
-        return html
-            .replace(/<script[^>]*>.*?<\/script>/gi, '')     // Remove scripts
-            .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')     // Remove event handlers
-            .replace(/javascript:/gi, '')                     // Remove javascript: URLs
-            .replace(/eval\s*\(/gi, '')                       // Remove eval calls
-            .replace(/expression\s*\(/gi, '')                 // Remove CSS expressions
-            .replace(/<iframe[^>]*>.*?<\/iframe>/gi, '')      // Remove iframes
-            .replace(/<object[^>]*>.*?<\/object>/gi, '')      // Remove objects
-            .replace(/<embed[^>]*>/gi, '');                   // Remove embeds
+        // Use strict mode for input validation
+        return SecurityUtils.sanitizeHtml(html, true);
     }
     
     /**
-     * Sanitize string values
+     * Sanitize string values using SecurityUtils
+     * Ensures consistent OWASP-compliant sanitization
      */
     private sanitizeString(str: string): string {
-        return str
-            .replace(/[<>&"']/g, match => {
-                const entities: { [key: string]: string } = {
-                    '<': '&lt;',
-                    '>': '&gt;',
-                    '&': '&amp;',
-                    '"': '&quot;',
-                    "'": '&#39;'
-                };
-                return entities[match] || match;
-            })
+        return SecurityUtils.sanitizeString(str)
             .substring(0, 10000); // Reasonable length limit
     }
     

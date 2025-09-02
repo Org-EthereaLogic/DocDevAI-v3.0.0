@@ -20,6 +20,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { Logger } from '../utils/Logger';
 import * as crypto from 'crypto';
+import { SecurityUtils } from '../security/SecurityUtils';
 
 // Configuration interface
 interface ExtensionConfig {
@@ -526,15 +527,22 @@ export class WebviewManager {
             vscode.Uri.file(path.join(this.context.extensionPath, 'resources', 'js', 'webview.js'))
         );
         
-        // Security nonce for CSP
-        const nonce = crypto.randomBytes(16).toString('base64');
+        // Generate secure nonce using SecurityUtils
+        const nonce = SecurityUtils.generateNonce();
+        
+        // Generate Content Security Policy
+        const csp = SecurityUtils.generateCSP(webview, nonce);
+        
+        // Sanitize data before injecting into template
+        const sanitizedData = data ? SecurityUtils.sanitizeObject(data, true) : {};
         
         // Replace placeholders
         return template
             .replace(/\{\{stylesUri\}\}/g, stylesUri.toString())
             .replace(/\{\{scriptUri\}\}/g, scriptUri.toString())
             .replace(/\{\{nonce\}\}/g, nonce)
-            .replace(/\{\{data\}\}/g, JSON.stringify(data || {}))
+            .replace(/\{\{csp\}\}/g, csp)
+            .replace(/\{\{data\}\}/g, JSON.stringify(sanitizedData))
             .replace(/\{\{operationMode\}\}/g, this.extensionConfig.operationMode);
     }
     
@@ -991,31 +999,12 @@ export class WebviewManager {
     }
     
     /**
-     * Sanitize object recursively
+     * Sanitize object recursively using DOMPurify
+     * Uses SecurityUtils for OWASP-compliant sanitization
      */
     private sanitizeObject(obj: any): any {
-        if (typeof obj !== 'object' || obj === null) {
-            return obj;
-        }
-        
-        if (Array.isArray(obj)) {
-            return obj.map(item => this.sanitizeObject(item));
-        }
-        
-        const sanitized: any = {};
-        for (const [key, value] of Object.entries(obj)) {
-            if (typeof value === 'string') {
-                // Remove potentially dangerous content
-                sanitized[key] = value
-                    .replace(/<script[^>]*>.*?<\/script>/gi, '')
-                    .replace(/javascript:/gi, '')
-                    .replace(/on\w+\s*=/gi, '');
-            } else {
-                sanitized[key] = this.sanitizeObject(value);
-            }
-        }
-        
-        return sanitized;
+        // Use strict mode for webview content sanitization
+        return SecurityUtils.sanitizeObject(obj, true);
     }
     
     /**
@@ -1117,7 +1106,7 @@ export class WebviewManager {
                 <meta charset="UTF-8">
                 <title>DevDocAI Dashboard</title>
                 <link href="{{stylesUri}}" rel="stylesheet">
-                <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src {{stylesUri}}; script-src 'nonce-{{nonce}}';">
+                <meta http-equiv="Content-Security-Policy" content="{{csp}}">
             </head>
             <body>
                 <div id="app">
@@ -1142,6 +1131,7 @@ export class WebviewManager {
                 <meta charset="UTF-8">
                 <title>Documentation Viewer</title>
                 <link href="{{stylesUri}}" rel="stylesheet">
+                <meta http-equiv="Content-Security-Policy" content="{{csp}}">
             </head>
             <body>
                 <div id="app">

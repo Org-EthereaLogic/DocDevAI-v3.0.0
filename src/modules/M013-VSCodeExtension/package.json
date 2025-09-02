@@ -327,6 +327,8 @@
     "publish": "vsce publish"
   },
   "dependencies": {
+    "@types/dompurify": "^3.0.5",
+    "isomorphic-dompurify": "^2.26.0",
     "vscode-languageclient": "^8.1.0",
     "vscode-languageserver": "^8.1.0",
     "vscode-languageserver-protocol": "^3.17.3"
