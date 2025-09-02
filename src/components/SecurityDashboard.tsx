@@ -133,7 +133,7 @@ const SecurityDashboard: React.FC = () => {
       case 'good': return 'success';
       case 'warning': return 'warning';
       case 'critical': return 'error';
-      default: return 'default';
+      default: return 'inherit';
     }
   };
 

@@ -1,65 +1,84 @@
 /**
  * Simplified App Component for Testing
+ * Now includes Dashboard component to test full functionality
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   ThemeProvider, 
   CssBaseline, 
   createTheme,
-  Container,
-  Typography,
   Box,
-  Alert,
-  Paper
+  PaletteMode
 } from '@mui/material';
+import ErrorBoundary from './components/ErrorBoundary';
+import Dashboard from './components/Dashboard';
 
-const theme = createTheme({
-  palette: {
-    mode: 'light',
-    primary: {
-      main: '#667eea',
-    },
-    secondary: {
-      main: '#764ba2',
-    },
-  },
-});
+interface AppState {
+  theme: PaletteMode;
+  moduleStatus: Record<string, boolean>;
+}
 
 const AppSimple: React.FC = () => {
+  console.log('AppSimple component rendering with Dashboard...');
+  
+  const [state] = useState<AppState>({
+    theme: 'light',
+    moduleStatus: {
+      M001: true,  // Configuration Manager - COMPLETE
+      M002: true,  // Local Storage - COMPLETE
+      M003: true,  // MIAIR Engine - COMPLETE
+      M004: true,  // Document Generator - COMPLETE
+      M005: true,  // Quality Engine - COMPLETE
+      M006: true,  // Template Registry - COMPLETE
+      M007: true,  // Review Engine - COMPLETE
+      M008: true,  // LLM Adapter - COMPLETE
+      M009: true,  // Enhancement Pipeline - COMPLETE
+      M010: true,  // Security Module - COMPLETE
+      M011: true,  // UI Components - COMPLETE
+      M012: true,  // CLI Interface - COMPLETE
+      M013: true,  // VS Code Extension - COMPLETE
+    }
+  });
+
+  const theme = createTheme({
+    palette: {
+      mode: state.theme,
+      primary: {
+        main: '#667eea',
+      },
+      secondary: {
+        main: '#764ba2',
+      },
+      background: {
+        default: state.theme === 'light' ? '#f5f5f5' : '#121212',
+      },
+    },
+    typography: {
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      h1: {
+        fontSize: '2.5rem',
+        fontWeight: 600,
+      },
+      h2: {
+        fontSize: '2rem',
+        fontWeight: 500,
+      },
+    },
+    shape: {
+      borderRadius: 8,
+    },
+  });
+
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Container maxWidth="lg">
-        <Box sx={{ py: 4 }}>
-          <Paper elevation={3} sx={{ p: 3 }}>
-            <Typography variant="h3" gutterBottom>
-              DevDocAI v3.0.0
-            </Typography>
-            <Typography variant="h6" color="text.secondary" paragraph>
-              Application is loading...
-            </Typography>
-            <Alert severity="success" sx={{ mt: 2 }}>
-              If you can see this message, React and Material-UI are working correctly!
-            </Alert>
-            <Alert severity="info" sx={{ mt: 2 }}>
-              The white screen issue has been isolated to the main App component.
-            </Alert>
-            <Box sx={{ mt: 3 }}>
-              <Typography variant="body2">
-                Debug Information:
-              </Typography>
-              <ul>
-                <li>React: Working ✓</li>
-                <li>Material-UI: Working ✓</li>
-                <li>Theme: Applied ✓</li>
-                <li>Error Boundary: Active ✓</li>
-              </ul>
-            </Box>
-          </Paper>
+    <ErrorBoundary>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
+          <Dashboard moduleStatus={state.moduleStatus} />
         </Box>
-      </Container>
-    </ThemeProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 };
 

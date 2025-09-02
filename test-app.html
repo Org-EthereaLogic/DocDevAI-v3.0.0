@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test DevDocAI</title>
+</head>
+<body>
+  <h1>Testing DevDocAI App</h1>
+  <iframe id="app-frame" src="http://localhost:3000" width="100%" height="600" style="border: 1px solid #ccc;"></iframe>
+  
+  <h2>Console Output:</h2>
+  <div id="console-output" style="background: #f0f0f0; padding: 10px; font-family: monospace; white-space: pre-wrap;"></div>
+  
+  <script>
+    // Capture console messages from the iframe
+    const output = document.getElementById('console-output');
+    const iframe = document.getElementById('app-frame');
+    
+    iframe.onload = function() {
+      try {
+        // Try to access the iframe's window
+        const iframeWindow = iframe.contentWindow;
+        
+        // Override console methods in iframe
+        const originalLog = iframeWindow.console.log;
+        const originalError = iframeWindow.console.error;
+        const originalWarn = iframeWindow.console.warn;
+        
+        iframeWindow.console.log = function(...args) {
+          output.innerHTML += '[LOG] ' + args.join(' ') + '\n';
+          originalLog.apply(iframeWindow.console, args);
+        };
+        
+        iframeWindow.console.error = function(...args) {
+          output.innerHTML += '[ERROR] ' + args.join(' ') + '\n';
+          originalError.apply(iframeWindow.console, args);
+        };
+        
+        iframeWindow.console.warn = function(...args) {
+          output.innerHTML += '[WARN] ' + args.join(' ') + '\n';
+          originalWarn.apply(iframeWindow.console, args);
+        };
+        
+        // Check if React is loaded
+        setTimeout(() => {
+          const reactRoot = iframeWindow.document.getElementById('root');
+          if (reactRoot && reactRoot.children.length === 0) {
+            output.innerHTML += '[CHECK] React root exists but has no children - app may have failed to render\n';
+          } else if (reactRoot && reactRoot.children.length > 0) {
+            output.innerHTML += '[CHECK] React app appears to be rendering (root has ' + reactRoot.children.length + ' children)\n';
+          }
+        }, 2000);
+        
+      } catch (e) {
+        output.innerHTML += '[CROSS-ORIGIN ERROR] Cannot access iframe content due to CORS: ' + e.message + '\n';
+      }
+    };
+    
+    // Also listen for any errors on the main page
+    window.addEventListener('error', function(e) {
+      output.innerHTML += '[WINDOW ERROR] ' + e.message + ' at ' + e.filename + ':' + e.lineno + ':' + e.colno + '\n';
+    });
+  </script>
+</body>
+</html>
