@@ -26,6 +26,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { EventEmitter } from 'events';
 import { Logger } from '../utils/Logger';
+import { SecurityUtils, SECURITY_PATTERNS } from './SecurityUtils';
 
 // Configuration interface
 interface ExtensionConfig {
@@ -268,19 +269,29 @@ export class SecurityManager extends EventEmitter {
         this.blockedIPs = new Set();
         this.validationCache = new Map();
         
-        // Define suspicious patterns
+        // Use secure patterns from SecurityUtils for comprehensive detection
         this.suspiciousPatterns = [
-            /(<script[^>]*>.*?<\/script>)/gi,  // Script tags
-            /(javascript:)/gi,                 // JavaScript protocol
-            /(vbscript:)/gi,                  // VBScript protocol
-            /(on\w+\s*=)/gi,                  // Event handlers
-            /(eval\s*\()/gi,                  // Eval function
-            /(exec\s*\()/gi,                  // Exec function
-            /(\.\.\/|\.\.\\)/g,               // Directory traversal
+            // XSS patterns
+            SECURITY_PATTERNS.XSS.SCRIPT_TAG,
+            SECURITY_PATTERNS.XSS.JAVASCRIPT_PROTOCOL,
+            SECURITY_PATTERNS.XSS.DATA_PROTOCOL,
+            SECURITY_PATTERNS.XSS.VBSCRIPT_PROTOCOL,
+            SECURITY_PATTERNS.XSS.EVENT_HANDLER,
+            // SQL injection patterns
+            SECURITY_PATTERNS.SQL_INJECTION.UNION_SELECT,
+            SECURITY_PATTERNS.SQL_INJECTION.DROP_TABLE,
+            SECURITY_PATTERNS.SQL_INJECTION.DELETE_FROM,
+            SECURITY_PATTERNS.SQL_INJECTION.INSERT_INTO,
+            SECURITY_PATTERNS.SQL_INJECTION.UPDATE_SET,
+            // Path traversal patterns
+            SECURITY_PATTERNS.PATH_TRAVERSAL.PARENT_DIR,
+            SECURITY_PATTERNS.PATH_TRAVERSAL.NULL_BYTE,
+            // Command injection patterns
+            SECURITY_PATTERNS.COMMAND_INJECTION.SHELL_OPERATORS,
+            SECURITY_PATTERNS.COMMAND_INJECTION.COMMAND_SUBSTITUTION,
+            SECURITY_PATTERNS.COMMAND_INJECTION.BACKTICKS,
+            // Additional patterns
             /(\$\(|\$\{)/g,                   // Template injection
-            /(union\s+select)/gi,             // SQL injection
-            /(drop\s+table)/gi,               // SQL injection
-            /(rm\s+-rf|del\s+\/)/gi,          // Command injection
             /(\/etc\/passwd|\/windows\/system32)/gi // System file access
         ];
         
@@ -735,17 +746,12 @@ export class SecurityManager extends EventEmitter {
     }
     
     /**
-     * Sanitize HTML content
+     * Sanitize HTML content using DOMPurify
+     * Uses SecurityUtils for OWASP-compliant sanitization
      */
     private sanitizeHtml(input: string): string {
-        return input
-            .replace(/<script[^>]*>.*?<\/script>/gi, '')
-            .replace(/<iframe[^>]*>.*?<\/iframe>/gi, '')
-            .replace(/<object[^>]*>.*?<\/object>/gi, '')
-            .replace(/<embed[^>]*>/gi, '')
-            .replace(/javascript:/gi, '')
-            .replace(/vbscript:/gi, '')
-            .replace(/on\w+\s*=/gi, '');
+        // Use strict mode for security manager content
+        return SecurityUtils.sanitizeHtml(input, true);
     }
     
     /**
@@ -760,10 +766,10 @@ export class SecurityManager extends EventEmitter {
             threatLevel: ThreatSeverity.LOW
         };
         
-        // Path traversal check
-        if (filePath.includes('..') || filePath.includes('~')) {
+        // Use SecurityUtils for comprehensive path validation
+        if (!SecurityUtils.isValidFilePath(filePath)) {
             result.isValid = false;
-            result.errors.push('Path traversal detected');
+            result.errors.push('Invalid or potentially dangerous file path');
             result.securityScore = 0;
             result.threatLevel = ThreatSeverity.HIGH;
         }

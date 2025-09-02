@@ -20,6 +20,7 @@ import { EventEmitter } from 'events';
 import { InputValidator, ValidationResult } from './InputValidator';
 import { AuditLogger, EventSeverity, EventCategory } from './AuditLogger';
 import { PermissionManager, UserRole } from './PermissionManager';
+import { SecurityUtils, SECURITY_PATTERNS } from './SecurityUtils';
 
 // Threat severity levels
 export enum ThreatSeverity {
@@ -538,16 +539,18 @@ export class ThreatDetector extends EventEmitter {
             enabled: true
         });
         
-        // XSS detection
+        // XSS detection using secure patterns
         this.threatRules.set('xss_attack', {
             id: 'xss_attack',
             name: 'Cross-Site Scripting Attack',
             severity: ThreatSeverity.HIGH,
             type: ThreatType.INITIAL_ACCESS,
             patterns: [
-                /<script[^>]*>.*?<\/script>/gi,
-                /javascript:/gi,
-                /on\w+\s*=\s*["'][^"']*["']/gi
+                SECURITY_PATTERNS.XSS.SCRIPT_TAG,
+                SECURITY_PATTERNS.XSS.JAVASCRIPT_PROTOCOL,
+                SECURITY_PATTERNS.XSS.DATA_PROTOCOL,
+                SECURITY_PATTERNS.XSS.VBSCRIPT_PROTOCOL,
+                SECURITY_PATTERNS.XSS.EVENT_HANDLER
             ],
             conditions: [
                 (event) => event.category === 'web' || event.resource?.includes('webview')
