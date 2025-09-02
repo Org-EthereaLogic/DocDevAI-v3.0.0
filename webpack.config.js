@@ -23,14 +23,7 @@ module.exports = (env, argv) => {
 
   return {
     entry: {
-      main: './src/index.tsx',
-      // Separate vendor bundle for dependencies
-      vendor: [
-        'react',
-        'react-dom',
-        '@mui/material',
-        '@mui/icons-material'
-      ]
+      main: './src/index.tsx'
     },
 
     output: {
@@ -145,28 +138,26 @@ module.exports = (env, argv) => {
       // Module IDs for better caching
       moduleIds: 'deterministic',
       
-      // Split chunks configuration
+      // Split chunks configuration - optimized for smaller bundles
       splitChunks: {
         chunks: 'all',
-        maxInitialRequests: 25,
-        minSize: 20000,
-        maxSize: 244000,
+        maxInitialRequests: 4,
+        minSize: 30000,
         cacheGroups: {
-          // Vendor libraries
+          // Vendor libraries - single chunk
           vendor: {
-            test: /[\\\\/]node_modules[\\\\/]/,
-            name(module) {
-              const packageName = module.context.match(/[\\\\/]node_modules[\\\\/](.*?)([\\\\\/]|$)/)[1];
-              return `vendor.${packageName.replace('@', '')}`;
-            },
-            priority: 10
+            test: /[\\\\/]node_modules[\\\\/](?!@mui)/,
+            name: 'vendor',
+            priority: 10,
+            enforce: true
           },
           
-          // Material-UI components
+          // Material-UI components - single chunk
           mui: {
             test: /[\\\\/]node_modules[\\\\/]@mui[\\\\/]/,
             name: 'mui',
-            priority: 20
+            priority: 20,
+            enforce: true
           },
           
           // React libraries
@@ -284,9 +275,9 @@ module.exports = (env, argv) => {
       maxAssetSize: 512000 // 500KB
     },
 
-    // Source maps
+    // Source maps - disabled in production for smaller bundles
     devtool: isProduction 
-      ? 'source-map' 
+      ? false 
       : 'eval-cheap-module-source-map',
 
     // Stats output

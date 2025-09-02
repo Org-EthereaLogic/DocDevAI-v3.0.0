@@ -8,7 +8,8 @@
     "test": "tests"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "webpack --mode production",
+    "build:tsc": "tsc",
     "build:react": "webpack --mode production",
     "dev:react": "webpack serve --mode development",
     "test": "jest --passWithNoTests",
