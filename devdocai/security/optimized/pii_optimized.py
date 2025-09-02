@@ -17,8 +17,20 @@ from dataclasses import dataclass
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 import multiprocessing as mp
 from collections import defaultdict
-import pyahocorasick  # For efficient multi-pattern matching
-import mmh3  # MurmurHash3 for fast hashing
+# Optional high-performance dependencies
+try:
+    import pyahocorasick  # For efficient multi-pattern matching
+    HAS_PYAHOCORASICK = True
+except ImportError:
+    HAS_PYAHOCORASICK = False
+    pyahocorasick = None
+
+try:
+    import mmh3  # MurmurHash3 for fast hashing
+    HAS_MMH3 = True
+except ImportError:
+    HAS_MMH3 = False
+    mmh3 = None
 
 
 @dataclass
@@ -65,7 +77,12 @@ class OptimizedPIIDetector:
     
     def _build_pattern_automaton(self):
         """Build Aho-Corasick automaton for fast multi-pattern matching"""
-        self.automaton = pyahocorasick.Automaton()
+        if HAS_PYAHOCORASICK:
+            self.automaton = pyahocorasick.Automaton()
+        else:
+            # Fallback to regex-based matching when pyahocorasick is not available
+            self.automaton = None
+            self.fallback_patterns = []
         
         # Common PII keywords and patterns
         exact_patterns = {

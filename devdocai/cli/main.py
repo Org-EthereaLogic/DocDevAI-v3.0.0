@@ -164,12 +164,12 @@ def cli(ctx: Context, version: bool, debug: bool, json_output: bool,
         click.echo(ctx.get_help())
 
 
-# Register command groups with lazy loading
-cli.add_lazy_command('generate', 'devdocai.cli.commands.generate.generate_group')
-cli.add_lazy_command('analyze', 'devdocai.cli.commands.analyze.analyze_group')
-cli.add_lazy_command('config', 'devdocai.cli.commands.config.config_group')
-cli.add_lazy_command('template', 'devdocai.cli.commands.template.template_group')
-cli.add_lazy_command('enhance', 'devdocai.cli.commands.enhance.enhance_group')
+# Register command groups with lazy loading - Updated to use unified modules
+cli.add_lazy_command('generate', 'devdocai.cli.commands.generate_unified.generate_group')
+cli.add_lazy_command('analyze', 'devdocai.cli.commands.analyze_unified.analyze_group')
+cli.add_lazy_command('config', 'devdocai.cli.commands.config_unified.config_group')
+cli.add_lazy_command('template', 'devdocai.cli.commands.template_unified.template_group')
+cli.add_lazy_command('enhance', 'devdocai.cli.commands.enhance_unified.enhance_group')
 cli.add_lazy_command('security', 'devdocai.cli.commands.security.security_group')
 
 
