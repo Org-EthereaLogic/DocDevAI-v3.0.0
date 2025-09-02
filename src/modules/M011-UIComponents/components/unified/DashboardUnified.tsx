@@ -48,6 +48,7 @@ import { BackendServiceFactory } from '../../core/integration-contracts';
 import { DashboardState, DashboardLayout, WidgetData } from '../dashboard/types';
 
 // Lazy load heavy widgets for performance mode
+const SystemStatusWidget = lazy(() => import('../dashboard/SystemStatusWidget'));
 const DocumentHealthWidget = lazy(() => import('../dashboard/DocumentHealthWidget'));
 const QualityMetricsWidget = lazy(() => import('../dashboard/QualityMetricsWidget'));
 const TrackingMatrixWidget = lazy(() => import('../dashboard/TrackingMatrixWidget'));
