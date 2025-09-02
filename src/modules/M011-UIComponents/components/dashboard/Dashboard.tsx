@@ -29,6 +29,7 @@ import {
   Add as AddIcon
 } from '@mui/icons-material';
 
+import SystemStatusWidget from './SystemStatusWidget';
 import DocumentHealthWidget from './DocumentHealthWidget';
 import QualityMetricsWidget from './QualityMetricsWidget';
 import TrackingMatrixWidget from './TrackingMatrixWidget';
@@ -51,29 +52,34 @@ const DEFAULT_LAYOUT: DashboardLayout = {
   containerPadding: [16, 16],
   widgets: [
     {
+      id: 'system-status',
+      component: 'SystemStatusWidget',
+      position: { x: 0, y: 0, width: 4, height: 4 }
+    },
+    {
       id: 'document-health',
       component: 'DocumentHealthWidget',
-      position: { x: 0, y: 0, width: 6, height: 3 }
+      position: { x: 4, y: 0, width: 4, height: 3 }
     },
     {
       id: 'quality-metrics',
       component: 'QualityMetricsWidget',
-      position: { x: 6, y: 0, width: 6, height: 3 }
+      position: { x: 8, y: 0, width: 4, height: 3 }
     },
     {
       id: 'tracking-matrix',
       component: 'TrackingMatrixWidget',
-      position: { x: 0, y: 3, width: 8, height: 4 }
+      position: { x: 0, y: 4, width: 8, height: 4 }
     },
     {
       id: 'recent-activity',
       component: 'RecentActivityWidget',
-      position: { x: 8, y: 3, width: 4, height: 4 }
+      position: { x: 8, y: 3, width: 4, height: 5 }
     },
     {
       id: 'quick-actions',
       component: 'QuickActionsWidget',
-      position: { x: 0, y: 7, width: 12, height: 2 }
+      position: { x: 0, y: 8, width: 12, height: 2 }
     }
   ]
 };
@@ -82,6 +88,7 @@ const DEFAULT_LAYOUT: DashboardLayout = {
  * Widget component mapping
  */
 const WIDGET_COMPONENTS = {
+  SystemStatusWidget,
   DocumentHealthWidget,
   QualityMetricsWidget,
   TrackingMatrixWidget,

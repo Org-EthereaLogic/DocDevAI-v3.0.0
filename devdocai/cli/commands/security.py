@@ -16,8 +16,8 @@ from click import Context
 
 # Import M010 Security Module
 try:
-    from devdocai.security.unified.security_manager_unified import SecurityManagerUnified
-    from devdocai.security.unified.config_unified import SecurityConfig, OperationMode
+    from devdocai.security.security_manager_unified import UnifiedSecurityManager
+    from devdocai.core.config import ConfigurationManager
     SECURITY_AVAILABLE = True
 except ImportError as e:
     SECURITY_AVAILABLE = False
@@ -75,7 +75,7 @@ def security_scan(cli_ctx, path: str, scan_type: str, recursive: bool,
         # Initialize security manager
         op_mode = OperationMode[mode.upper()]
         config = SecurityConfig(operation_mode=op_mode)
-        security_manager = SecurityManagerUnified(config)
+        security_manager = UnifiedSecurityManager(config)
         
         path_obj = Path(path)
         files_to_scan = []
@@ -263,7 +263,7 @@ def security_sbom(cli_ctx, path: str, format: str, output: str, sign: bool, vali
     try:
         # Initialize security manager
         config = SecurityConfig(operation_mode=OperationMode.ENTERPRISE)
-        security_manager = SecurityManagerUnified(config)
+        security_manager = UnifiedSecurityManager(config)
         
         cli_ctx.log(f"Generating SBOM for {path}...", "info")
         
@@ -351,7 +351,7 @@ def security_pii_detect(cli_ctx, path: str, languages: List[str], mask: bool,
     try:
         # Initialize security manager
         config = SecurityConfig(operation_mode=OperationMode.SECURE)
-        security_manager = SecurityManagerUnified(config)
+        security_manager = UnifiedSecurityManager(config)
         
         # Read content
         path_obj = Path(path)
@@ -474,7 +474,7 @@ def security_compliance(cli_ctx, framework: str, output: Optional[str], format: 
     try:
         # Initialize security manager
         config = SecurityConfig(operation_mode=OperationMode.ENTERPRISE)
-        security_manager = SecurityManagerUnified(config)
+        security_manager = UnifiedSecurityManager(config)
         
         cli_ctx.log(f"Checking compliance for: {framework.upper()}", "info")
         
