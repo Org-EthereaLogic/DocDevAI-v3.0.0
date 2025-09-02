@@ -240,7 +240,7 @@ const EnhancementPipeline: React.FC = () => {
       case 'running': return 'primary';
       case 'paused': return 'warning';
       case 'failed': return 'error';
-      default: return 'default';
+      default: return 'inherit';
     }
   };
 

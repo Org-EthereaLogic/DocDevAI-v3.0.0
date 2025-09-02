@@ -71,6 +71,14 @@ const App: React.FC = () => {
     const initializeApp = async () => {
       let serviceErrors = [];
       
+      // Log environment info
+      console.log('Environment:', {
+        NODE_ENV: process.env.NODE_ENV,
+        localStorage: typeof localStorage !== 'undefined',
+        window: typeof window !== 'undefined',
+        document: typeof document !== 'undefined'
+      });
+      
       // Initialize each service with individual error handling
       try {
         console.log('Initializing ConfigurationService...');
@@ -78,6 +86,10 @@ const App: React.FC = () => {
         console.log('ConfigurationService initialized successfully');
       } catch (error) {
         console.error('ConfigurationService initialization failed:', error);
+        console.error('Error details:', {
+          message: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : undefined
+        });
         serviceErrors.push({ service: 'Configuration', error });
       }
       
@@ -96,6 +108,10 @@ const App: React.FC = () => {
         }
       } catch (error) {
         console.error('StorageService initialization failed:', error);
+        console.error('Error details:', {
+          message: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : undefined
+        });
         serviceErrors.push({ service: 'Storage', error });
       }
       
@@ -105,6 +121,10 @@ const App: React.FC = () => {
         console.log('MIAIR engine initialized successfully');
       } catch (error) {
         console.error('MIAIR initialization failed:', error);
+        console.error('Error details:', {
+          message: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : undefined
+        });
         serviceErrors.push({ service: 'MIAIR', error });
       }
       
@@ -122,6 +142,10 @@ const App: React.FC = () => {
         console.log('NotificationService initialized successfully');
       } catch (error) {
         console.error('NotificationService initialization failed:', error);
+        console.error('Error details:', {
+          message: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : undefined
+        });
         serviceErrors.push({ service: 'Notification', error });
       }
 
@@ -133,7 +157,10 @@ const App: React.FC = () => {
       }
     };
 
-    initializeApp();
+    initializeApp().catch(error => {
+      console.error('Fatal error during app initialization:', error);
+      console.error('Full error:', error);
+    });
   }, []);
 
   // Create theme

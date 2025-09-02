@@ -44,7 +44,7 @@ import {
   Preview as PreviewIcon,
   Download as DownloadIcon,
   Upload as UploadIcon,
-  Copy as CopyIcon,
+  FileCopy as CopyIcon,
   Folder as CategoryIcon,
 } from '@mui/icons-material';
 
