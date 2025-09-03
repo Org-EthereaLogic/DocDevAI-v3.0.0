@@ -76,7 +76,7 @@
     "@mui/icons-material": "^5.14.0",
     "@mui/material": "^5.14.0",
     "@mui/system": "^5.14.0",
-    "@mui/x-charts": "^6.0.0",
+    "@mui/x-charts": "^8.11.0",
     "@mui/x-data-grid": "^6.10.0",
     "@types/canvas-confetti": "^1.9.0",
     "@types/d3": "^7.4.0",
