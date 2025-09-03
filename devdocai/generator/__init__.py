@@ -24,6 +24,11 @@ from .outputs.html import HtmlOutput
 from .utils.validators import InputValidator
 from .utils.formatters import ContentFormatter
 
+# New AI-powered components
+from .ai_document_generator import AIDocumentGenerator, GenerationMode
+from .prompt_template_engine import PromptTemplateEngine, PromptTemplate, RenderedPrompt
+from .document_workflow import DocumentWorkflow, DocumentType, ReviewPhase
+
 __all__ = [
     'DocumentGenerator',
     'TemplateLoader', 
@@ -31,7 +36,16 @@ __all__ = [
     'MarkdownOutput',
     'HtmlOutput',
     'InputValidator',
-    'ContentFormatter'
+    'ContentFormatter',
+    # AI-powered components
+    'AIDocumentGenerator',
+    'GenerationMode',
+    'PromptTemplateEngine',
+    'PromptTemplate',
+    'RenderedPrompt',
+    'DocumentWorkflow',
+    'DocumentType',
+    'ReviewPhase'
 ]
 
 __version__ = '3.0.0'
