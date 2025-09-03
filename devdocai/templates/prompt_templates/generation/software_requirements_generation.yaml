@@ -1,0 +1,269 @@
+name: "Software Requirements Specification Generation"
+description: "Generate comprehensive SRS document based on user stories and project plan"
+category: "generation"
+version: "1.0.0"
+
+# Define what inputs this template needs
+inputs:
+  - name: "user_stories"
+    type: "document"
+    required: true
+    description: "User stories document"
+    
+  - name: "project_plan"
+    type: "document"
+    required: true
+    description: "Project plan document"
+    
+  - name: "initial_description"
+    type: "string"
+    required: true
+    description: "Original project description"
+    
+  - name: "project_name"
+    type: "string"
+    required: false
+    default: "System"
+    description: "Name of the system/project"
+    
+  - name: "compliance_standards"
+    type: "string"
+    required: false
+    default: "general industry standards"
+    description: "Specific compliance requirements (ISO, IEEE, etc.)"
+
+# LLM configuration for multi-provider synthesis
+llm_config:
+  providers:
+    - name: "claude"
+      weight: 0.45
+      model: "claude-3-opus-20240229"
+    - name: "openai"
+      weight: 0.35
+      model: "gpt-4-turbo-preview"
+    - name: "google"
+      weight: 0.20
+      model: "gemini-pro"
+  
+  temperature: 0.6
+  max_tokens: 10000
+
+# The actual prompt template
+prompt:
+  system: |
+    You are a Senior Systems Analyst and Requirements Engineer with extensive 
+    experience in creating comprehensive Software Requirements Specifications (SRS) 
+    that comply with IEEE 830 standards and industry best practices.
+    
+    Your SRS documents are:
+    - Complete, consistent, and unambiguous
+    - Traceable to user needs and project goals
+    - Verifiable and testable
+    - Modifiable and ranked for importance
+    - Following IEEE 830-1998 standard structure
+    - Clear to both technical and non-technical stakeholders
+  
+  user: |
+    Based on the user stories, project plan, and description for {{project_name}}, 
+    create a comprehensive Software Requirements Specification (SRS) document.
+    
+    <user_stories>
+    {{user_stories}}
+    </user_stories>
+    
+    <project_plan>
+    {{project_plan}}
+    </project_plan>
+    
+    <project_description>
+    {{initial_description}}
+    </project_description>
+    
+    Compliance Requirements: {{compliance_standards}}
+    
+    Generate a complete SRS document following IEEE 830 standards:
+    
+    <srs_document>
+    # Software Requirements Specification for {{project_name}}
+    
+    ## 1. Introduction
+    
+    ### 1.1 Purpose
+    [Define the purpose of this SRS and its intended audience]
+    
+    ### 1.2 Scope
+    [Identify the software product, explain what it will do, describe applications, benefits, and objectives]
+    
+    ### 1.3 Definitions, Acronyms, and Abbreviations
+    [Provide definitions of all terms, acronyms, and abbreviations]
+    
+    ### 1.4 References
+    [List all referenced documents]
+    
+    ### 1.5 Overview
+    [Describe the structure of the rest of the SRS]
+    
+    ## 2. Overall Description
+    
+    ### 2.1 Product Perspective
+    #### 2.1.1 System Interfaces
+    [Describe interfaces with other systems]
+    
+    #### 2.1.2 User Interfaces
+    [Describe the logical characteristics of each user interface]
+    
+    #### 2.1.3 Hardware Interfaces
+    [Specify logical characteristics of hardware interfaces]
+    
+    #### 2.1.4 Software Interfaces
+    [Specify use of other software products]
+    
+    #### 2.1.5 Communications Interfaces
+    [Specify communication interfaces (HTTP, TCP/IP, etc.)]
+    
+    #### 2.1.6 Memory Constraints
+    [Specify memory and storage limitations]
+    
+    ### 2.2 Product Functions
+    [Summarize major functions the software will perform]
+    
+    ### 2.3 User Characteristics
+    [Describe characteristics of intended users]
+    
+    ### 2.4 Constraints
+    [List any limiting factors]
+    
+    ### 2.5 Assumptions and Dependencies
+    [List assumptions and external dependencies]
+    
+    ## 3. Specific Requirements
+    
+    ### 3.1 Functional Requirements
+    
+    #### 3.1.1 [Feature Area 1]
+    
+    **FR-1.1:** [Requirement Title]
+    - **Description:** [Detailed description]
+    - **Input:** [Expected inputs]
+    - **Processing:** [Processing logic]
+    - **Output:** [Expected outputs]
+    - **Priority:** High/Medium/Low
+    - **Source:** [Reference to user story]
+    
+    **FR-1.2:** [Next requirement...]
+    
+    #### 3.1.2 [Feature Area 2]
+    [Continue pattern for all functional requirements]
+    
+    ### 3.2 Non-Functional Requirements
+    
+    #### 3.2.1 Performance Requirements
+    **NFR-P1:** [Performance requirement]
+    - **Metric:** [Measurable metric]
+    - **Target:** [Specific target value]
+    - **Priority:** High/Medium/Low
+    
+    #### 3.2.2 Safety Requirements
+    [List safety-critical requirements if applicable]
+    
+    #### 3.2.3 Security Requirements
+    **NFR-S1:** [Security requirement]
+    - **Description:** [Detailed description]
+    - **Compliance:** [Standards to meet]
+    - **Priority:** High/Medium/Low
+    
+    #### 3.2.4 Software Quality Attributes
+    
+    ##### 3.2.4.1 Reliability
+    [Specify reliability requirements]
+    
+    ##### 3.2.4.2 Availability
+    [Specify availability requirements]
+    
+    ##### 3.2.4.3 Maintainability
+    [Specify maintainability requirements]
+    
+    ##### 3.2.4.4 Portability
+    [Specify portability requirements]
+    
+    ##### 3.2.4.5 Scalability
+    [Specify scalability requirements]
+    
+    ##### 3.2.4.6 Usability
+    [Specify usability requirements]
+    
+    ### 3.3 Database Requirements
+    [Specify logical database requirements]
+    
+    ### 3.4 Design Constraints
+    #### 3.4.1 Standards Compliance
+    [Specify standards to be followed]
+    
+    #### 3.4.2 Hardware Limitations
+    [Specify hardware constraints]
+    
+    ### 3.5 External Interface Requirements
+    [Detail all external interfaces]
+    
+    ## 4. Appendices
+    
+    ### Appendix A: Requirements Traceability Matrix
+    
+    | Req ID | User Story | Priority | Status | Test Case |
+    |--------|------------|----------|--------|-----------|
+    | FR-1.1 | US-001 | High | Defined | TC-001 |
+    | FR-1.2 | US-002 | Medium | Defined | TC-002 |
+    
+    ### Appendix B: Glossary
+    [Define all technical terms]
+    
+    ### Appendix C: Analysis Models
+    [Include any data flow diagrams, state diagrams, etc.]
+    
+    </srs_document>
+    
+    <requirements_summary>
+    Provide a summary including:
+    - Total functional requirements count
+    - Total non-functional requirements count
+    - Distribution by priority
+    - Coverage of user stories
+    - Key technical constraints identified
+    </requirements_summary>
+    
+    <validation_criteria>
+    List acceptance criteria for validating the SRS:
+    - Completeness checks
+    - Consistency verification
+    - Testability assessment
+    - Traceability confirmation
+    </validation_criteria>
+
+# Output processing configuration
+output:
+  format: "structured"
+  sections:
+    - name: "srs_document"
+      type: "document"
+      extract_tag: "srs_document"
+      save_as: "srs_document.md"
+      
+    - name: "requirements_summary"
+      type: "analysis"
+      extract_tag: "requirements_summary"
+      
+    - name: "validation_criteria"
+      type: "checklist"
+      extract_tag: "validation_criteria"
+
+# MIAIR optimization settings
+miair_config:
+  enabled: true
+  target_quality: 0.90
+  max_iterations: 5
+  focus_areas:
+    - "completeness"
+    - "consistency"
+    - "clarity"
+    - "testability"
+    - "traceability"
