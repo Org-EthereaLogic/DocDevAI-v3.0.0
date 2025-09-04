@@ -659,7 +659,7 @@ def read_file():
             with open(validated_path, 'r', encoding='utf-8') as f:
                 content = f.read()
             
-            logger.info(f"✅ Successfully read file: {validated_path} ({len(content)} bytes)")
+            logger.info(f"✅ Successfully read file: {file_path} ({len(content)} bytes)")
             
             response = jsonify({
                 'success': True,
