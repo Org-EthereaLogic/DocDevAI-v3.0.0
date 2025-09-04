@@ -225,7 +225,7 @@ async function initializeCoreServices(context: vscode.ExtensionContext): Promise
  */
 async function initializeAllCoreServices(context: vscode.ExtensionContext): Promise<void> {
     const imports = await Promise.all([
-        import('./commands/CommandManager'),
+        import('./commands/CommandManager_unified'),
         import('./services/CLIService_unified'),
         import('./webviews/WebviewManager_unified'),
         import('./services/StatusBarManager_unified'),
@@ -427,7 +427,7 @@ function registerLazyCommands(context: vscode.ExtensionContext): void {
 async function executeLazyCommand(commandId: string, args: any[]): Promise<any> {
     // Ensure command manager is loaded
     if (!services.commandManager) {
-        const { CommandManager } = await import('./commands/CommandManager');
+        const { CommandManager } = await import('./commands/CommandManager_unified');
         services.commandManager = new CommandManager(vscode.ExtensionContext, services.logger);
     }
     
@@ -499,7 +499,7 @@ async function loadService(serviceName: string): Promise<void> {
  */
 async function registerImmediateCommands(context: vscode.ExtensionContext): Promise<void> {
     if (!services.commandManager) {
-        const { CommandManager } = await import('./commands/CommandManager');
+        const { CommandManager } = await import('./commands/CommandManager_unified');
         services.commandManager = new CommandManager(context, services.logger);
     }
     
@@ -629,10 +629,18 @@ function createModeConfiguration(mode: 'BASIC' | 'PERFORMANCE' | 'SECURE' | 'ENT
  * Utility functions for mode checking
  */
 function shouldEnableSecurity(): boolean {
+    // Add null check to prevent undefined errors during initialization
+    if (!extensionConfig) {
+        return false;
+    }
     return extensionConfig.operationMode === 'SECURE' || extensionConfig.operationMode === 'ENTERPRISE';
 }
 
 function shouldEnablePerformance(): boolean {
+    // Add null check to prevent undefined errors during initialization
+    if (!extensionConfig) {
+        return false;
+    }
     return extensionConfig.operationMode === 'PERFORMANCE' || extensionConfig.operationMode === 'ENTERPRISE';
 }
 

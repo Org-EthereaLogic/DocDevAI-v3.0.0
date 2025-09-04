@@ -33,6 +33,7 @@ import gc
 from argon2.exceptions import VerifyMismatchError
 import dotenv
 
+# Standard logger - will be enhanced with secure logging when available
 logger = logging.getLogger(__name__)
 
 
@@ -89,6 +90,7 @@ class DevDocAIConfig(BaseModel):
         "logs": "./logs"
     })
     api_providers: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
+    api_keys: Dict[str, Any] = Field(default_factory=dict)  # Store encrypted API keys
     features: Dict[str, bool] = Field(default_factory=lambda: {
         "auto_save": True,
         "hot_reload": True,
@@ -231,19 +233,23 @@ class ConfigurationManager:
     @lru_cache(maxsize=10000)
     def get(self, key: str, default: Any = None) -> Any:
         """
-        Get configuration value with caching for performance.
+        Get configuration value with caching and automatic decryption for API keys.
         
         Args:
             key: Dot-notation key (e.g., 'security.privacy_mode')
             default: Default value if key not found
             
         Returns:
-            Configuration value or default
+            Configuration value or default (decrypted if it's an API key)
         """
         try:
             # First check dynamic config
             if hasattr(self, '_dynamic_config') and key in self._dynamic_config:
-                return self._dynamic_config[key]
+                value = self._dynamic_config[key]
+                # Decrypt if it's an encrypted API key
+                if self._is_api_key(key) and self._is_encrypted_value(value):
+                    return self._decrypt_single_value(value)
+                return value
             
             # Then check main config
             parts = key.split('.')
@@ -255,14 +261,26 @@ class ConfigurationManager:
                 else:
                     # If not found in main config, check dynamic config with nested keys
                     if hasattr(self, '_dynamic_config'):
-                        return self._dynamic_config.get(key, default)
+                        value = self._dynamic_config.get(key, default)
+                        # Decrypt if it's an encrypted API key
+                        if self._is_api_key(key) and self._is_encrypted_value(value):
+                            return self._decrypt_single_value(value)
+                        return value
                     return default
                     
                 if value is None:
                     # If not found in main config, check dynamic config
                     if hasattr(self, '_dynamic_config'):
-                        return self._dynamic_config.get(key, default)
+                        value = self._dynamic_config.get(key, default)
+                        # Decrypt if it's an encrypted API key
+                        if self._is_api_key(key) and self._is_encrypted_value(value):
+                            return self._decrypt_single_value(value)
+                        return value
                     return default
+            
+            # Decrypt if it's an encrypted API key
+            if self._is_api_key(key) and self._is_encrypted_value(value):
+                return self._decrypt_single_value(value)
                     
             return value
             
@@ -272,7 +290,7 @@ class ConfigurationManager:
     
     def set(self, key: str, value: Any) -> bool:
         """
-        Set configuration value with validation.
+        Set configuration value with validation and automatic encryption for API keys.
         
         Args:
             key: Dot-notation key
@@ -284,6 +302,10 @@ class ConfigurationManager:
         try:
             # Clear cache for this key
             self.get.cache_clear()
+            
+            # Check if this is an API key that needs encryption
+            if self._is_api_key(key) and self._config.security.encryption_enabled:
+                value = self._encrypt_single_value(key, value)
             
             with self._lock:
                 parts = key.split('.')
@@ -309,6 +331,7 @@ class ConfigurationManager:
                     'memory': self._config.memory.model_dump() if self._config.memory else None,
                     'paths': self._config.paths,
                     'api_providers': self._config.api_providers,
+                    'api_keys': self._config.api_keys,
                     'features': self._config.features
                 }
                 
@@ -681,6 +704,149 @@ class ConfigurationManager:
             
             # Force garbage collection
             gc.collect()
+    
+    def _is_api_key(self, key: str) -> bool:
+        """
+        Check if a configuration key is an API key that needs encryption.
+        
+        Args:
+            key: Configuration key to check
+            
+        Returns:
+            True if key should be encrypted
+        """
+        api_key_patterns = [
+            'api_key', 'apikey', 'api_secret', 'secret_key', 'access_token',
+            'auth_token', 'bearer', 'client_secret', 'private_key',
+            'api_providers.', 'api_keys.', 'credentials.', 'tokens.'
+        ]
+        
+        key_lower = key.lower()
+        return any(pattern in key_lower for pattern in api_key_patterns)
+    
+    def _is_encrypted_value(self, value: Any) -> bool:
+        """
+        Check if a value is already encrypted.
+        
+        Args:
+            value: Value to check
+            
+        Returns:
+            True if value appears to be encrypted
+        """
+        if not isinstance(value, dict):
+            return False
+        
+        # Check if it has the encrypted data structure
+        required_fields = {'ciphertext', 'nonce', 'tag'}
+        return required_fields.issubset(value.keys())
+    
+    def _encrypt_single_value(self, key: str, value: str) -> Dict[str, str]:
+        """
+        Encrypt a single value using AES-256-GCM.
+        
+        Args:
+            key: Configuration key (for logging)
+            value: Value to encrypt
+            
+        Returns:
+            Dictionary with encrypted data
+        """
+        if not value or not isinstance(value, str):
+            return value
+        
+        try:
+            # Generate random salt for this encryption
+            salt = os.urandom(32)
+            
+            # Derive key with random salt
+            self._cipher_key = self._derive_key(salt=salt)
+            
+            # Generate nonce for this encryption
+            nonce = os.urandom(12)
+            
+            # Create cipher
+            cipher = Cipher(
+                algorithms.AES(self._cipher_key),
+                modes.GCM(nonce),
+                backend=default_backend()
+            )
+            encryptor = cipher.encryptor()
+            
+            # Encrypt the value
+            ciphertext = encryptor.update(value.encode()) + encryptor.finalize()
+            
+            # Store with salt, nonce, tag, and version
+            encrypted = {
+                'ciphertext': ciphertext.hex(),
+                'nonce': nonce.hex(),
+                'tag': encryptor.tag.hex(),
+                'salt': salt.hex(),
+                'version': 2  # Version 2 uses random salts
+            }
+            
+            # Secure memory cleanup
+            self._secure_wipe()
+            
+            logger.debug(f"Encrypted API key for: {key}")
+            return encrypted
+            
+        except Exception as e:
+            logger.error(f"Failed to encrypt value for {key}: {e}")
+            self._secure_wipe()
+            return value  # Return original if encryption fails
+    
+    def _decrypt_single_value(self, encrypted_data: Dict[str, str]) -> str:
+        """
+        Decrypt a single encrypted value.
+        
+        Args:
+            encrypted_data: Dictionary with encrypted data
+            
+        Returns:
+            Decrypted string value
+        """
+        if not self._validate_encrypted_structure(encrypted_data):
+            logger.error("Invalid encrypted data structure")
+            return ""
+        
+        try:
+            # Extract components
+            ciphertext = bytes.fromhex(encrypted_data['ciphertext'])
+            nonce = bytes.fromhex(encrypted_data['nonce'])
+            tag = bytes.fromhex(encrypted_data['tag'])
+            
+            # Handle version-specific decryption
+            version = encrypted_data.get('version', 1)
+            
+            if version == 2 and 'salt' in encrypted_data:
+                # Version 2: Use provided salt
+                salt = bytes.fromhex(encrypted_data['salt'])
+                self._cipher_key = self._derive_key(salt=salt)
+            else:
+                # Version 1 (legacy): Use fixed salt
+                self._cipher_key = self._derive_key_legacy()
+            
+            # Create cipher
+            cipher = Cipher(
+                algorithms.AES(self._cipher_key),
+                modes.GCM(nonce, tag),
+                backend=default_backend()
+            )
+            decryptor = cipher.decryptor()
+            
+            # Decrypt
+            plaintext = decryptor.update(ciphertext) + decryptor.finalize()
+            
+            # Secure memory cleanup
+            self._secure_wipe()
+            
+            return plaintext.decode()
+            
+        except Exception as e:
+            logger.error(f"Failed to decrypt value: {e}")
+            self._secure_wipe()
+            return ""
     
     @property
     def config(self) -> DevDocAIConfig:

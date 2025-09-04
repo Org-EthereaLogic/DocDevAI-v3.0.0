@@ -22,6 +22,9 @@ numpy>=1.24.0  # Required for M003 MIAIR Engine
 scikit-learn>=1.3.0  # For clustering and similarity in M009
 sentence-transformers>=2.2.0  # For semantic similarity in M009 cache
 
+# Token Optimization (M004 Pass 2)
+tiktoken>=0.5.0  # OpenAI tokenizer for accurate token counting
+
 # HTTP Client for M008 LLM Adapter
 aiohttp>=3.8.0
 

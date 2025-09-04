@@ -5,7 +5,7 @@
  * header, and content area for all views.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Drawer,
@@ -82,12 +82,67 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   };
 
   const handleSidebarToggle = () => {
-    setSidebarOpen(!sidebarOpen);
+    setSidebarOpen(prev => {
+      const newState = !prev;
+      console.log('Sidebar toggle:', prev, '->', newState);
+      
+      // Clean up any body overflow styles that might block interaction
+      // Material-UI Drawer sometimes leaves these behind
+      requestAnimationFrame(() => {
+        document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
+        // Remove any aria-hidden that might be blocking interaction
+        const root = document.getElementById('root');
+        if (root) {
+          root.removeAttribute('aria-hidden');
+        }
+      });
+      
+      return newState;
+    });
   };
 
   const getModuleStatus = (moduleId: string) => {
     return moduleStatus[moduleId] ? 'online' : 'offline';
   };
+
+  // Prevent Material-UI Drawer from leaving blocking styles
+  useEffect(() => {
+    // Function to clean up any blocking styles
+    const cleanupBlockingStyles = () => {
+      // Remove overflow hidden from body and html
+      if (document.body.style.overflow === 'hidden') {
+        document.body.style.overflow = '';
+        console.log('Removed overflow:hidden from body');
+      }
+      if (document.documentElement.style.overflow === 'hidden') {
+        document.documentElement.style.overflow = '';
+        console.log('Removed overflow:hidden from html');
+      }
+      
+      // Remove aria-hidden from root element
+      const root = document.getElementById('root');
+      if (root && root.getAttribute('aria-hidden') === 'true') {
+        root.removeAttribute('aria-hidden');
+        console.log('Removed aria-hidden from root');
+      }
+    };
+
+    // Clean up immediately on mount
+    cleanupBlockingStyles();
+
+    // Set up periodic cleanup to catch any Material-UI issues
+    const intervalId = setInterval(cleanupBlockingStyles, 500);
+
+    // Also clean up on any sidebar state change
+    cleanupBlockingStyles();
+
+    return () => {
+      clearInterval(intervalId);
+      // Final cleanup on unmount
+      cleanupBlockingStyles();
+    };
+  }, [sidebarOpen]); // Re-run when sidebar state changes
 
   const drawer = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -192,27 +247,27 @@ const AppLayout: React.FC<AppLayoutProps> = ({
         }}
       >
         <Toolbar>
+          {/* Mobile menu button */}
           <IconButton
             color="inherit"
-            aria-label="toggle drawer"
+            aria-label="toggle mobile menu"
             edge="start"
-            onClick={sidebarOpen ? handleSidebarToggle : handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: sidebarOpen ? 'none' : 'block' } }}
+            onClick={handleDrawerToggle}
+            sx={{ mr: 2, display: { sm: 'none' } }}
           >
             <MenuIcon />
           </IconButton>
           
-          {sidebarOpen && (
-            <IconButton
-              color="inherit"
-              aria-label="collapse sidebar"
-              edge="start"
-              onClick={handleSidebarToggle}
-              sx={{ mr: 2, display: { xs: 'none', sm: 'block' } }}
-            >
-              <ChevronLeft />
-            </IconButton>
-          )}
+          {/* Desktop sidebar toggle button */}
+          <IconButton
+            color="inherit"
+            aria-label={sidebarOpen ? 'collapse sidebar' : 'expand sidebar'}
+            edge="start"
+            onClick={handleSidebarToggle}
+            sx={{ mr: 2, display: { xs: 'none', sm: 'block' } }}
+          >
+            {sidebarOpen ? <ChevronLeft /> : <MenuIcon />}
+          </IconButton>
 
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             {navigationItems.find(item => item.id === currentView)?.label || 'Dashboard'}
