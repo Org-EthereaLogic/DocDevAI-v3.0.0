@@ -21,7 +21,9 @@ export * from './charts';
 export * from './forms';
 
 // VS Code extension components
-export * from './vscode';
+// NOTE: VS Code components are excluded from browser builds
+// They should only be imported directly in the VS Code extension
+// export * from './vscode';
 
 // Component metadata
 export const COMPONENT_INFO = {

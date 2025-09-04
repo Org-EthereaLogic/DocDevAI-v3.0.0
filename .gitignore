@@ -47,43 +47,61 @@ data/
 *.db-shm
 *.db-wal
 
-# Documentation should be tracked in git - removed from gitignore
-# Only ignore .DS_Store files in docs
-docs/.DS_Store
-M001_IMPLEMENTATION_SUMMARY.md
-.claude/agents/ai-ml-specialist.md
-.claude/agents/api-reliability-engineer.md
-.claude/agents/backend-api-developer.md
-.claude/agents/backend-reliability-engineer.md
-.claude/agents/code-quality-refactorer.md
-.claude/agents/data-engineer-dba.md
-.claude/agents/devops-engineer.md
-.claude/agents/frontend-app-developer.md
-.claude/agents/frontend-ux-specialist.md
-.claude/agents/infra-automation-engineer.md
-.claude/agents/infrastructure-automation-engineer.md
-.claude/agents/knowledge-transfer-mentor.md
-.claude/agents/lead-software-engineer.md
-.claude/agents/micro-interaction-designer.md
-.claude/agents/performance-engineering-specialist.md
-.claude/agents/performance-optimizer.md
-.claude/agents/python-expert.md
-.claude/agents/qa-test-automation.md
-.claude/agents/qa-testing-specialist.md
-.claude/agents/requirements-analyst.md
-.claude/agents/root-cause-analyzer.md
-.claude/agents/security-engineer-devsecops.md
-.claude/agents/software-architect.md
-.claude/agents/technical-documentation-specialist.md
-.claude/agents/test-automation-engineer.md
-.claude/agents/ui-visual-designer.md
-.claude/agents/ux-delight-enhancer.md
-.claude/agents/ux-designer-engineer.md
-.claude/agents/ux-researcher.md
-templates/architectural-design-document-creation.md
-templates/project-plan-WBS-creation.md
-templates/software-design-document-creation.md
-templates/software-requirements-specification-generator.md
-templates/software-user-stories-generator.md
-Screenshot 2025-09-01 at 16.01.55 (2).png
+# Build artifacts
+dist/
+build/
+*.tsbuildinfo
+
+# Testing artifacts
+coverage/
+coverage.json
+*.lcov
+.nyc_output
+htmlcov/
+test-results/
+comprehensive_validation_results/
+
+# Temporary files
+*.log
+*.tmp
+*.temp
+check-app.js
+jest.config.*.js
+
+# Screenshots and media
+Screenshot*.png
+*.jpg
+*.jpeg
+*.gif
+
+# Environment files
 .env
+.env.local
+.env.*.local
+
+# Archive folder (historical development)
+archive/
+
+# Generated reports
+*_SUMMARY.md
+*_REPORT.md
+PHASE_*.md
+MANUAL_TESTING_*.md
+faillensAI-user-stories.md
+.devdocai.yml
+
+# Test and debug files
+test-*.html
+*test*.html
+cors_test.html
+api-debug.html
+
+# Development API servers (keep production_api_server.py)
+simple_api_server.py
+direct_api_server.py
+api_server.py
+ai_powered_api_server.py
+real_api_server.py
+
+# Component test files
+src/components/Reliable*.tsx

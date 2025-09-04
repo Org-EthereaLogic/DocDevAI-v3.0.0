@@ -61,6 +61,7 @@ interface AnalysisResult {
 
 const QualityAnalyzer: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState('');
+  const [documentContent, setDocumentContent] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [results, setResults] = useState<AnalysisResult[]>([]);
   const [expandedAccordion, setExpandedAccordion] = useState<string | false>(false);
@@ -74,11 +75,14 @@ const QualityAnalyzer: React.FC = () => {
   ];
 
   const handleAnalyze = async () => {
-    if (!selectedFile) return;
+    if (!documentContent) {
+      alert('Please paste some content to analyze');
+      return;
+    }
 
     const newAnalysis: AnalysisResult = {
       id: Date.now().toString(),
-      fileName: selectedFile,
+      fileName: selectedFile || 'document.md',
       overallScore: 0,
       analysisDate: new Date(),
       scores: [],
@@ -88,38 +92,68 @@ const QualityAnalyzer: React.FC = () => {
     setResults(prev => [newAnalysis, ...prev]);
     setIsAnalyzing(true);
 
-    // Simulate quality analysis
     try {
-      setTimeout(() => {
-        const mockScores: QualityScore[] = qualityDimensions.map(dimension => ({
-          dimension,
-          score: Math.floor(Math.random() * 40) + 60, // 60-100 range
-          maxScore: 100,
-          issues: [
-            `Missing ${dimension.toLowerCase()} indicators`,
-            `Incomplete ${dimension.toLowerCase()} coverage`,
-          ].slice(0, Math.floor(Math.random() * 3)),
-          suggestions: [
-            `Improve ${dimension.toLowerCase()} by adding more examples`,
-            `Enhance ${dimension.toLowerCase()} structure`,
-          ].slice(0, Math.floor(Math.random() * 3)),
-        }));
+      // Call the production API server with proper structure
+      const response = await fetch('http://localhost:5000/api/analyze', {
+        method: 'POST',
+        mode: 'cors',
+        credentials: 'omit',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          content: documentContent,
+          file_name: selectedFile || 'document.md',
+        }),
+      });
 
-        const overallScore = mockScores.reduce((sum, score) => sum + score.score, 0) / mockScores.length;
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status} - ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('API Response:', data);
+
+      // The production server returns a different structure
+      if (data.success && data.result) {
+        const analysisResult = data.result;
+        
+        // Transform API response to match our component's structure
+        const transformedScores: QualityScore[] = analysisResult.scores.map((score: any) => ({
+          dimension: score.dimension,
+          score: score.score,
+          maxScore: score.maxScore || 100,
+          issues: score.issues || [],
+          suggestions: score.suggestions || [],
+        }));
 
         setResults(prev => prev.map(result =>
           result.id === newAnalysis.id
-            ? { ...result, status: 'complete', scores: mockScores, overallScore }
+            ? {
+                ...result,
+                status: 'complete' as const,
+                scores: transformedScores,
+                overallScore: analysisResult.overallScore,
+                analysisDate: new Date(analysisResult.analysisDate),
+              }
             : result
         ));
-        setIsAnalyzing(false);
-      }, 2000);
+      } else {
+        throw new Error('Invalid API response structure');
+      }
     } catch (error) {
+      console.error('Quality analysis error:', error);
+      
+      // Show user-friendly error message
+      alert(`Analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      
       setResults(prev => prev.map(result =>
         result.id === newAnalysis.id
-          ? { ...result, status: 'error' }
+          ? { ...result, status: 'error' as const }
           : result
       ));
+    } finally {
       setIsAnalyzing(false);
     }
   };
@@ -160,19 +194,30 @@ const QualityAnalyzer: React.FC = () => {
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <TextField
-                  label="File or Directory Path"
+                  label="Document Name (Optional)"
                   value={selectedFile}
                   onChange={(e) => setSelectedFile(e.target.value)}
-                  placeholder="/path/to/documentation.md"
+                  placeholder="README.md"
+                  fullWidth
+                />
+
+                <TextField
+                  label="Document Content"
+                  multiline
+                  rows={10}
+                  value={documentContent}
+                  onChange={(e) => setDocumentContent(e.target.value)}
+                  placeholder="Paste your documentation here for quality analysis..."
                   fullWidth
                   required
+                  helperText="Paste your markdown, code documentation, or any text content here"
                 />
 
                 <Button
                   variant="contained"
                   startIcon={<AnalyzeIcon />}
                   onClick={handleAnalyze}
-                  disabled={!selectedFile || isAnalyzing}
+                  disabled={!documentContent || isAnalyzing}
                   size="large"
                 >
                   {isAnalyzing ? 'Analyzing...' : 'Analyze Quality'}

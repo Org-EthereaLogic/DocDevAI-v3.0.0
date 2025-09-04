@@ -106,10 +106,23 @@ const Header: React.FC<HeaderProps> = ({
           <Tooltip title="Toggle navigation menu">
             <IconButton
               color="inherit"
-              aria-label="Open drawer"
+              aria-label="Toggle navigation menu"
+              aria-controls="app-sidebar"
               onClick={onMenuClick}
               edge="start"
-              sx={{ mr: 2 }}
+              sx={{ 
+                mr: 2,
+                // Ensure button is always interactive
+                position: 'relative',
+                zIndex: theme.zIndex.drawer + 2,
+                // Enhanced focus indicator
+                '&:focus-visible': {
+                  outline: `2px solid ${theme.palette.primary.main}`,
+                  outlineOffset: 2,
+                }
+              }}
+              // Prevent this button from ever being hidden by aria-hidden
+              tabIndex={0}
             >
               <MenuIcon />
             </IconButton>

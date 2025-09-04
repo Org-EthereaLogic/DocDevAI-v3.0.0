@@ -371,29 +371,42 @@ const Sidebar: React.FC<SidebarProps> = ({
       onClose={onClose}
       className={className}
       data-testid={testId}
-      ModalProps={{
-        keepMounted: true, // Better mobile performance
-      }}
+      // Only apply ModalProps for temporary variant (mobile)
+      {...(variant === 'temporary' && {
+        ModalProps: {
+          keepMounted: true, // Better mobile performance
+        }
+      })}
       sx={{
-        width: width,
+        width: open ? width : 0,
         flexShrink: 0,
         '& .MuiDrawer-paper': {
           width: width,
           boxSizing: 'border-box',
           borderRight: `1px solid ${theme.palette.divider}`,
           
-          // Ensure drawer is above other content
-          zIndex: theme.zIndex.drawer
-        },
-        
-        // Hide drawer when closed in persistent mode
-        ...(variant === 'persistent' && !open && {
-          width: 0,
-          '& .MuiDrawer-paper': {
-            width: 0,
-            overflow: 'hidden'
-          }
-        })
+          // Ensure drawer is above other content for temporary variant
+          ...(variant === 'temporary' && {
+            zIndex: theme.zIndex.drawer,
+          }),
+          
+          // Handle persistent drawer visibility
+          ...(variant === 'persistent' && {
+            position: 'absolute',
+            height: '100%',
+            transition: theme.transitions.create('transform', {
+              easing: theme.transitions.easing.sharp,
+              duration: theme.transitions.duration.leavingScreen,
+            }),
+            transform: open ? 'translateX(0)' : `translateX(-${width}px)`,
+            ...(open && {
+              transition: theme.transitions.create('transform', {
+                easing: theme.transitions.easing.easeOut,
+                duration: theme.transitions.duration.enteringScreen,
+              }),
+            })
+          })
+        }
       }}
       {...props}
     >

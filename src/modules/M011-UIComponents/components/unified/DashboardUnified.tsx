@@ -449,7 +449,7 @@ function getWidgetData(): WidgetData[] {
 }
 
 function renderWidget(widget: WidgetData) {
-  const components: Record<string, React.ComponentType> = {
+  const components: Record<string, React.ComponentType<any>> = {
     DocumentHealthWidget,
     QualityMetricsWidget,
     TrackingMatrixWidget,
@@ -457,7 +457,61 @@ function renderWidget(widget: WidgetData) {
     QuickActionsWidget
   };
   
+  // Sample data for RecentActivityWidget
+  const sampleActivityData = {
+    recentActivity: {
+      activities: [
+        {
+          id: '1',
+          type: 'generated',
+          title: 'Generated API Documentation',
+          description: 'Successfully generated comprehensive API documentation for authentication module',
+          timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(), // 5 min ago
+          documentName: 'auth-api-docs.md'
+        },
+        {
+          id: '2',
+          type: 'analyzed',
+          title: 'Quality Analysis Complete',
+          description: 'Analyzed README.md - Quality score: 92%, Completeness: 100%',
+          timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(), // 15 min ago
+          documentName: 'README.md'
+        },
+        {
+          id: '3',
+          type: 'enhanced',
+          title: 'Documentation Enhanced',
+          description: 'Applied AI enhancement to improve technical accuracy and readability',
+          timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 min ago
+          documentName: 'user-guide.md'
+        },
+        {
+          id: '4',
+          type: 'updated',
+          title: 'Template Updated',
+          description: 'Updated API documentation template with new sections for authentication',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(), // 1 hour ago
+          documentName: 'api-template.yaml'
+        },
+        {
+          id: '5',
+          type: 'generated',
+          title: 'Generated Test Documentation',
+          description: 'Created comprehensive test documentation for quality assurance module',
+          timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString(), // 2 hours ago
+          documentName: 'test-docs.md'
+        }
+      ]
+    }
+  };
+  
   const Component = components[widget.component];
+  
+  // Pass sample data to RecentActivityWidget
+  if (widget.component === 'RecentActivityWidget' && Component) {
+    return <Component data={sampleActivityData} />;
+  }
+  
   return Component ? <Component /> : <div>Widget not found</div>;
 }
 

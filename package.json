@@ -8,7 +8,8 @@
     "test": "tests"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "webpack --mode production",
+    "build:tsc": "tsc",
     "build:react": "webpack --mode production",
     "dev:react": "webpack serve --mode development",
     "test": "jest --passWithNoTests",
@@ -38,23 +39,23 @@
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/crypto-js": "^4.2.1",
-    "@types/dompurify": "^3.0.5",
+    "@types/dompurify": "^3.2.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.3.0",
     "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
+    "@types/react-dom": "^19.1.9",
     "@types/uuid": "^9.0.7",
     "@types/validator": "^13.11.7",
     "@typescript-eslint/eslint-plugin": "^8.41.0",
     "@typescript-eslint/parser": "^8.41.0",
     "compression-webpack-plugin": "^11.1.0",
-    "css-loader": "^6.8.0",
+    "css-loader": "^7.1.2",
     "eslint": "^9.34.0",
     "eslint-plugin-react": "^7.33.0",
     "eslint-plugin-react-hooks": "^5.0.0",
     "html-webpack-plugin": "^5.5.0",
     "identity-obj-proxy": "^3.0.0",
-    "jest": "^30.1.1",
+    "jest": "^30.1.2",
     "jest-environment-jsdom": "^30.1.1",
     "jest-transform-stub": "^2.0.0",
     "style-loader": "^4.0.0",
@@ -75,7 +76,7 @@
     "@mui/icons-material": "^5.14.0",
     "@mui/material": "^5.14.0",
     "@mui/system": "^5.14.0",
-    "@mui/x-charts": "^6.0.0",
+    "@mui/x-charts": "^8.11.0",
     "@mui/x-data-grid": "^6.10.0",
     "@types/canvas-confetti": "^1.9.0",
     "@types/d3": "^7.4.0",
@@ -87,7 +88,7 @@
     "framer-motion": "^10.16.0",
     "jose": "^5.2.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react-dom": "^19.1.1",
     "react-router-dom": "^6.15.0",
     "recharts": "^2.8.0",
     "uuid": "^9.0.1",
@@ -98,6 +99,6 @@
   },
   "peerDependencies": {
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^19.1.1"
   }
 }
