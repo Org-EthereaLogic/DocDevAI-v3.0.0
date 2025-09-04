@@ -1,0 +1,350 @@
+name: "Architecture Blueprint Generation"
+description: "Generate comprehensive system architecture based on requirements and planning documents"
+category: "generation"
+version: "1.0.0"
+
+# Define what inputs this template needs
+inputs:
+  - name: "user_stories"
+    type: "document"
+    required: true
+    description: "User stories document"
+    
+  - name: "project_plan"
+    type: "document"
+    required: true
+    description: "Project plan with phases and technology stack"
+    
+  - name: "software_requirements"
+    type: "document"
+    required: true
+    description: "Software requirements specification"
+    
+  - name: "initial_description"
+    type: "string"
+    required: true
+    description: "Original project description"
+    
+  - name: "project_name"
+    type: "string"
+    required: false
+    default: "System"
+    description: "Name of the system"
+    
+  - name: "architecture_style"
+    type: "string"
+    required: false
+    default: "microservices or modular monolith as appropriate"
+    description: "Preferred architectural style"
+
+# LLM configuration for multi-provider synthesis
+llm_config:
+  providers:
+    - name: "claude"
+      weight: 0.5
+      model: "claude-3-opus-20240229"
+    - name: "google"
+      weight: 0.3
+      model: "gemini-pro"
+    - name: "openai"
+      weight: 0.2
+      model: "gpt-4-turbo-preview"
+  
+  temperature: 0.7
+  max_tokens: 12000
+
+# The actual prompt template
+prompt:
+  system: |
+    You are a Senior Software Architect with deep expertise in system design, 
+    architectural patterns, and modern software engineering practices. You excel 
+    at creating comprehensive, scalable, and maintainable architecture blueprints 
+    that balance technical excellence with practical constraints.
+    
+    Your architectural designs:
+    - Follow SOLID principles and clean architecture patterns
+    - Consider scalability, security, and performance from the ground up
+    - Use appropriate design patterns and architectural styles
+    - Include clear component interactions and data flows
+    - Address non-functional requirements explicitly
+    - Provide implementation guidance and technology recommendations
+  
+  user: |
+    Based on the comprehensive requirements and planning documents for {{project_name}}, 
+    create a detailed Architecture Blueprint that will guide the development team.
+    
+    <user_stories>
+    {{user_stories}}
+    </user_stories>
+    
+    <project_plan>
+    {{project_plan}}
+    </project_plan>
+    
+    <software_requirements>
+    {{software_requirements}}
+    </software_requirements>
+    
+    <project_description>
+    {{initial_description}}
+    </project_description>
+    
+    Preferred Architecture Style: {{architecture_style}}
+    
+    Generate a comprehensive Architecture Blueprint:
+    
+    <architecture_blueprint>
+    # Architecture Blueprint - {{project_name}}
+    
+    ## 1. Executive Summary
+    
+    ### 1.1 Architecture Vision
+    [High-level vision and goals of the architecture]
+    
+    ### 1.2 Key Architectural Decisions
+    [List major decisions and their rationale]
+    
+    ### 1.3 Architecture Style
+    [Chosen style and justification]
+    
+    ## 2. System Overview
+    
+    ### 2.1 System Context Diagram
+    ```
+    [ASCII or description of system boundaries and external actors]
+    ```
+    
+    ### 2.2 High-Level Architecture
+    ```
+    [ASCII diagram or detailed description of major components]
+    ```
+    
+    ### 2.3 Key Components
+    - **Component A:** [Purpose and responsibilities]
+    - **Component B:** [Purpose and responsibilities]
+    - **Component C:** [Purpose and responsibilities]
+    
+    ## 3. Detailed Architecture
+    
+    ### 3.1 Component Architecture
+    
+    #### 3.1.1 [Component/Service Name]
+    **Purpose:** [What it does]
+    **Responsibilities:**
+    - [Responsibility 1]
+    - [Responsibility 2]
+    
+    **API/Interface:**
+    ```
+    [Key API endpoints or interface definitions]
+    ```
+    
+    **Data Model:**
+    ```
+    [Key entities and relationships]
+    ```
+    
+    **Dependencies:**
+    - Internal: [Other components]
+    - External: [External services/libraries]
+    
+    **Technology Stack:**
+    - Language: [Recommended language]
+    - Framework: [Recommended framework]
+    - Database: [If applicable]
+    
+    #### 3.1.2 [Next Component]
+    [Continue pattern for all major components]
+    
+    ### 3.2 Data Architecture
+    
+    #### 3.2.1 Data Storage Strategy
+    - **Primary Database:** [Type and justification]
+    - **Caching Layer:** [Strategy and technology]
+    - **File Storage:** [Approach if needed]
+    
+    #### 3.2.2 Data Flow
+    ```
+    [Data flow diagram or description]
+    ```
+    
+    #### 3.2.3 Data Models
+    
+    **Core Entities:**
+    ```
+    Entity: User
+    - id: UUID
+    - email: String
+    - created_at: Timestamp
+    [Continue for key entities]
+    ```
+    
+    ### 3.3 Integration Architecture
+    
+    #### 3.3.1 Internal Integration
+    - **Communication Pattern:** [Sync/Async, REST/GraphQL/gRPC]
+    - **Service Discovery:** [Approach if microservices]
+    - **Message Bus:** [If event-driven]
+    
+    #### 3.3.2 External Integration
+    - **Third-party Services:** [List and integration approach]
+    - **API Gateway:** [If applicable]
+    - **Webhooks:** [If applicable]
+    
+    ## 4. Cross-Cutting Concerns
+    
+    ### 4.1 Security Architecture
+    
+    #### 4.1.1 Authentication & Authorization
+    - **Method:** [JWT/OAuth2/SAML]
+    - **Identity Provider:** [Internal/External]
+    - **RBAC Model:** [Roles and permissions structure]
+    
+    #### 4.1.2 Data Security
+    - **Encryption at Rest:** [Approach]
+    - **Encryption in Transit:** [TLS configuration]
+    - **Sensitive Data Handling:** [PII protection]
+    
+    #### 4.1.3 Security Layers
+    - **Network Security:** [Firewalls, VPN]
+    - **Application Security:** [Input validation, XSS prevention]
+    - **API Security:** [Rate limiting, API keys]
+    
+    ### 4.2 Performance & Scalability
+    
+    #### 4.2.1 Performance Targets
+    - **Response Time:** [Target latency]
+    - **Throughput:** [Requests per second]
+    - **Concurrent Users:** [Expected load]
+    
+    #### 4.2.2 Scalability Strategy
+    - **Horizontal Scaling:** [Components that scale out]
+    - **Vertical Scaling:** [Components that scale up]
+    - **Auto-scaling:** [Rules and triggers]
+    
+    #### 4.2.3 Performance Optimization
+    - **Caching Strategy:** [Multi-level caching]
+    - **Database Optimization:** [Indexing, query optimization]
+    - **CDN Usage:** [Static content delivery]
+    
+    ### 4.3 Reliability & Availability
+    
+    #### 4.3.1 High Availability Design
+    - **Redundancy:** [Component redundancy]
+    - **Failover:** [Automatic failover strategy]
+    - **Load Balancing:** [Algorithm and configuration]
+    
+    #### 4.3.2 Disaster Recovery
+    - **Backup Strategy:** [Frequency and retention]
+    - **Recovery Time Objective (RTO):** [Target]
+    - **Recovery Point Objective (RPO):** [Target]
+    
+    ### 4.4 Monitoring & Observability
+    
+    #### 4.4.1 Monitoring Stack
+    - **Metrics:** [Tool and key metrics]
+    - **Logging:** [Centralized logging solution]
+    - **Tracing:** [Distributed tracing approach]
+    
+    #### 4.4.2 Alerting
+    - **Critical Alerts:** [List of critical conditions]
+    - **Warning Alerts:** [List of warning conditions]
+    - **Escalation:** [Alert escalation policy]
+    
+    ## 5. Deployment Architecture
+    
+    ### 5.1 Deployment Strategy
+    - **Environment:** [Cloud/On-premise/Hybrid]
+    - **Container Strategy:** [Docker/Kubernetes]
+    - **CI/CD Pipeline:** [Tools and process]
+    
+    ### 5.2 Infrastructure as Code
+    - **IaC Tool:** [Terraform/CloudFormation/etc.]
+    - **Configuration Management:** [Ansible/Chef/etc.]
+    
+    ### 5.3 Environment Configuration
+    
+    | Environment | Purpose | Configuration |
+    |------------|---------|---------------|
+    | Development | Local development | [Config] |
+    | Staging | Pre-production testing | [Config] |
+    | Production | Live system | [Config] |
+    
+    ## 6. Design Patterns & Best Practices
+    
+    ### 6.1 Applied Design Patterns
+    - **Pattern Name:** [Where and why it's used]
+    - **Repository Pattern:** [Data access layer]
+    - **Factory Pattern:** [Object creation]
+    - **Observer Pattern:** [Event handling]
+    
+    ### 6.2 Coding Standards
+    - **Code Style:** [Language-specific guidelines]
+    - **Documentation:** [Code documentation standards]
+    - **Testing:** [Test coverage requirements]
+    
+    ## 7. Technology Stack Summary
+    
+    | Layer | Technology | Justification |
+    |-------|-----------|---------------|
+    | Frontend | [Tech] | [Reason] |
+    | Backend | [Tech] | [Reason] |
+    | Database | [Tech] | [Reason] |
+    | Cache | [Tech] | [Reason] |
+    | Message Queue | [Tech] | [Reason] |
+    | Monitoring | [Tech] | [Reason] |
+    
+    ## 8. Migration & Evolution Strategy
+    
+    ### 8.1 Migration Path
+    [If replacing existing system]
+    
+    ### 8.2 Future Considerations
+    - **Planned Enhancements:** [Future features]
+    - **Scalability Path:** [Growth accommodation]
+    - **Technology Updates:** [Upgrade strategy]
+    
+    </architecture_blueprint>
+    
+    <architecture_decisions>
+    List and justify key architectural decisions:
+    1. [Decision]: [Rationale]
+    2. [Decision]: [Rationale]
+    </architecture_decisions>
+    
+    <implementation_priorities>
+    Recommend implementation order based on:
+    - Technical dependencies
+    - Risk factors
+    - Business value
+    - Complexity
+    </implementation_priorities>
+
+# Output processing configuration
+output:
+  format: "structured"
+  sections:
+    - name: "architecture_blueprint"
+      type: "document"
+      extract_tag: "architecture_blueprint"
+      save_as: "architecture_blueprint.md"
+      
+    - name: "architecture_decisions"
+      type: "list"
+      extract_tag: "architecture_decisions"
+      
+    - name: "implementation_priorities"
+      type: "analysis"
+      extract_tag: "implementation_priorities"
+
+# MIAIR optimization settings
+miair_config:
+  enabled: true
+  target_quality: 0.85
+  max_iterations: 5
+  focus_areas:
+    - "technical_accuracy"
+    - "completeness"
+    - "consistency"
+    - "feasibility"
+    - "scalability"

@@ -155,20 +155,84 @@ const AppLayout: React.FC<AppLayoutProps> = ({
     };
 
     initAccessibility();
+    
+    // Set up a periodic check to prevent aria-hidden issues
+    // This ensures the root element never blocks interaction
+    const checkAriaHidden = () => {
+      const rootEl = document.getElementById('root');
+      if (rootEl && rootEl.getAttribute('aria-hidden') === 'true') {
+        rootEl.removeAttribute('aria-hidden');
+        console.warn('Prevented aria-hidden focus trap on root element');
+      }
+      
+      // Also check for any parent elements that might have aria-hidden
+      const bodyEl = document.body;
+      if (bodyEl && bodyEl.getAttribute('aria-hidden') === 'true') {
+        bodyEl.removeAttribute('aria-hidden');
+        console.warn('Prevented aria-hidden focus trap on body element');
+      }
+      
+      // CRITICAL FIX: Also remove overflow:hidden which blocks sidebar expansion
+      // This is the issue preventing the sidebar from re-opening
+      if (bodyEl.style.overflow === 'hidden') {
+        bodyEl.style.overflow = '';
+        console.warn('Removed overflow:hidden from body - was blocking sidebar');
+      }
+      
+      const htmlEl = document.documentElement;
+      if (htmlEl.style.overflow === 'hidden') {
+        htmlEl.style.overflow = '';
+        console.warn('Removed overflow:hidden from html element');
+      }
+    };
+    
+    // Check immediately and then periodically
+    checkAriaHidden();
+    const intervalId = setInterval(checkAriaHidden, 1000);
+    
+    return () => {
+      clearInterval(intervalId);
+    };
   }, []);
 
   // Handle sidebar toggle
   const handleSidebarToggle = useCallback(() => {
-    setSidebarOpen(prev => !prev);
-    
-    // Update global state
-    globalState.updateUI({ sidebarOpen: !sidebarOpen });
-    
-    // Announce state change for screen readers
-    accessibilityManager.announceToScreenReader(
-      sidebarOpen ? 'Sidebar closed' : 'Sidebar opened'
-    );
-  }, [sidebarOpen, globalState]);
+    setSidebarOpen(prev => {
+      const newState = !prev;
+      console.log('Sidebar toggle:', prev, '->', newState); // Debug log
+      
+      // Update global state with the new state
+      globalState.updateUI({ sidebarOpen: newState });
+      
+      // Announce state change for screen readers
+      accessibilityManager.announceToScreenReader(
+        newState ? 'Sidebar opened' : 'Sidebar closed'
+      );
+      
+      // Ensure the root element never has aria-hidden set
+      // This prevents the focus trap issue
+      const rootEl = document.getElementById('root');
+      if (rootEl && rootEl.getAttribute('aria-hidden') === 'true') {
+        rootEl.removeAttribute('aria-hidden');
+        console.warn('Removed aria-hidden from root element to prevent focus trap');
+      }
+      
+      // CRITICAL FIX: Remove overflow:hidden from body
+      // Material-UI Drawer may set this and not remove it properly
+      if (document.body.style.overflow === 'hidden') {
+        document.body.style.overflow = '';
+        console.log('Removed overflow:hidden from body');
+      }
+      
+      // Also check for overflow on the html element
+      if (document.documentElement.style.overflow === 'hidden') {
+        document.documentElement.style.overflow = '';
+        console.log('Removed overflow:hidden from html element');
+      }
+      
+      return newState;
+    });
+  }, [globalState]);
 
   // Handle sidebar close (for mobile)
   const handleSidebarClose = useCallback(() => {
@@ -176,12 +240,12 @@ const AppLayout: React.FC<AppLayoutProps> = ({
     globalState.updateUI({ sidebarOpen: false });
   }, [globalState]);
 
-  // Responsive behavior
+  // Responsive behavior - only close on initial mobile detection
   useEffect(() => {
     if (isMobile && sidebarOpen) {
       setSidebarOpen(false);
     }
-  }, [isMobile]);
+  }, [isMobile]); // Intentionally not including sidebarOpen to avoid loop
 
   // Skip rendering until mounted (prevents hydration issues)
   if (!mounted) {
