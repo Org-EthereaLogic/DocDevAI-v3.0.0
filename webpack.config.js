@@ -265,7 +265,26 @@ module.exports = (env, argv) => {
       },
       static: {
         directory: path.join(__dirname, 'public')
-      }
+      },
+      // Proxy API requests to our Python server
+      proxy: [
+        {
+          context: ['/api'],
+          target: 'http://localhost:5000',
+          changeOrigin: true,
+          secure: false,
+          logLevel: 'debug',
+          onProxyReq: (proxyReq, req, res) => {
+            console.log('🔄 Proxying request:', req.method, req.url);
+          },
+          onProxyRes: (proxyRes, req, res) => {
+            console.log('✅ Proxy response:', proxyRes.statusCode, req.url);
+          },
+          onError: (err, req, res) => {
+            console.error('❌ Proxy error:', err.message);
+          }
+        }
+      ]
     },
 
     // Performance hints
