@@ -87,3 +87,21 @@ archive/
 *_REPORT.md
 PHASE_*.md
 MANUAL_TESTING_*.md
+faillensAI-user-stories.md
+.devdocai.yml
+
+# Test and debug files
+test-*.html
+*test*.html
+cors_test.html
+api-debug.html
+
+# Development API servers (keep production_api_server.py)
+simple_api_server.py
+direct_api_server.py
+api_server.py
+ai_powered_api_server.py
+real_api_server.py
+
+# Component test files
+src/components/Reliable*.tsx
