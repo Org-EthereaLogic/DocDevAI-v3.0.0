@@ -4,6 +4,35 @@ Production-Ready API Server for DevDocAI v3.0.0
 Enterprise-grade reliability with fault tolerance, circuit breakers, and comprehensive monitoring
 """
 
+def safe_error_response(error, status_code=500):
+    """Return sanitized error response to prevent information disclosure."""
+    import logging
+    from flask import jsonify
+    
+    # Log full error details internally
+    logging.error(f"API Error: {error}", exc_info=True)
+    
+    # Generic error messages for clients
+    error_messages = {
+        400: "Invalid request",
+        401: "Authentication required",
+        403: "Access denied",
+        404: "Resource not found",
+        405: "Method not allowed",
+        422: "Validation failed",
+        429: "Too many requests",
+        500: "Internal server error",
+        502: "Service temporarily unavailable",
+        503: "Service unavailable"
+    }
+    
+    return jsonify({
+        'success': False,
+        'error': error_messages.get(status_code, "An error occurred"),
+        'status_code': status_code
+    }), status_code
+
+
 import os
 import sys
 import asyncio
@@ -497,7 +526,7 @@ class ProductionAPIServer:
                 logger.warning(f"Validation error: {e}")
                 return jsonify({
                     'success': False,
-                    'error': str(e),
+                    'error': safe_error_response(e)[0].json['error'],
                     'error_type': 'validation_error'
                 }), 400
                 
@@ -768,4 +797,4 @@ server = None
 
 if __name__ == '__main__':
     server = ProductionAPIServer()
-    server.run(debug=True)
+    server.run(debug=os.getenv("FLASK_ENV") == "development")

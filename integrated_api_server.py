@@ -4,6 +4,35 @@ Integrated API Server for DevDocAI v3.0.0
 Uses the actual M004 Document Generator with real AI integration.
 """
 
+def safe_error_response(error, status_code=500):
+    """Return sanitized error response to prevent information disclosure."""
+    import logging
+    from flask import jsonify
+    
+    # Log full error details internally
+    logging.error(f"API Error: {error}", exc_info=True)
+    
+    # Generic error messages for clients
+    error_messages = {
+        400: "Invalid request",
+        401: "Authentication required",
+        403: "Access denied",
+        404: "Resource not found",
+        405: "Method not allowed",
+        422: "Validation failed",
+        429: "Too many requests",
+        500: "Internal server error",
+        502: "Service temporarily unavailable",
+        503: "Service unavailable"
+    }
+    
+    return jsonify({
+        'success': False,
+        'error': error_messages.get(status_code, "An error occurred"),
+        'status_code': status_code
+    }), status_code
+
+
 import os
 import sys
 import asyncio
@@ -109,7 +138,7 @@ def test_api():
         
     except Exception as e:
         logger.error(f"❌ API test failed: {e}")
-        response = jsonify({'error': str(e), 'status': 'Error'})
+        response = jsonify({'error': safe_error_response(e)[0].json['error'], 'status': 'Error'})
         response.headers['Access-Control-Allow-Origin'] = 'http://localhost:3000'
         return response, 500
 
@@ -185,7 +214,7 @@ def generate_document():
         
         error_response = jsonify({
             'success': False,
-            'error': str(e),
+            'error': safe_error_response(e)[0].json['error'],
             'content': '',
             'metadata': {
                 'model': 'DevDocAI Generator',
@@ -557,7 +586,7 @@ def list_templates():
         
     except Exception as e:
         logger.error(f"❌ Template listing failed: {e}")
-        response = jsonify({'error': str(e), 'templates': []})
+        response = jsonify({'error': safe_error_response(e)[0].json['error'], 'templates': []})
         response.headers['Access-Control-Allow-Origin'] = 'http://localhost:3000'
         return response, 500
 
@@ -574,6 +603,6 @@ if __name__ == '__main__':
     app.run(
         host='0.0.0.0',
         port=5000,
-        debug=True,
+        debug=os.getenv("FLASK_ENV") == "development",
         threaded=True
     )

@@ -1,0 +1,86 @@
+{
+  "timestamp": "2025-09-04 22:09:19",
+  "total_tests": 13,
+  "passed": 12,
+  "failed": 1,
+  "results": [
+    {
+      "test": "Debug mode check - production",
+      "passed": true,
+      "details": "Debug mode properly controlled by environment",
+      "status": "\u2705 PASS"
+    },
+    {
+      "test": "Debug mode check - real_ai",
+      "passed": true,
+      "details": "Debug mode properly controlled by environment",
+      "status": "\u2705 PASS"
+    },
+    {
+      "test": "Debug mode check - integrated",
+      "passed": true,
+      "details": "Debug mode properly controlled by environment",
+      "status": "\u2705 PASS"
+    },
+    {
+      "test": "Path validation function exists",
+      "passed": true,
+      "details": "validate_file_path() function found",
+      "status": "\u2705 PASS"
+    },
+    {
+      "test": "Path traversal blocked: ../../../etc/passwd...",
+      "passed": true,
+      "details": "Request properly rejected with status 500",
+      "status": "\u2705 PASS"
+    },
+    {
+      "test": "Path traversal blocked: ../../.env...",
+      "passed": true,
+      "details": "Request properly rejected with status 500",
+      "status": "\u2705 PASS"
+    },
+    {
+      "test": "Path traversal blocked: /etc/shadow...",
+      "passed": true,
+      "details": "Request properly rejected with status 500",
+      "status": "\u2705 PASS"
+    },
+    {
+      "test": "Path traversal blocked: ../../../../root/.ss...",
+      "passed": true,
+      "details": "Request properly rejected with status 500",
+      "status": "\u2705 PASS"
+    },
+    {
+      "test": "Error sanitization - production",
+      "passed": true,
+      "details": "safe_error_response() function implemented",
+      "status": "\u2705 PASS"
+    },
+    {
+      "test": "Error sanitization - real_ai",
+      "passed": true,
+      "details": "safe_error_response() function implemented",
+      "status": "\u2705 PASS"
+    },
+    {
+      "test": "Error sanitization - integrated",
+      "passed": true,
+      "details": "safe_error_response() function implemented",
+      "status": "\u2705 PASS"
+    },
+    {
+      "test": "Error response sanitization",
+      "passed": true,
+      "details": "No sensitive information in error",
+      "status": "\u2705 PASS"
+    },
+    {
+      "test": "Debug console disabled",
+      "passed": false,
+      "details": "Debug console accessible with status 500",
+      "status": "\u274c FAIL"
+    }
+  ]
+}
