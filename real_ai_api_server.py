@@ -670,12 +670,9 @@ def read_file():
         
         except Exception as e:
             logger.error(f"❌ Error reading file {file_path}: {str(e)}")
-            response = jsonify({
-                'success': False,
-                'error': f'Failed to read file: {str(e)}'
-            })
+            response, status = safe_error_response(e, status_code=500)
             response.headers['Access-Control-Allow-Origin'] = 'http://localhost:3000'
-            return response, 500
+            return response, status
     
     except Exception as e:
         logger.error(f"❌ Read file request failed: {str(e)}")
