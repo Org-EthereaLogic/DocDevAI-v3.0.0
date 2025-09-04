@@ -91,7 +91,7 @@
     "react-dom": "^19.1.1",
     "react-router-dom": "^6.15.0",
     "recharts": "^2.8.0",
-    "uuid": "^9.0.1",
+    "uuid": "^11.1.0",
     "validator": "^13.11.0",
     "xss": "^1.0.14",
     "zod": "^3.22.5",
