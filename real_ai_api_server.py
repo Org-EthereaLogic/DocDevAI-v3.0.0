@@ -645,7 +645,9 @@ def read_file():
             if not os.path.isabs(file_path):
                 file_path = os.path.abspath(file_path)
             
-            if not os.path.exists(validate_file_path(file_path)):
+            # Always use the validated path for subsequent operations
+            validated_path = validate_file_path(file_path)
+            if not os.path.exists(validated_path):
                 response = jsonify({
                     'success': False,
                     'error': f'File not found: {file_path}'
@@ -653,8 +655,8 @@ def read_file():
                 response.headers['Access-Control-Allow-Origin'] = 'http://localhost:3000'
                 return response, 404
             
-            # Read the file content
-            with open(file_path, 'r', encoding='utf-8') as f:
+            # Read the file content using the validated path
+            with open(validated_path, 'r', encoding='utf-8') as f:
                 content = f.read()
             
             logger.info(f"✅ Successfully read file: {file_path} ({len(content)} bytes)")
