@@ -153,39 +153,41 @@ class InputValidator:
         """Prevent path traversal attacks"""
         if not path:
             raise ValueError("Project path is required")
-            
-        # Resolve to absolute path
-        try:
-            safe_path = Path(path).resolve()
-        except Exception:
-            raise ValueError("Invalid path format")
-        
-        # Check if path is within allowed directories
+
+        # Reject absolute paths at input
+        if os.path.isabs(path):
+            raise ValueError("Absolute paths not allowed")
+
+        # Clean path by removing suspicious null bytes, etc.
+        cleaned_path = path.replace('\x00', '').strip()
+
         allowed = False
+        safe_path = None
         for allowed_base in SecurityConfig.ALLOWED_PROJECT_PATHS:
             allowed_base_path = Path(allowed_base).resolve()
-            # Properly check if safe_path is within allowed_base_path
+            candidate_path = (allowed_base_path / cleaned_path).resolve()
             try:
                 # Use is_relative_to if available (Python 3.9+)
-                if hasattr(safe_path, "is_relative_to"):
-                    if safe_path.is_relative_to(allowed_base_path):
+                if hasattr(candidate_path, "is_relative_to"):
+                    if candidate_path.is_relative_to(allowed_base_path):
                         allowed = True
+                        safe_path = candidate_path
                         break
                 else:
-                    # Fallback for older Python: raises ValueError if not descendant
-                    safe_path.relative_to(allowed_base_path)
+                    candidate_path.relative_to(allowed_base_path)
                     allowed = True
+                    safe_path = candidate_path
                     break
             except ValueError:
                 continue
-        
-        if not allowed:
+
+        if not allowed or safe_path is None:
             raise ValueError("Project path outside allowed directories")
-            
-        # Additional checks
-        if '..' in path or path.startswith('/etc') or path.startswith('/root'):
+
+        # Additional checks for suspicious path patterns
+        if '..' in path or cleaned_path.startswith('/etc') or cleaned_path.startswith('/root'):
             raise ValueError("Suspicious path pattern detected")
-            
+
         return str(safe_path)
     
     @staticmethod
