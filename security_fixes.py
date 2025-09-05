@@ -89,9 +89,9 @@ class SecurityMiddleware:
                     return jsonify({'error': 'Token expired'}), 401
                     
             except JWTError as e:
-                return jsonify({'error': f'Invalid token: {str(e)}'}), 401
-                
-            return f(*args, **kwargs)
+                # Log the exception on the server, return only a generic message to the client
+                print(f"JWTError caught in require_auth: {str(e)}")  # Consider replacing with logging framework
+                return jsonify({'error': 'Invalid token'}), 401
         return decorated_function
     
     @staticmethod
