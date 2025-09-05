@@ -200,7 +200,7 @@ class InputValidator:
                         break
                     except ValueError:
                         pass
-            except (ValueError, FileNotFoundError):
+            except OSError:
                 # Path resolution failed, skip this allowed_base
                 continue
         if not allowed or safe_path is None:
