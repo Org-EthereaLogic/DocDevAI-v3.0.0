@@ -164,10 +164,21 @@ class InputValidator:
         allowed = False
         for allowed_base in SecurityConfig.ALLOWED_PROJECT_PATHS:
             allowed_base_path = Path(allowed_base).resolve()
-            if str(safe_path).startswith(str(allowed_base_path)):
-                allowed = True
-                break
-                
+            # Properly check if safe_path is within allowed_base_path
+            try:
+                # Use is_relative_to if available (Python 3.9+)
+                if hasattr(safe_path, "is_relative_to"):
+                    if safe_path.is_relative_to(allowed_base_path):
+                        allowed = True
+                        break
+                else:
+                    # Fallback for older Python: raises ValueError if not descendant
+                    safe_path.relative_to(allowed_base_path)
+                    allowed = True
+                    break
+            except ValueError:
+                continue
+        
         if not allowed:
             raise ValueError("Project path outside allowed directories")
             
