@@ -913,9 +913,10 @@ Type: {template.upper()}
                 }), 200
                 
             except ValueError as e:
+                logger.warning(f"Invalid client request: {str(e)}")
                 return jsonify({
                     'success': False,
-                    'error': str(e)
+                    'error': 'Invalid request'
                 }), 400
                 
             except Exception as e:
