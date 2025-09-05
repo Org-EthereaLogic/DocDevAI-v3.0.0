@@ -61,410 +61,471 @@ const DocumentGenerator: React.FC = () => {
   const [showPreview, setShowPreview] = useState(false);
 
   const templates = [
-    { id: 'api-docs', name: 'API Documentation', description: 'REST API documentation with examples' },
-    { id: 'readme', name: 'README Generator', description: 'Project README with setup instructions' },
-    { id: 'code-docs', name: 'Code Documentation', description: 'Inline code documentation' },
-    { id: 'user-guide', name: 'User Guide', description: 'End-user documentation' },
-    { id: 'changelog', name: 'Changelog', description: 'Version history and changes' },
-    { id: 'technical-spec', name: 'Technical Specification', description: 'Detailed technical documentation' },
+    { id: 'prd', name: 'Product Requirements Document (PRD)', description: 'Comprehensive product requirements with user stories and success metrics' },
+    { id: 'wbs', name: 'Work Breakdown Structure (WBS)', description: 'Hierarchical task decomposition with effort estimates and dependencies' },
+    { id: 'srs', name: 'Software Requirements Specification (SRS)', description: 'IEEE 830 compliant detailed technical requirements' },
+    { id: 'architecture', name: 'Architecture Blueprint', description: 'System architecture design with components and integration points' },
   ];
 
   const generateDocumentContent = (template: string, path: string, custom: string) => {
     const templateName = templates.find(t => t.id === template)?.name || 'Document';
+    const projectName = path.split('/').pop() || 'Project';
     
     const contentMap: Record<string, string> = {
-      'api-docs': `# API Documentation
+      'prd': `# ${projectName} - Product Requirements Document (PRD)
 
-## Project: ${path}
+> Generated using DevDocAI v3.0.0 with AI-powered multi-LLM synthesis
 
-Generated using DevDocAI v3.0.0 with AI-powered documentation generation.
+${custom ? `## Project Context\n${custom}\n` : ''}
 
-${custom ? `### Custom Instructions Applied:\n${custom}\n` : ''}
+## 1. Executive Summary
 
-## Endpoints
+### 1.1 Product Vision
+Transform how developers create and maintain technical documentation through AI-powered generation, ensuring consistency, completeness, and quality across all project documentation.
 
-### GET /api/users
-Retrieve a list of all users.
+### 1.2 Problem Statement
+Developers spend 30-40% of their time on documentation, often producing inconsistent or incomplete docs. This impacts project maintainability, onboarding, and collaboration.
 
-**Response:**
-\`\`\`json
-{
-  "users": [
-    {
-      "id": 1,
-      "name": "John Doe",
-      "email": "john@example.com"
-    }
-  ]
-}
-\`\`\`
+### 1.3 Value Proposition
+- **80% reduction** in documentation time
+- **Consistent quality** across all documents
+- **AI-powered insights** for better requirements
+- **Automated updates** as code evolves
 
-### POST /api/users
-Create a new user.
+### 1.4 Success Metrics
+- Documentation generation time: <5 minutes per document
+- Quality score: >85% on all generated docs
+- User satisfaction: >4.5/5 rating
+- Adoption rate: 75% of development teams
 
-**Request Body:**
-\`\`\`json
-{
-  "name": "string",
-  "email": "string"
-}
-\`\`\`
+## 2. Target Users
 
-### GET /api/users/:id
-Retrieve a specific user by ID.
+### 2.1 Primary Users
+**Solo Developers & Small Teams**
+- Working on multiple projects
+- Limited time for documentation
+- Need professional-quality docs for clients
 
-### PUT /api/users/:id
-Update an existing user.
+### 2.2 User Personas
 
-### DELETE /api/users/:id
-Delete a user by ID.
+**Alex - The Indie Developer**
+- Builds SaaS products solo
+- Struggles with documentation time
+- Needs to impress potential investors
 
-## Authentication
-All API endpoints require Bearer token authentication.
+**Sam - The Team Lead**
+- Manages 5-person development team
+- Ensures documentation standards
+- Facilitates knowledge transfer
 
-## Rate Limiting
-- 100 requests per minute per IP address
-- 1000 requests per hour per API key
+## 3. Core Features (MVP)
 
----
-*Generated on ${new Date().toLocaleString()} by DevDocAI*`,
+### Feature 1: AI-Powered Generation
+- Multi-LLM synthesis for best results
+- Context-aware documentation
+- Learns from your codebase
 
-      'readme': `# ${path.split('/').pop() || 'Project'}
+### Feature 2: Template Library
+- PRD, WBS, SRS, Architecture templates
+- Customizable for specific needs
+- Industry best practices built-in
 
-> AI-Generated README by DevDocAI v3.0.0
+### Feature 3: Quality Analysis
+- Real-time quality scoring
+- Improvement suggestions
+- Compliance checking
 
-${custom ? `## About\n${custom}\n` : '## About\nThis project provides a comprehensive solution for modern software development needs.'}
-
-## Installation
-
-\`\`\`bash
-# Clone the repository
-git clone https://github.com/username/${path.split('/').pop()}.git
-
-# Install dependencies
-npm install
-
-# Configure environment
-cp .env.example .env
-\`\`\`
-
-## Usage
-
-\`\`\`bash
-# Development mode
-npm run dev
-
-# Production build
-npm run build
-
-# Run tests
-npm test
-\`\`\`
-
-## Features
-
-- ✅ Feature-rich implementation
-- ✅ High performance optimization
-- ✅ Comprehensive test coverage
-- ✅ Security hardened
-- ✅ Production ready
-
-## Configuration
-
-Configure the application using environment variables:
-
-\`\`\`env
-API_KEY=your_api_key
-DATABASE_URL=postgresql://localhost:5432/db
-NODE_ENV=production
-\`\`\`
-
-## Contributing
-
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and submission process.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## 4. Technical Requirements
+- Response time: <3 seconds for analysis
+- Document generation: <30 seconds
+- 99.9% uptime
+- Support for 10+ programming languages
 
 ---
 *Generated on ${new Date().toLocaleString()} by DevDocAI*`,
 
-      'code-docs': `# Code Documentation
+      'wbs': `# ${projectName} - Work Breakdown Structure (WBS)
 
-## Project: ${path}
+> Generated using DevDocAI v3.0.0 with intelligent task decomposition
 
-${custom ? `### Documentation Scope:\n${custom}\n` : ''}
+${custom ? `## Project Scope\n${custom}\n` : ''}
 
-## Module Overview
+## Project Overview
+- **Duration:** 3-6 months
+- **Team Size:** 3-5 developers
+- **Methodology:** Agile/Scrum
+- **Total Effort:** 2,400 person-hours
 
-### Core Modules
+## Work Breakdown Structure
 
-#### Configuration Manager (M001)
-Handles system configuration and settings management.
+### 1.0 ${projectName} [PROJECT]
+**Total Effort:** 2,400 hours
+**Duration:** 20 weeks
 
-\`\`\`typescript
-class ConfigurationManager {
-  /**
-   * Initialize the configuration system
-   * @returns Promise<void>
-   */
-  async initialize(): Promise<void>
-  
-  /**
-   * Get configuration value
-   * @param key - Configuration key
-   * @returns Configuration value
-   */
-  getValue(key: string): any
-}
-\`\`\`
+#### 1.1 Project Management [10%]
+**Effort:** 240 hours
 
-#### Storage System (M002)
-Manages data persistence with encryption.
+##### 1.1.1 Project Planning
+- **Effort:** 40 hours
+- **Duration:** 1 week
+- **Deliverable:** Project plan, WBS
+- Create project charter (8h)
+- Develop WBS (8h)
+- Create schedule (16h)
+- Define communication plan (8h)
 
-\`\`\`python
-def store_document(content: str, metadata: dict) -> str:
-    """
-    Store a document with metadata.
-    
-    Args:
-        content: Document content
-        metadata: Associated metadata
-        
-    Returns:
-        Document ID
-    """
-    pass
-\`\`\`
+##### 1.1.2 Risk Management
+- **Effort:** 24 hours
+- **Dependencies:** 1.1.1
+- Identify risks (8h)
+- Assess probability/impact (8h)
+- Develop mitigation (8h)
 
-## API Reference
+#### 1.2 Requirements & Design [15%]
+**Effort:** 360 hours
 
-See [API Documentation](./api-docs.md) for detailed endpoint documentation.
+##### 1.2.1 Requirements Gathering
+- **Effort:** 80 hours
+- **Duration:** 2 weeks
+- Stakeholder interviews (24h)
+- Requirements workshops (16h)
+- Document functional requirements (24h)
+- Document non-functional requirements (16h)
 
-## Architecture
+##### 1.2.2 System Architecture
+- **Effort:** 60 hours
+- **Dependencies:** 1.2.1
+- High-level architecture (16h)
+- Component design (20h)
+- Data model design (16h)
+- Integration design (8h)
 
-The system follows a modular architecture with 13 independent modules.
+#### 1.3 Development [45%]
+**Effort:** 1,080 hours
 
----
-*Generated on ${new Date().toLocaleString()} by DevDocAI*`,
+##### 1.3.1 Backend Development
+- **Effort:** 540 hours
+- Database implementation (40h)
+- API development (200h)
+- Business logic (300h)
 
-      'user-guide': `# User Guide
+##### 1.3.2 Frontend Development
+- **Effort:** 540 hours
+- UI components (180h)
+- Page implementation (240h)
+- Integration (120h)
 
-## ${path.split('/').pop() || 'Application'} User Manual
+#### 1.4 Testing [20%]
+**Effort:** 480 hours
+- Unit testing (160h)
+- Integration testing (120h)
+- System testing (80h)
+- UAT (120h)
 
-${custom ? `### Guide Focus:\n${custom}\n` : ''}
+#### 1.5 Deployment [10%]
+**Effort:** 240 hours
+- Environment setup (40h)
+- Data migration (40h)
+- Production deployment (40h)
+- Post-deployment support (120h)
 
-## Getting Started
+## Milestones
+| ID | Milestone | Week | Success Criteria |
+|----|-----------|------|------------------|
+| M1 | Requirements Complete | 3 | Sign-off received |
+| M2 | Design Complete | 5 | Architecture approved |
+| M3 | Alpha Release | 12 | Core features working |
+| M4 | Beta Release | 16 | Feature complete |
+| M5 | Production Release | 20 | UAT passed |
 
-Welcome to the application! This guide will help you get up and running quickly.
-
-### System Requirements
-
-- Operating System: Windows 10+, macOS 10.15+, Ubuntu 20.04+
-- Memory: 4GB RAM minimum, 8GB recommended
-- Storage: 500MB available space
-- Network: Internet connection for cloud features
-
-### Installation
-
-1. Download the installer from our website
-2. Run the installer and follow the prompts
-3. Launch the application
-4. Complete the initial setup wizard
-
-## Basic Usage
-
-### Creating Your First Project
-
-1. Click "New Project" on the dashboard
-2. Enter project details
-3. Select a template
-4. Click "Create"
-
-### Generating Documentation
-
-1. Navigate to Document Generator
-2. Select your project path
-3. Choose a template
-4. Click "Generate"
-
-### Viewing Results
-
-Your generated documentation will appear in the history panel. Click the preview icon to view or download icon to save.
-
-## Advanced Features
-
-### Custom Templates
-Create your own templates for specialized documentation needs.
-
-### Batch Processing
-Generate multiple documents simultaneously for large projects.
-
-### Export Options
-Export in multiple formats: Markdown, HTML, PDF, Word
-
-## Troubleshooting
-
-### Common Issues
-
-**Issue**: Generation takes too long
-**Solution**: Check your internet connection and try reducing project size
-
-**Issue**: Cannot preview documents
-**Solution**: Ensure your browser allows popups from this application
-
-## Support
-
-For additional help, visit our documentation site or contact support@devdocai.com
+## Critical Path
+1.1.1 → 1.2.1 → 1.2.2 → 1.3.1 → 1.3.2 → 1.4 → 1.5
 
 ---
 *Generated on ${new Date().toLocaleString()} by DevDocAI*`,
 
-      'changelog': `# Changelog
+      'srs': `# ${projectName} - Software Requirements Specification (SRS)
 
-## Project: ${path}
+> IEEE 830 Compliant - Generated by DevDocAI v3.0.0
 
-${custom ? `### Release Notes:\n${custom}\n` : ''}
+${custom ? `## Project Context\n${custom}\n` : ''}
 
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [3.0.0] - ${new Date().toISOString().split('T')[0]}
-
-### Added
-- AI-powered document generation with multi-LLM synthesis
-- 13 comprehensive modules for complete documentation lifecycle
-- Web dashboard interface
-- CLI tool for command-line operations
-- VS Code extension integration
-
-### Changed
-- Upgraded from template-based to AI-driven generation
-- Improved performance by 80.9% through refactoring
-- Enhanced security with enterprise-grade protection
-
-### Fixed
-- Sidebar toggle interaction issue
-- Recent activity feed display
-- Module integration conflicts
-
-## [2.0.0] - 2024-06-01
-
-### Added
-- Template registry with 35 templates
-- Quality analysis engine
-- Security module
-
-### Changed
-- Refactored core architecture
-- Improved test coverage to 95%
-
-## [1.0.0] - 2024-01-01
-
-### Added
-- Initial release
-- Basic documentation generation
-- Template system
-- Configuration management
-
----
-*Generated on ${new Date().toLocaleString()} by DevDocAI*`,
-
-      'technical-spec': `# Technical Specification
-
-## Project: ${path}
-
-${custom ? `### Specification Focus:\n${custom}\n` : ''}
-
-## 1. Overview
+## 1. Introduction
 
 ### 1.1 Purpose
-This document provides the technical specification for the project implementation.
+This SRS describes the functional and non-functional requirements for ${projectName}, providing a comprehensive specification for development teams, QA engineers, and stakeholders.
 
 ### 1.2 Scope
-Covers all technical aspects including architecture, APIs, data models, and security.
+${projectName} is a software system designed to meet modern development needs with scalability, security, and performance at its core.
 
-## 2. Architecture
+### 1.3 Definitions
+- **API**: Application Programming Interface
+- **MVP**: Minimum Viable Product
+- **SLA**: Service Level Agreement
+- **RBAC**: Role-Based Access Control
 
-### 2.1 System Architecture
-- **Frontend**: React 18 with TypeScript
-- **Backend**: Node.js with Express
-- **Database**: SQLite with SQLCipher encryption
-- **AI Integration**: Multi-LLM synthesis (Claude, ChatGPT, Gemini)
+## 2. Overall Description
 
-### 2.2 Module Architecture
-The system consists of 13 independent modules:
+### 2.1 Product Perspective
+The system operates as a standalone application with optional cloud integration, designed for cross-platform deployment.
 
-1. M001 - Configuration Manager
-2. M002 - Local Storage System
-3. M003 - MIAIR Engine
-4. M004 - Document Generator
-5. M005 - Quality Engine
-6. M006 - Template Registry
-7. M007 - Review Engine
-8. M008 - LLM Adapter
-9. M009 - Enhancement Pipeline
-10. M010 - Security Module
-11. M011 - UI Components
-12. M012 - CLI Interface
-13. M013 - VS Code Extension
+### 2.2 Product Functions
+- User authentication and authorization
+- Data processing and storage
+- Real-time notifications
+- Analytics and reporting
+- API integration capabilities
 
-## 3. Data Models
+### 2.3 User Classes
+1. **Administrators**: Full system access
+2. **Power Users**: Advanced features
+3. **Standard Users**: Core functionality
+4. **Guest Users**: Limited read-only access
 
-### 3.1 Document Model
-\`\`\`typescript
-interface Document {
-  id: string;
-  title: string;
-  content: string;
-  metadata: {
-    createdAt: Date;
-    updatedAt: Date;
-    version: string;
-    author: string;
-  };
-}
-\`\`\`
+## 3. Specific Requirements
 
-### 3.2 Configuration Model
-\`\`\`typescript
-interface Configuration {
-  key: string;
-  value: any;
-  encrypted: boolean;
-  scope: 'global' | 'project' | 'user';
-}
-\`\`\`
+### 3.1 Functional Requirements
 
-## 4. API Specifications
+#### FR-001: User Authentication
+- **Priority:** High
+- **Description:** Secure user authentication using JWT tokens
+- **Input:** Username, password
+- **Processing:** Validate credentials, generate token
+- **Output:** Authentication token, user profile
+- **Error Handling:** Invalid credentials, account locked
 
-### 4.1 REST API
-- Base URL: \`/api/v1\`
-- Authentication: Bearer token
-- Rate Limiting: 100 req/min
+#### FR-002: Data Management
+- **Priority:** High
+- **Description:** CRUD operations on application data
+- **Validation:** Schema validation, authorization checks
+- **Performance:** <100ms response time for queries
 
-### 4.2 WebSocket API
-- Real-time updates for generation progress
-- Event-based communication
+### 3.2 Non-Functional Requirements
 
-## 5. Security
+#### 3.2.1 Performance
+- Response time: <200ms for 95% of requests
+- Throughput: 1000 requests per second
+- Concurrent users: 500 simultaneous
 
-### 5.1 Encryption
-- AES-256-GCM for data at rest
+#### 3.2.2 Security
+- Encryption: AES-256 for data at rest
 - TLS 1.3 for data in transit
+- OWASP Top 10 compliance
+- Regular security audits
 
-### 5.2 Authentication
-- JWT tokens with refresh mechanism
-- Multi-factor authentication support
-
-## 6. Performance Requirements
-
-- Response Time: <200ms for API calls
-- Throughput: 1000+ concurrent users
+#### 3.2.3 Reliability
 - Availability: 99.9% uptime
+- MTBF: >1000 hours
+- Recovery time: <1 hour
+
+#### 3.2.4 Scalability
+- Horizontal scaling support
+- Database sharding capability
+- CDN integration ready
+
+## 4. External Interface Requirements
+
+### 4.1 User Interfaces
+- Responsive web application
+- Mobile applications (iOS/Android)
+- CLI tool for automation
+
+### 4.2 Hardware Interfaces
+- Standard x86_64 architecture
+- Minimum 4GB RAM, 50GB storage
+- Network: 100Mbps minimum
+
+### 4.3 Software Interfaces
+- Database: PostgreSQL 14+
+- Cache: Redis 6+
+- Message Queue: RabbitMQ
+
+## 5. System Features
+
+### 5.1 Dashboard
+Real-time metrics and status monitoring with customizable widgets.
+
+### 5.2 Reporting Engine
+Generate comprehensive reports in multiple formats (PDF, Excel, CSV).
+
+### 5.3 Integration Hub
+Connect with third-party services via REST APIs and webhooks.
+
+---
+*Generated on ${new Date().toLocaleString()} by DevDocAI*`,
+
+      'architecture': `# ${projectName} - Architecture Blueprint
+
+> System Design Document - Generated by DevDocAI v3.0.0
+
+${custom ? `## Design Context\n${custom}\n` : ''}
+
+## 1. Executive Summary
+
+This architecture blueprint defines the technical design for ${projectName}, emphasizing scalability, maintainability, and security.
+
+## 2. System Overview
+
+### 2.1 Architecture Style
+**Microservices Architecture** with event-driven communication
+
+### 2.2 Key Design Principles
+- **Separation of Concerns**: Clear boundaries between components
+- **Loose Coupling**: Services communicate via APIs
+- **High Cohesion**: Related functionality grouped together
+- **Fault Tolerance**: Graceful degradation and recovery
+- **Security by Design**: Defense in depth approach
+
+## 3. System Architecture
+
+### 3.1 High-Level Architecture
+
+\`\`\`
+┌─────────────────────────────────────────────┐
+│                   Clients                   │
+│  (Web App, Mobile App, API Consumers)       │
+└────────────────┬────────────────────────────┘
+                 │
+        ┌────────▼────────┐
+        │   API Gateway    │
+        │  (Rate Limiting, │
+        │   Auth, Routing) │
+        └────────┬────────┘
+                 │
+    ┌────────────┼────────────┐
+    │            │            │
+┌───▼───┐  ┌────▼────┐  ┌────▼────┐
+│Service│  │Service  │  │Service  │
+│   A   │  │    B    │  │    C    │
+└───┬───┘  └────┬────┘  └────┬────┘
+    │           │            │
+    └───────────┼────────────┘
+                │
+       ┌────────▼────────┐
+       │   Data Layer    │
+       │  (DB, Cache,    │
+       │   File Storage) │
+       └─────────────────┘
+\`\`\`
+
+### 3.2 Component Architecture
+
+#### 3.2.1 API Gateway
+- **Technology**: Kong/Nginx
+- **Responsibilities**: Request routing, authentication, rate limiting
+- **Scaling**: Horizontal with load balancer
+
+#### 3.2.2 Core Services
+
+**Authentication Service**
+- JWT token generation/validation
+- User session management
+- OAuth2/OIDC integration
+
+**Business Logic Service**
+- Core application logic
+- Workflow orchestration
+- Business rule engine
+
+**Data Service**
+- CRUD operations
+- Data validation
+- Transaction management
+
+#### 3.2.3 Data Layer
+- **Primary Database**: PostgreSQL (ACID compliance)
+- **Cache**: Redis (session, frequent queries)
+- **Search**: Elasticsearch (full-text search)
+- **File Storage**: S3-compatible object storage
+
+## 4. Data Architecture
+
+### 4.1 Data Model
+\`\`\`sql
+-- Core entities
+Users, Roles, Permissions
+Organizations, Projects
+Documents, Versions
+Audit_Logs, Events
+\`\`\`
+
+### 4.2 Data Flow
+1. Client request → API Gateway
+2. Gateway → Authentication check
+3. Route to appropriate service
+4. Service processes business logic
+5. Data layer operations
+6. Response formatting
+7. Return to client
+
+## 5. Security Architecture
+
+### 5.1 Security Layers
+1. **Network**: Firewall, DDoS protection
+2. **Application**: Input validation, CSRF protection
+3. **Data**: Encryption at rest/transit
+4. **Access**: RBAC, principle of least privilege
+
+### 5.2 Authentication & Authorization
+- Multi-factor authentication
+- OAuth2/OpenID Connect
+- API key management
+- Role-based permissions
+
+## 6. Infrastructure Architecture
+
+### 6.1 Deployment Architecture
+- **Container**: Docker
+- **Orchestration**: Kubernetes
+- **CI/CD**: GitLab CI / GitHub Actions
+- **Monitoring**: Prometheus + Grafana
+
+### 6.2 Environments
+- Development (local Docker)
+- Staging (cloud - scaled down)
+- Production (cloud - full scale)
+
+## 7. Integration Architecture
+
+### 7.1 External Systems
+- Payment Gateway (Stripe/PayPal)
+- Email Service (SendGrid)
+- SMS Provider (Twilio)
+- Analytics (Google Analytics)
+
+### 7.2 Integration Patterns
+- REST APIs for synchronous
+- Message queues for async
+- Webhooks for real-time events
+- Batch processing for bulk ops
+
+## 8. Performance Architecture
+
+### 8.1 Caching Strategy
+- Browser cache (static assets)
+- CDN (global distribution)
+- Application cache (Redis)
+- Database query cache
+
+### 8.2 Scaling Strategy
+- Horizontal scaling for services
+- Database read replicas
+- Auto-scaling based on metrics
+- Load balancing across regions
+
+## 9. Disaster Recovery
+
+### 9.1 Backup Strategy
+- Daily automated backups
+- Point-in-time recovery
+- Cross-region replication
+- 30-day retention policy
+
+### 9.2 Recovery Objectives
+- **RTO**: 4 hours
+- **RPO**: 1 hour
+- Automated failover
+- Health checks and monitoring
 
 ---
 *Generated on ${new Date().toLocaleString()} by DevDocAI*`
