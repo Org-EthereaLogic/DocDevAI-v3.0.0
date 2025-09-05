@@ -180,26 +180,29 @@ class InputValidator:
         allowed = False
         safe_path = None
         for allowed_base in SecurityConfig.ALLOWED_PROJECT_PATHS:
-            allowed_base_path = Path(allowed_base).resolve(strict=False)
-            candidate_path = (allowed_base_path / normalized_path).resolve(strict=False)
-            # Ensure both paths exist and are fully resolved (symlink aware)
-            # Check candidate_path is strictly contained within allowed_base_path after resolution
             try:
+                # Canonically resolve allowed_base; fail early if not possible
+                allowed_base_path = Path(allowed_base).resolve(strict=True)
+                # Combine base and normalized user input, resolve; fail if path does not exist
+                candidate_path = (allowed_base_path / normalized_path).resolve(strict=True)
+                # Confirm candidate_path is strictly within allowed_base_path
                 if hasattr(candidate_path, "is_relative_to"):
                     if candidate_path.is_relative_to(allowed_base_path):
                         allowed = True
                         safe_path = candidate_path
                         break
                 else:
-                    candidate_path.relative_to(allowed_base_path)
-                    allowed = True
-                    safe_path = candidate_path
-                    break
-            except ValueError:
-            except Exception:
+                    # Python <3.9 fallback: manually check ancestry
+                    try:
+                        candidate_path.relative_to(allowed_base_path)
+                        allowed = True
+                        safe_path = candidate_path
+                        break
+                    except ValueError:
+                        pass
+            except (ValueError, FileNotFoundError):
+                # Path resolution failed, skip this allowed_base
                 continue
-                continue
-        
         if not allowed or safe_path is None:
             raise ValueError("Project path outside allowed directories")
         
