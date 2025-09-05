@@ -105,3 +105,5 @@ real_api_server.py
 
 # Component test files
 src/components/Reliable*.tsx
+.master_key
+flask_session/
