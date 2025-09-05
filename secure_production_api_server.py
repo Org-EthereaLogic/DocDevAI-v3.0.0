@@ -268,8 +268,8 @@ class InputValidator:
                 candidate_path.relative_to(allowed_base_path)
                 # Optionally, still block dangerous directory names
                 candidate_str = str(candidate_path)
-                blocklist = ['/etc', '/root', '/sys', '/proc']
-                if any(d in candidate_str.lower() for d in blocklist):
+                blocklist = ['etc', 'root', 'sys', 'proc']
+                if any(part.lower() in blocklist for part in candidate_path.parts):
                     raise ValueError("Suspicious path pattern detected")
                 return str(candidate_path)
             except Exception:
