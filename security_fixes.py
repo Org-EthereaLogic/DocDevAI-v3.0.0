@@ -375,7 +375,8 @@ def secure_generate_endpoint():
         return jsonify(result), 200
         
     except ValueError as e:
-        return jsonify({'error': str(e)}), 400
+        app.logger.warning(f"Input validation failed for user {getattr(g, 'user_id', 'unknown')}: {str(e)}")
+        return jsonify({'error': 'Invalid input.'}), 400
     except Exception as e:
         # Log error securely without exposing details
         app.logger.error(f"Generation failed for user {g.user_id}: {str(e)}")
