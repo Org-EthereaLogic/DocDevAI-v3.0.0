@@ -29,6 +29,9 @@ import {
   Paper,
   IconButton,
 } from '@mui/material';
+
+// Import persistence hooks
+import { usePersistedState, usePersistedFormState } from '../hooks/usePersistedState';
 import {
   Add as AddIcon,
   PlayArrow as GenerateIcon,
@@ -51,14 +54,24 @@ interface GenerationJob {
 }
 
 const DocumentGenerator: React.FC = () => {
-  const [selectedTemplate, setSelectedTemplate] = useState('');
-  const [projectPath, setProjectPath] = useState('');
-  const [outputFormat, setOutputFormat] = useState('markdown');
-  const [customPrompt, setCustomPrompt] = useState('');
+  // Persisted form state - automatically saves/restores across browser sessions
+  const [formState, setFormState] = usePersistedFormState('document_generator', {
+    selectedTemplate: '',
+    projectPath: '',
+    outputFormat: 'markdown',
+    customPrompt: '',
+  });
+
+  // Persisted jobs list - saves generation history
+  const [jobs, setJobs] = usePersistedState<GenerationJob[]>('document_generator_jobs', []);
+  
+  // Non-persisted state for temporary UI states
   const [isGenerating, setIsGenerating] = useState(false);
-  const [jobs, setJobs] = useState<GenerationJob[]>([]);
   const [previewContent, setPreviewContent] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+
+  // Destructure form state for easier access
+  const { selectedTemplate, projectPath, outputFormat, customPrompt } = formState;
 
   const templates = [
     { id: 'prd', name: 'Product Requirements Document (PRD)', description: 'Comprehensive product requirements with user stories and success metrics' },
@@ -809,7 +822,7 @@ Audit_Logs, Events
                 <TextField
                   label="Project Path"
                   value={projectPath}
-                  onChange={(e) => setProjectPath(e.target.value)}
+                  onChange={(e) => setFormState(prev => ({ ...prev, projectPath: e.target.value }))}
                   placeholder="/path/to/your/project"
                   fullWidth
                   required
@@ -819,7 +832,7 @@ Audit_Logs, Events
                   <InputLabel>Template</InputLabel>
                   <Select
                     value={selectedTemplate}
-                    onChange={(e) => setSelectedTemplate(e.target.value)}
+                    onChange={(e) => setFormState(prev => ({ ...prev, selectedTemplate: e.target.value }))}
                     label="Template"
                   >
                     {templates.map((template) => (
@@ -839,7 +852,7 @@ Audit_Logs, Events
                   <InputLabel>Output Format</InputLabel>
                   <Select
                     value={outputFormat}
-                    onChange={(e) => setOutputFormat(e.target.value)}
+                    onChange={(e) => setFormState(prev => ({ ...prev, outputFormat: e.target.value }))}
                     label="Output Format"
                   >
                     <MenuItem value="markdown">Markdown (.md)</MenuItem>
@@ -852,7 +865,7 @@ Audit_Logs, Events
                 <TextField
                   label="Custom Instructions (Optional)"
                   value={customPrompt}
-                  onChange={(e) => setCustomPrompt(e.target.value)}
+                  onChange={(e) => setFormState(prev => ({ ...prev, customPrompt: e.target.value }))}
                   multiline
                   rows={3}
                   placeholder="Provide specific instructions for documentation generation..."
@@ -883,7 +896,7 @@ Audit_Logs, Events
                   <Chip
                     key={template.id}
                     label={template.name}
-                    onClick={() => setSelectedTemplate(template.id)}
+                    onClick={() => setFormState(prev => ({ ...prev, selectedTemplate: template.id }))}
                     variant={selectedTemplate === template.id ? 'filled' : 'outlined'}
                     color={selectedTemplate === template.id ? 'primary' : 'default'}
                     icon={<TemplateIcon />}

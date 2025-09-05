@@ -2,10 +2,11 @@
  * DevDocAI v3.0.0 - Main Application
  * 
  * Full application for AI-powered documentation generation and analysis
- * Integrates all 12 completed modules (M001-M011)
+ * Integrates all 13 completed modules (M001-M013) with React Router
  */
 
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter, useLocation } from 'react-router-dom';
 import {
   ThemeProvider,
   CssBaseline,
@@ -15,16 +16,9 @@ import {
 } from '@mui/material';
 import ErrorBoundary from './components/ErrorBoundary';
 
-// Import core components
+// Import routing
+import AppRoutes, { getCurrentRoute } from './routes/AppRoutes';
 import AppLayout from './components/layout/AppLayout';
-import Dashboard from './components/Dashboard';
-import DocumentGenerator from './components/DocumentGenerator';
-import QualityAnalyzer from './components/QualityAnalyzer';
-import TemplateManager from './components/TemplateManager';
-import SecurityDashboard from './components/SecurityDashboard';
-import EnhancementPipeline from './components/EnhancementPipeline';
-import ReviewEngine from './components/ReviewEngine';
-import ConfigurationPanel from './components/ConfigurationPanel';
 
 // Import services
 import { ConfigurationService } from './services/ConfigurationService';
@@ -32,20 +26,27 @@ import { StorageService } from './services/StorageService';
 import { MIAIRService } from './services/MIAIRService';
 import { NotificationService } from './services/NotificationService';
 
+// Import hooks
+import { usePersistedState } from './hooks/usePersistedState';
+
 // Types
 interface AppState {
-  currentView: string;
   theme: PaletteMode;
   notifications: any[];
   userPreferences: any;
   moduleStatus: Record<string, boolean>;
 }
 
-const App: React.FC = () => {
-  console.log('App component rendering...');
+// AppContent component to access router location
+const AppContent: React.FC = () => {
+  const location = useLocation();
+  console.log('App component rendering for route:', location.pathname);
+  
+  // Use persisted state for theme preference
+  const [theme, setTheme] = usePersistedState<PaletteMode>('devdocai_theme', 'light');
+  
   const [state, setState] = useState<AppState>({
-    currentView: 'dashboard',
-    theme: 'light',
+    theme,
     notifications: [],
     userPreferences: {},
     moduleStatus: {
@@ -64,6 +65,11 @@ const App: React.FC = () => {
       M013: true,  // VS Code Extension - COMPLETE
     }
   });
+
+  // Update state when theme changes
+  useEffect(() => {
+    setState(prev => ({ ...prev, theme }));
+  }, [theme]);
 
   // Initialize services
   useEffect(() => {
@@ -163,8 +169,12 @@ const App: React.FC = () => {
     });
   }, []);
 
+  // Get current route info for navigation
+  const currentRoute = getCurrentRoute(location.pathname);
+  const currentView = currentRoute?.id || 'dashboard';
+
   // Create theme
-  const theme = React.useMemo(
+  const muiTheme = React.useMemo(
     () =>
       createTheme({
         palette: {
@@ -197,61 +207,38 @@ const App: React.FC = () => {
     [state.theme]
   );
 
-  // Handle view changes
-  const handleViewChange = (view: string) => {
-    setState(prev => ({ ...prev, currentView: view }));
-  };
-
-  // Handle theme toggle
+  // Handle theme toggle with persisted state
   const handleThemeToggle = () => {
-    setState(prev => ({
-      ...prev,
-      theme: prev.theme === 'light' ? 'dark' : 'light'
-    }));
-  };
-
-  // Render current view
-  const renderView = () => {
-    switch (state.currentView) {
-      case 'dashboard':
-        return <Dashboard moduleStatus={state.moduleStatus} />;
-      case 'generator':
-        return <DocumentGenerator />;
-      case 'quality':
-        return <QualityAnalyzer />;
-      case 'templates':
-        return <TemplateManager />;
-      case 'security':
-        return <SecurityDashboard />;
-      case 'enhancement':
-        return <EnhancementPipeline />;
-      case 'review':
-        return <ReviewEngine />;
-      case 'config':
-        return <ConfigurationPanel />;
-      default:
-        return <Dashboard moduleStatus={state.moduleStatus} />;
-    }
+    const newTheme = state.theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
   };
 
   return (
     <ErrorBoundary>
-      <ThemeProvider theme={theme}>
+      <ThemeProvider theme={muiTheme}>
         <CssBaseline />
         <Box sx={{ display: 'flex', minHeight: '100vh' }}>
           <AppLayout
-            currentView={state.currentView}
-            onViewChange={handleViewChange}
+            currentView={currentView}
             onThemeToggle={handleThemeToggle}
             theme={state.theme}
             notifications={state.notifications}
             moduleStatus={state.moduleStatus}
           >
-            {renderView()}
+            <AppRoutes moduleStatus={state.moduleStatus} />
           </AppLayout>
         </Box>
       </ThemeProvider>
     </ErrorBoundary>
+  );
+};
+
+// Main App component with Router wrapper
+const App: React.FC = () => {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
   );
 };
 

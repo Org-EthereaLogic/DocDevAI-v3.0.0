@@ -2,10 +2,11 @@
  * DevDocAI v3.0.0 - Main Application Layout
  * 
  * Provides the main application layout with sidebar navigation,
- * header, and content area for all views.
+ * header, and content area for all views with React Router integration.
  */
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
   Drawer,
@@ -42,10 +43,12 @@ import {
   ChevronLeft,
 } from '@mui/icons-material';
 
+// Import route configuration
+import { routeConfig, getCurrentRoute } from '../../routes/AppRoutes';
+
 interface AppLayoutProps {
   children: React.ReactNode;
   currentView: string;
-  onViewChange: (view: string) => void;
   onThemeToggle: () => void;
   theme: 'light' | 'dark';
   notifications: any[];
@@ -54,28 +57,33 @@ interface AppLayoutProps {
 
 const drawerWidth = 280;
 
+// Navigation items with icons mapping
 const navigationItems = [
-  { id: 'dashboard', label: 'Dashboard', icon: DashboardIcon, module: 'M011' },
-  { id: 'generator', label: 'Document Generator', icon: DocumentIcon, module: 'M004' },
-  { id: 'quality', label: 'Quality Analyzer', icon: QualityIcon, module: 'M005' },
-  { id: 'templates', label: 'Template Manager', icon: TemplateIcon, module: 'M006' },
-  { id: 'review', label: 'Review Engine', icon: ReviewIcon, module: 'M007' },
-  { id: 'enhancement', label: 'Enhancement Pipeline', icon: EnhancementIcon, module: 'M009' },
-  { id: 'security', label: 'Security Dashboard', icon: SecurityIcon, module: 'M010' },
-  { id: 'config', label: 'Configuration', icon: SettingsIcon, module: 'M001' },
+  { id: 'dashboard', label: 'Dashboard', icon: DashboardIcon, module: 'M011', path: '/dashboard' },
+  { id: 'generator', label: 'Document Generator', icon: DocumentIcon, module: 'M004', path: '/generator' },
+  { id: 'quality', label: 'Quality Analyzer', icon: QualityIcon, module: 'M005', path: '/quality' },
+  { id: 'templates', label: 'Template Manager', icon: TemplateIcon, module: 'M006', path: '/templates' },
+  { id: 'review', label: 'Review Engine', icon: ReviewIcon, module: 'M007', path: '/review' },
+  { id: 'enhancement', label: 'Enhancement Pipeline', icon: EnhancementIcon, module: 'M009', path: '/enhancement' },
+  { id: 'security', label: 'Security Dashboard', icon: SecurityIcon, module: 'M010', path: '/security' },
+  { id: 'config', label: 'Configuration', icon: SettingsIcon, module: 'M001', path: '/config' },
 ];
 
 const AppLayout: React.FC<AppLayoutProps> = ({
   children,
   currentView,
-  onViewChange,
   onThemeToggle,
   theme,
   notifications,
   moduleStatus,
 }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  // Get current route for display
+  const currentRoute = getCurrentRoute(location.pathname);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -157,7 +165,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({
       <List sx={{ flex: 1, px: 1 }}>
         {navigationItems.map((item) => {
           const Icon = item.icon;
-          const isActive = currentView === item.id;
+          const isActive = location.pathname === item.path || 
+            (item.id === 'dashboard' && location.pathname === '/');
           const moduleOnline = getModuleStatus(item.module) === 'online';
           
           return (
@@ -165,7 +174,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
               <Tooltip title={!moduleOnline ? `${item.module} module offline` : ''}>
                 <ListItemButton
                   selected={isActive}
-                  onClick={() => onViewChange(item.id)}
+                  onClick={() => navigate(item.path)}
                   disabled={!moduleOnline}
                   sx={{
                     borderRadius: 2,
@@ -270,7 +279,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
           </IconButton>
 
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            {navigationItems.find(item => item.id === currentView)?.label || 'Dashboard'}
+            {currentRoute?.label || 'Dashboard'}
           </Typography>
 
           <Badge badgeContent={notifications.length} color="error">
