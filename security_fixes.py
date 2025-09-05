@@ -172,7 +172,7 @@ class InputValidator:
                         allowed = True
                         break
                 else:
-                    # Fallback for older Python: does not raise if descendant
+                    # Fallback for older Python: raises ValueError if not descendant
                     safe_path.relative_to(allowed_base_path)
                     allowed = True
                     break
