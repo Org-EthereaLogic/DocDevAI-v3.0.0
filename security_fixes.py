@@ -89,9 +89,9 @@ class SecurityMiddleware:
                     return jsonify({'error': 'Token expired'}), 401
                     
             except JWTError as e:
-                return jsonify({'error': f'Invalid token: {str(e)}'}), 401
-                
-            return f(*args, **kwargs)
+                # Log the exception on the server, return only a generic message to the client
+                print(f"JWTError caught in require_auth: {str(e)}")  # Consider replacing with logging framework
+                return jsonify({'error': 'Invalid token'}), 401
         return decorated_function
     
     @staticmethod
@@ -164,6 +164,11 @@ class InputValidator:
         # Normalize path: remove redundant separators, up-level references, etc.
         normalized_path = os.path.normpath(cleaned_path)
         
+        # Additional filename/path hygiene
+        # Reject path containing null bytes or control characters
+        if any(ord(c) < 32 for c in normalized_path):
+            raise ValueError("Path contains illegal control characters")
+        
         # Reject any traversal attempt
         if normalized_path.startswith("..") or ".." in normalized_path.split(os.path.sep):
             raise ValueError("Path traversal detected (..) not allowed")
@@ -175,23 +180,29 @@ class InputValidator:
         allowed = False
         safe_path = None
         for allowed_base in SecurityConfig.ALLOWED_PROJECT_PATHS:
-            allowed_base_path = Path(allowed_base).resolve()
-            candidate_path = (allowed_base_path / normalized_path).resolve()
             try:
-                # Use is_relative_to if available (Python 3.9+)
+                # Canonically resolve allowed_base; fail early if not possible
+                allowed_base_path = Path(allowed_base).resolve(strict=True)
+                # Combine base and normalized user input, resolve; do not require existence
+                candidate_path = (allowed_base_path / normalized_path).resolve(strict=False)
+                # Confirm candidate_path is strictly within allowed_base_path
                 if hasattr(candidate_path, "is_relative_to"):
                     if candidate_path.is_relative_to(allowed_base_path):
                         allowed = True
                         safe_path = candidate_path
                         break
                 else:
-                    candidate_path.relative_to(allowed_base_path)
-                    allowed = True
-                    safe_path = candidate_path
-                    break
-            except ValueError:
+                    # Python <3.9 fallback: manually check ancestry
+                    try:
+                        candidate_path.relative_to(allowed_base_path)
+                        allowed = True
+                        safe_path = candidate_path
+                        break
+                    except ValueError:
+                        pass
+            except OSError:
+                # Path resolution failed, skip this allowed_base
                 continue
-        
         if not allowed or safe_path is None:
             raise ValueError("Project path outside allowed directories")
         
@@ -367,7 +378,8 @@ def secure_generate_endpoint():
         return jsonify(result), 200
         
     except ValueError as e:
-        return jsonify({'error': str(e)}), 400
+        app.logger.warning(f"Input validation failed for user {getattr(g, 'user_id', 'unknown')}: {str(e)}")
+        return jsonify({'error': 'Invalid input.'}), 400
     except Exception as e:
         # Log error securely without exposing details
         app.logger.error(f"Generation failed for user {g.user_id}: {str(e)}")
