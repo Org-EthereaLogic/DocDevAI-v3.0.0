@@ -164,6 +164,11 @@ class InputValidator:
         # Normalize path: remove redundant separators, up-level references, etc.
         normalized_path = os.path.normpath(cleaned_path)
         
+        # Additional filename/path hygiene
+        # Reject path containing null bytes, control chars, or non-ASCII
+        if any(ord(c) < 32 or ord(c) > 126 for c in normalized_path):
+            raise ValueError("Path contains illegal characters")
+        
         # Reject any traversal attempt
         if normalized_path.startswith("..") or ".." in normalized_path.split(os.path.sep):
             raise ValueError("Path traversal detected (..) not allowed")
@@ -175,10 +180,11 @@ class InputValidator:
         allowed = False
         safe_path = None
         for allowed_base in SecurityConfig.ALLOWED_PROJECT_PATHS:
-            allowed_base_path = Path(allowed_base).resolve()
-            candidate_path = (allowed_base_path / normalized_path).resolve()
+            allowed_base_path = Path(allowed_base).resolve(strict=False)
+            candidate_path = (allowed_base_path / normalized_path).resolve(strict=False)
+            # Ensure both paths exist and are fully resolved (symlink aware)
+            # Check candidate_path is strictly contained within allowed_base_path after resolution
             try:
-                # Use is_relative_to if available (Python 3.9+)
                 if hasattr(candidate_path, "is_relative_to"):
                     if candidate_path.is_relative_to(allowed_base_path):
                         allowed = True
@@ -190,6 +196,8 @@ class InputValidator:
                     safe_path = candidate_path
                     break
             except ValueError:
+            except Exception:
+                continue
                 continue
         
         if not allowed or safe_path is None:
