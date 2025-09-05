@@ -183,8 +183,8 @@ class InputValidator:
             try:
                 # Canonically resolve allowed_base; fail early if not possible
                 allowed_base_path = Path(allowed_base).resolve(strict=True)
-                # Combine base and normalized user input, resolve; fail if path does not exist
-                candidate_path = (allowed_base_path / normalized_path).resolve(strict=True)
+                # Combine base and normalized user input, resolve; do not require existence
+                candidate_path = (allowed_base_path / normalized_path).resolve(strict=False)
                 # Confirm candidate_path is strictly within allowed_base_path
                 if hasattr(candidate_path, "is_relative_to"):
                     if candidate_path.is_relative_to(allowed_base_path):
