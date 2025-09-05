@@ -242,42 +242,39 @@ class InputValidator:
     
     @staticmethod
     def validate_project_path(path: str) -> str:
-        """Prevent path traversal attacks"""
+        """Prevent path traversal attacks by strictly ensuring
+        the resulting path is within the allowed directories."""
         if not path:
             # Default to safe path
             return "/tmp/project"
-            
-        # Resolve to absolute path
-        try:
-            safe_path = Path(path).resolve()
-        except Exception:
-            raise ValueError("Invalid path format")
         
-        # Check for dangerous patterns
-        path_str = str(safe_path)
-        if '..' in path or '../' in path or '/..' in path:
-            raise ValueError("Path traversal attempt detected")
+        # Remove dangerous path patterns early
+        if any(x in path for x in ["\x00", "//", "\\", "..", '~']):
+            raise ValueError("Dangerous character sequence in path.")
         
-        if any(danger in path_str.lower() for danger in ['/etc', '/root', '/sys', '/proc', '~/.']):
-            raise ValueError("Suspicious path pattern detected")
-            
-        # Check if path is within allowed directories
-        allowed = False
+        # Use only the last path segment if an absolute path is given
+        if os.path.isabs(path):
+            # Only take the basename to prevent starting at root
+            path = os.path.basename(path)
+        
+        # Now check against allowed roots
         for allowed_base in SecurityConfig.ALLOWED_PROJECT_PATHS:
             try:
                 allowed_base_path = Path(allowed_base).resolve()
-                if path_str.startswith(str(allowed_base_path)):
-                    allowed = True
-                    break
-            except:
+                candidate_path = (allowed_base_path / path).resolve()
+                # Check that candidate_path is a subpath of allowed_base_path
+                candidate_path.relative_to(allowed_base_path)
+                # Optionally, still block dangerous directory names
+                candidate_str = str(candidate_path)
+                blocklist = ['/etc', '/root', '/sys', '/proc']
+                if any(d in candidate_str.lower() for d in blocklist):
+                    raise ValueError("Suspicious path pattern detected")
+                return str(candidate_path)
+            except Exception:
                 continue
-                
-        if not allowed:
-            # Use default safe path if not in allowed directories
-            logger.warning(f"Path {path_str} not in allowed directories, using default")
-            return "/tmp/project"
-            
-        return str(safe_path)
+        # Use default safe path if not in allowed directories
+        logger.warning(f"Path {path!r} not in allowed or is invalid, using default")
+        return "/tmp/project"
     
     @staticmethod
     def sanitize_prompt(prompt: str) -> str:
