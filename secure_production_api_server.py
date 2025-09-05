@@ -242,41 +242,109 @@ class InputValidator:
     
     @staticmethod
     def validate_project_path(path: str) -> str:
-        """Prevent path traversal attacks by strictly ensuring
-        the resulting path is within the allowed directories."""
+        """Prevent path traversal attacks using secure identifier-based validation.
+        
+        This method treats user input as a project identifier, not as a path component.
+        It validates the identifier strictly and maps it to a safe subdirectory.
+        User input is NEVER used directly in path operations.
+        """
         if not path:
             # Default to safe path
             return "/tmp/project"
         
-        # Normalize the path to handle redundant slashes and other anomalies
-        path = os.path.normpath(path)
-        # Remove dangerous path patterns early
-        if any(x in path for x in ["\x00", "\\", "..", '~']):
-            raise ValueError("Dangerous character sequence in path.")
+        # Strip whitespace and null bytes
+        identifier = path.replace('\x00', '').strip()
         
-        # Use only the last path segment if an absolute path is given
-        if os.path.isabs(path):
-            # Only take the basename to prevent starting at root
-            path = os.path.basename(path)
+        if not identifier:
+            # Empty identifier, use default
+            return "/tmp/project"
         
-        # Now check against allowed roots
+        # CRITICAL: Validate as identifier, not as path
+        # Only allow alphanumeric, dash, underscore, and dot (for file extensions)
+        # Maximum length to prevent DoS
+        if len(identifier) > 255:
+            logger.warning(f"Project identifier too long: {len(identifier)} chars")
+            return "/tmp/project"
+        
+        # Strict validation: identifier must match pattern
+        # This prevents ANY path traversal since path separators are not allowed
+        import re
+        if not re.match(r'^[a-zA-Z0-9][a-zA-Z0-9._-]*$', identifier):
+            logger.warning(f"Invalid project identifier format: {identifier!r}")
+            return "/tmp/project"
+        
+        # Additional security checks on the identifier itself
+        # Reject suspicious patterns even in valid identifiers
+        suspicious_patterns = [
+            '..',  # Directory traversal
+            '...',  # Obfuscation attempt
+            '~',  # Home directory reference
+            '.git',  # Version control
+            '.ssh',  # SSH keys
+            '.env',  # Environment files
+            'etc',  # System directory
+            'root',  # Root directory
+            'proc',  # Process directory
+            'sys',  # System directory
+            'dev',  # Device directory
+            'boot',  # Boot directory
+            '.htaccess',  # Web server config
+            '.htpasswd',  # Web server passwords
+        ]
+        
+        identifier_lower = identifier.lower()
+        for pattern in suspicious_patterns:
+            if pattern in identifier_lower:
+                logger.warning(f"Suspicious pattern '{pattern}' in identifier: {identifier!r}")
+                return "/tmp/project"
+        
+        # Map identifier to safe path - identifier is used as subdirectory name only
+        # Find first allowed base directory that exists
+        safe_path = None
         for allowed_base in SecurityConfig.ALLOWED_PROJECT_PATHS:
             try:
-                allowed_base_path = Path(allowed_base).resolve()
-                candidate_path = (allowed_base_path / path).resolve()
-                # Check that candidate_path is a subpath of allowed_base_path
-                candidate_path.relative_to(allowed_base_path)
-                # Optionally, still block dangerous directory names
-                candidate_str = str(candidate_path)
-                blocklist = ['etc', 'root', 'sys', 'proc']
-                if any(part.lower() in blocklist for part in candidate_path.parts):
-                    raise ValueError("Suspicious path pattern detected")
-                return str(candidate_path)
-            except Exception:
+                # Use os.path for safe path construction
+                # Never use Path() with user input
+                base_path = os.path.realpath(allowed_base)
+                
+                # Ensure base directory exists
+                if not os.path.exists(base_path):
+                    continue
+                
+                # Construct safe path using os.path.join with validated identifier
+                # The identifier is now safe to use as a subdirectory name
+                candidate_path = os.path.join(base_path, identifier)
+                
+                # Get the real path (resolves symlinks)
+                real_path = os.path.realpath(candidate_path)
+                
+                # Critical security check: ensure real path is within allowed base
+                # Use string prefix check on normalized paths
+                base_real = os.path.realpath(base_path) + os.sep
+                if not real_path.startswith(base_real) and real_path != os.path.realpath(base_path):
+                    # Path escapes the allowed directory
+                    continue
+                
+                # Additional validation: check path components
+                # Even though identifier is validated, double-check the result
+                rel_path = os.path.relpath(real_path, base_path)
+                if '..' in rel_path.split(os.sep):
+                    # Should never happen with validated identifier, but defense in depth
+                    continue
+                
+                safe_path = real_path
+                break
+                
+            except (OSError, ValueError):
+                # Skip this base directory if there's any error
                 continue
-        # Use default safe path if not in allowed directories
-        logger.warning(f"Path {path!r} not in allowed or is invalid, using default")
-        return "/tmp/project"
+        
+        if safe_path is None:
+            # Use default safe location if no allowed path works
+            logger.warning(f"No valid path found for identifier: {identifier!r}, using default")
+            return "/tmp/project"
+        
+        return safe_path
     
     @staticmethod
     def sanitize_prompt(prompt: str) -> str:

@@ -150,60 +150,104 @@ class InputValidator:
     
     @staticmethod
     def validate_project_path(path: str) -> str:
-        """Prevent path traversal attacks"""
+        """Prevent path traversal attacks using secure identifier-based validation.
+        
+        This method treats user input as a project identifier, not as a path component.
+        It validates the identifier strictly and maps it to a safe subdirectory.
+        User input is NEVER used directly in path operations.
+        """
         if not path:
             raise ValueError("Project path is required")
-
-        # Reject absolute paths
-        if os.path.isabs(path):
-            raise ValueError("Absolute paths not allowed")
-            
-        # Remove suspicious null bytes and whitespace
-        cleaned_path = path.replace('\x00', '').strip()
         
-        # Normalize path: remove redundant separators, up-level references, etc.
-        normalized_path = os.path.normpath(cleaned_path)
+        # Strip whitespace and null bytes
+        identifier = path.replace('\x00', '').strip()
         
-        # Additional filename/path hygiene
-        # Reject path containing null bytes, control chars, or non-ASCII
-        if any(ord(c) < 32 or ord(c) > 126 for c in normalized_path):
-            raise ValueError("Path contains illegal characters")
+        if not identifier:
+            raise ValueError("Project identifier cannot be empty")
         
-        # Reject any traversal attempt
-        if normalized_path.startswith("..") or ".." in normalized_path.split(os.path.sep):
-            raise ValueError("Path traversal detected (..) not allowed")
-        if normalized_path.startswith("/") or normalized_path.startswith("\\"):
-            raise ValueError("Path should not start with a separator (/) or (\\)")
-        if normalized_path.startswith("etc") or normalized_path.startswith("root"):
-            raise ValueError("Suspicious path pattern detected")
+        # CRITICAL: Validate as identifier, not as path
+        # Only allow alphanumeric, dash, underscore, and dot (for file extensions)
+        # Maximum length to prevent DoS
+        if len(identifier) > 255:
+            raise ValueError("Project identifier too long (max 255 chars)")
         
-        allowed = False
+        # Strict validation: identifier must match pattern
+        # This prevents ANY path traversal since path separators are not allowed
+        import re
+        if not re.match(r'^[a-zA-Z0-9][a-zA-Z0-9._-]*$', identifier):
+            raise ValueError("Invalid project identifier. Only alphanumeric, dash, underscore, and dot allowed")
+        
+        # Additional security checks on the identifier itself
+        # Reject suspicious patterns even in valid identifiers
+        suspicious_patterns = [
+            '..',  # Directory traversal
+            '...',  # Obfuscation attempt
+            '~',  # Home directory reference
+            '.git',  # Version control
+            '.ssh',  # SSH keys
+            '.env',  # Environment files
+            'etc',  # System directory
+            'root',  # Root directory
+            'proc',  # Process directory
+            'sys',  # System directory
+            'dev',  # Device directory
+            'boot',  # Boot directory
+            '.htaccess',  # Web server config
+            '.htpasswd',  # Web server passwords
+        ]
+        
+        identifier_lower = identifier.lower()
+        for pattern in suspicious_patterns:
+            if pattern in identifier_lower:
+                raise ValueError(f"Suspicious pattern '{pattern}' detected in identifier")
+        
+        # Map identifier to safe path - identifier is used as subdirectory name only
+        # Find first allowed base directory that exists
         safe_path = None
         for allowed_base in SecurityConfig.ALLOWED_PROJECT_PATHS:
-            allowed_base_path = Path(allowed_base).resolve(strict=False)
-            candidate_path = (allowed_base_path / normalized_path).resolve(strict=False)
-            # Ensure both paths exist and are fully resolved (symlink aware)
-            # Check candidate_path is strictly contained within allowed_base_path after resolution
             try:
-                if hasattr(candidate_path, "is_relative_to"):
-                    if candidate_path.is_relative_to(allowed_base_path):
-                        allowed = True
-                        safe_path = candidate_path
-                        break
-                else:
-                    candidate_path.relative_to(allowed_base_path)
-                    allowed = True
-                    safe_path = candidate_path
-                    break
-            except ValueError:
-            except Exception:
-                continue
+                # Use os.path for safe path construction
+                # Never use Path() with user input
+                base_path = os.path.realpath(allowed_base)
+                
+                # Ensure base directory exists
+                if not os.path.exists(base_path):
+                    continue
+                
+                # Construct safe path using os.path.join with validated identifier
+                # The identifier is now safe to use as a subdirectory name
+                candidate_path = os.path.join(base_path, identifier)
+                
+                # Get the real path (resolves symlinks)
+                real_path = os.path.realpath(candidate_path)
+                
+                # Critical security check: ensure real path is within allowed base
+                # Use string prefix check on normalized paths
+                base_real = os.path.realpath(base_path) + os.sep
+                if not real_path.startswith(base_real) and real_path != os.path.realpath(base_path):
+                    # Path escapes the allowed directory
+                    continue
+                
+                # Additional validation: check path components
+                # Even though identifier is validated, double-check the result
+                rel_path = os.path.relpath(real_path, base_path)
+                if '..' in rel_path.split(os.sep):
+                    # Should never happen with validated identifier, but defense in depth
+                    continue
+                
+                safe_path = real_path
+                break
+                
+            except (OSError, ValueError):
+                # Skip this base directory if there's any error
                 continue
         
-        if not allowed or safe_path is None:
-            raise ValueError("Project path outside allowed directories")
+        if safe_path is None:
+            # Use default safe location if no allowed path works
+            # Never expose internal paths in error messages
+            raise ValueError("Project cannot be accessed")
         
-        return str(safe_path)
+        return safe_path
     
     @staticmethod
     def sanitize_prompt(prompt: str) -> str:
