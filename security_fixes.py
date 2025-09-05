@@ -154,18 +154,29 @@ class InputValidator:
         if not path:
             raise ValueError("Project path is required")
 
-        # Reject absolute paths at input
+        # Reject absolute paths
         if os.path.isabs(path):
             raise ValueError("Absolute paths not allowed")
-
-        # Clean path by removing suspicious null bytes, etc.
+            
+        # Remove suspicious null bytes and whitespace
         cleaned_path = path.replace('\x00', '').strip()
-
+        
+        # Normalize path: remove redundant separators, up-level references, etc.
+        normalized_path = os.path.normpath(cleaned_path)
+        
+        # Reject any traversal attempt
+        if normalized_path.startswith("..") or ".." in normalized_path.split(os.path.sep):
+            raise ValueError("Path traversal detected (..) not allowed")
+        if normalized_path.startswith("/") or normalized_path.startswith("\\"):
+            raise ValueError("Path should not start with a separator (/) or (\\)")
+        if normalized_path.startswith("etc") or normalized_path.startswith("root"):
+            raise ValueError("Suspicious path pattern detected")
+        
         allowed = False
         safe_path = None
         for allowed_base in SecurityConfig.ALLOWED_PROJECT_PATHS:
             allowed_base_path = Path(allowed_base).resolve()
-            candidate_path = (allowed_base_path / cleaned_path).resolve()
+            candidate_path = (allowed_base_path / normalized_path).resolve()
             try:
                 # Use is_relative_to if available (Python 3.9+)
                 if hasattr(candidate_path, "is_relative_to"):
@@ -180,14 +191,10 @@ class InputValidator:
                     break
             except ValueError:
                 continue
-
+        
         if not allowed or safe_path is None:
             raise ValueError("Project path outside allowed directories")
-
-        # Additional checks for suspicious path patterns
-        if '..' in path or cleaned_path.startswith('/etc') or cleaned_path.startswith('/root'):
-            raise ValueError("Suspicious path pattern detected")
-
+        
         return str(safe_path)
     
     @staticmethod
