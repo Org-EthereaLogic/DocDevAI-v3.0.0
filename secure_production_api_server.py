@@ -248,8 +248,10 @@ class InputValidator:
             # Default to safe path
             return "/tmp/project"
         
+        # Normalize the path to handle redundant slashes and other anomalies
+        path = os.path.normpath(path)
         # Remove dangerous path patterns early
-        if any(x in path for x in ["\x00", "//", "\\", "..", '~']):
+        if any(x in path for x in ["\x00", "\\", "..", '~']):
             raise ValueError("Dangerous character sequence in path.")
         
         # Use only the last path segment if an absolute path is given
