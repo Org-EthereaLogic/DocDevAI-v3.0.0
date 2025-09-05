@@ -165,8 +165,7 @@ class InputValidator:
         normalized_path = os.path.normpath(cleaned_path)
         
         # Additional filename/path hygiene
-        # Reject path containing null bytes or control characters
-        if any(ord(c) < 32 for c in normalized_path):
+        if any(ord(c) < 32 or ord(c) == 127 for c in normalized_path):
             raise ValueError("Path contains illegal control characters")
         
         # Reject any traversal attempt
