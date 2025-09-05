@@ -2,8 +2,7 @@
 
 <div align="center">
 
-![DevDocAI Logo](docs/assets/logo-placeholder.png)
-<!-- TODO: Add logo image -->
+![DevDocAI Logo](https://raw.githubusercontent.com/Org-EthereaLogic/DocDevAI-v3.0.0/main/docs/assets/devdocai-logo.png)
 
 **Transform your code into beautiful documentation with AI**
 
