@@ -111,7 +111,7 @@ def generate_group(ctx: Context):
               help='Template to use for generation')
 @click.option('--output', '-o', type=click.Path(),
               help='Output file path (default: stdout)')
-@click.option('--format', '-f', type=click.Choice(['markdown', 'html', 'rst', 'json']),
+@click.option('--format', '-f', type=click.Choice(['markdown', 'pdf']),
               default='markdown', help='Output format')
 @click.option('--batch', '-b', is_flag=True,
               help='Process all files in directory')

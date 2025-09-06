@@ -207,7 +207,7 @@ def create_command(config: CLIConfig) -> click.Command:
     @click.argument('source', type=click.Path(exists=True))
     @click.option('--output', '-o', type=click.Path(), help='Output file path')
     @click.option('--template', '-t', default='default', help='Documentation template')
-    @click.option('--format', '-f', type=click.Choice(['markdown', 'html', 'json']),
+    @click.option('--format', '-f', type=click.Choice(['markdown', 'pdf']),
                   default='markdown', help='Output format')
     @click.option('--optimize', is_flag=True, help='Apply MIAIR optimization')
     @click.option('--include-tests', is_flag=True, help='Include test documentation')
@@ -272,7 +272,7 @@ def generate_group(ctx: click.Context):
 @click.argument('path', type=click.Path(exists=True))
 @click.option('-t', '--template', default='default', help='Template to use for generation')
 @click.option('-o', '--output', type=click.Path(), help='Output file path (default: stdout)')
-@click.option('-f', '--format', type=click.Choice(['markdown', 'html', 'rst', 'json']),
+@click.option('-f', '--format', type=click.Choice(['markdown', 'pdf']),
               default='markdown', help='Output format')
 @click.option('-b', '--batch', is_flag=True, help='Process all files in directory')
 @click.option('-r', '--recursive', is_flag=True, help='Process directories recursively')
@@ -304,7 +304,7 @@ def generate_file(ctx, path: str, template: str, output: Optional[str], format: 
 @generate_group.command('api')  
 @click.argument('spec_file', type=click.Path(exists=True))
 @click.option('-o', '--output', type=click.Path(), help='Output file path')
-@click.option('-f', '--format', type=click.Choice(['markdown', 'html', 'openapi']),
+@click.option('-f', '--format', type=click.Choice(['markdown', 'pdf']),
               default='markdown', help='Output format')
 @click.pass_obj
 def generate_api(ctx, spec_file: str, output: Optional[str], format: str):
@@ -315,7 +315,7 @@ def generate_api(ctx, spec_file: str, output: Optional[str], format: str):
 @generate_group.command('database')
 @click.argument('schema_file', type=click.Path(exists=True))
 @click.option('-o', '--output', type=click.Path(), help='Output file path')
-@click.option('-f', '--format', type=click.Choice(['markdown', 'html', 'sql']),
+@click.option('-f', '--format', type=click.Choice(['markdown', 'pdf']),
               default='markdown', help='Output format')
 @click.pass_obj  
 def generate_database(ctx, schema_file: str, output: Optional[str], format: str):

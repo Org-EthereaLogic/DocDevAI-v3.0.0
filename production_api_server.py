@@ -89,6 +89,7 @@ try:
     from devdocai.llm_adapter.adapter_unified import UnifiedLLMAdapter, OperationMode, UnifiedConfig
     from devdocai.llm_adapter.config import LLMConfig, ProviderConfig, ProviderType, CostLimits
     from devdocai.llm_adapter.providers.base import LLMRequest
+    from devdocai.generator.prompt_template_engine import PromptTemplateEngine
     from decimal import Decimal
     logger.info("Successfully imported DevDocAI LLM modules")
     LLM_AVAILABLE = True
@@ -328,6 +329,7 @@ class ProductionAPIServer:
     def __init__(self):
         self.app = Flask(__name__)
         self.llm_adapter = None
+        self.template_engine = None
         self.circuit_breakers = {}
         self.rate_limiters = defaultdict(lambda: RateLimiter())
         self.request_metrics = defaultdict(int)
@@ -574,6 +576,11 @@ class ProductionAPIServer:
                 custom_instructions = data.get('custom_instructions', '')
                 output_format = data.get('format', 'markdown')
                 
+                # Validate output format - only markdown and pdf are supported
+                if output_format not in ['markdown', 'pdf']:
+                    logger.warning(f"Invalid output format requested: {output_format}, defaulting to markdown")
+                    output_format = 'markdown'
+                
                 # Map frontend template IDs to prompt template names
                 template_mapping = {
                     'prd': 'prd_generation',
@@ -639,12 +646,54 @@ This is sample content. To generate real AI-powered documentation:
                 # Generate real AI content
                 start_time = time.time()
                 
-                # Create the prompt for AI generation
-                system_prompt = """You are an expert technical documentation specialist. 
-                Generate comprehensive, professional documentation that follows industry best practices.
-                Focus on clarity, completeness, and practical value for developers."""
-                
-                user_prompt = f"""Generate a {template_name.replace('_', ' ').title()} for the following project:
+                # Try to use template engine if available
+                if self.template_engine:
+                    try:
+                        logger.info(f"Loading template: {template_name}")
+                        
+                        # Load and render the template
+                        template = self.template_engine.load_template(template_name)
+                        
+                        # Prepare template variables from request data
+                        template_vars = {
+                            'project_name': data.get('project', project_name),
+                            'project_description': data.get('project_description', custom_instructions or f"A software project located at {project_path}"),
+                            'target_audience': data.get('target_audience', 'developers and technical users'),
+                            'business_context': data.get('business_context', ''),
+                            'constraints': data.get('constraints', '')
+                        }
+                        
+                        # Render the prompt with variables
+                        rendered = self.template_engine.render(template_name, template_vars)
+                        
+                        system_prompt = rendered.system_prompt
+                        user_prompt = rendered.user_prompt
+                        
+                        logger.info(f"Using template-based prompts for {template_name}")
+                        
+                    except Exception as e:
+                        logger.warning(f"Failed to load template {template_name}: {e}, falling back to default prompts")
+                        # Fallback to simple prompts
+                        system_prompt = """You are an expert technical documentation specialist. 
+                        Generate comprehensive, professional documentation that follows industry best practices.
+                        Focus on clarity, completeness, and practical value for developers."""
+                        
+                        user_prompt = f"""Generate a {template_name.replace('_', ' ').title()} for the following project:
+
+Project Name: {project_name}
+Project Path: {project_path}
+Document Type: {frontend_template.upper()}
+
+{f"Additional Requirements: {custom_instructions}" if custom_instructions else "Follow standard best practices for this document type."}
+
+Generate a complete, professional document with all appropriate sections."""
+                else:
+                    # No template engine, use fallback prompts
+                    system_prompt = """You are an expert technical documentation specialist. 
+                    Generate comprehensive, professional documentation that follows industry best practices.
+                    Focus on clarity, completeness, and practical value for developers."""
+                    
+                    user_prompt = f"""Generate a {template_name.replace('_', ' ').title()} for the following project:
 
 Project Name: {project_name}
 Project Path: {project_path}
@@ -778,6 +827,16 @@ Generate a complete, professional document with all appropriate sections."""
                 
                 self.llm_adapter = UnifiedLLMAdapter(unified_config)
                 logger.info(f"LLM Adapter initialized with {len(providers)} provider(s)")
+                
+                # Initialize template engine for prompt templates
+                try:
+                    template_dir = Path("devdocai/templates/prompt_templates/generation")
+                    self.template_engine = PromptTemplateEngine(template_dir=template_dir)
+                    logger.info(f"Template Engine initialized with directory: {template_dir}")
+                except Exception as e:
+                    logger.warning(f"Template Engine initialization failed: {e}")
+                    self.template_engine = None
+                
                 return True
             else:
                 logger.warning("No LLM providers configured")

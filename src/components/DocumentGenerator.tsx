@@ -5,7 +5,7 @@
  * Provides document generation capabilities with templates and AI assistance.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -28,6 +28,12 @@ import {
   ListItemIcon,
   Paper,
   IconButton,
+  Menu,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Tooltip,
 } from '@mui/material';
 
 // Import persistence hooks
@@ -40,6 +46,11 @@ import {
   Refresh as RefreshIcon,
   Download as DownloadIcon,
   Preview as PreviewIcon,
+  History as HistoryIcon,
+  Clear as ClearIcon,
+  Delete as DeleteIcon,
+  Save as SaveIcon,
+  FileDownload as ExportIcon,
 } from '@mui/icons-material';
 
 interface GenerationJob {
@@ -51,7 +62,14 @@ interface GenerationJob {
   createdAt: Date;
   content?: string;
   format: string;
+  projectPath: string;
+  customPrompt?: string;
 }
+
+// LocalStorage keys
+const STORAGE_KEY_CURRENT = 'devdocai_generator_current';
+const STORAGE_KEY_HISTORY = 'devdocai_generator_history';
+const MAX_HISTORY_ITEMS = 10;
 
 const DocumentGenerator: React.FC = () => {
   // Persisted form state - automatically saves/restores across browser sessions
@@ -69,6 +87,10 @@ const DocumentGenerator: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [previewContent, setPreviewContent] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [historyMenuAnchor, setHistoryMenuAnchor] = useState<null | HTMLElement>(null);
+  const [historyItems, setHistoryItems] = useState<GenerationJob[]>([]);
+  const [clearDialogOpen, setClearDialogOpen] = useState(false);
+  const [dataRestored, setDataRestored] = useState(false);
 
   // Destructure form state for easier access
   const { selectedTemplate, projectPath, outputFormat, customPrompt } = formState;
@@ -79,6 +101,166 @@ const DocumentGenerator: React.FC = () => {
     { id: 'srs', name: 'Software Requirements Specification (SRS)', description: 'IEEE 830 compliant detailed technical requirements' },
     { id: 'architecture', name: 'Architecture Blueprint', description: 'System architecture design with components and integration points' },
   ];
+
+  // Helper functions for localStorage operations
+  const saveToLocalStorage = (key: string, data: any) => {
+    try {
+      const serialized = JSON.stringify(data, (key, value) => {
+        // Convert Date objects to ISO strings
+        if (value instanceof Date) {
+          return value.toISOString();
+        }
+        return value;
+      });
+      localStorage.setItem(key, serialized);
+    } catch (error) {
+      console.error('Error saving to localStorage:', error);
+    }
+  };
+
+  const loadFromLocalStorage = (key: string): any => {
+    try {
+      const item = localStorage.getItem(key);
+      if (!item) return null;
+      
+      return JSON.parse(item, (key, value) => {
+        // Convert ISO strings back to Date objects
+        if (typeof value === 'string' && /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(value)) {
+          return new Date(value);
+        }
+        return value;
+      });
+    } catch (error) {
+      console.error('Error loading from localStorage:', error);
+      return null;
+    }
+  };
+
+  // Load saved data on component mount
+  useEffect(() => {
+    let hasRestoredData = false;
+    
+    // Load current generation state
+    const savedCurrent = loadFromLocalStorage(STORAGE_KEY_CURRENT);
+    if (savedCurrent) {
+      const { formState: savedFormState, jobs: savedJobs } = savedCurrent;
+      if (savedFormState) {
+        setFormState(savedFormState);
+        hasRestoredData = true;
+      }
+      if (savedJobs && Array.isArray(savedJobs)) {
+        // Filter out any 'generating' status jobs on load
+        const completedJobs = savedJobs.filter((j: GenerationJob) => j.status !== 'generating');
+        if (completedJobs.length > 0) {
+          setJobs(completedJobs);
+          hasRestoredData = true;
+        }
+      }
+    }
+
+    // Load history
+    const savedHistory = loadFromLocalStorage(STORAGE_KEY_HISTORY);
+    if (savedHistory && Array.isArray(savedHistory)) {
+      setHistoryItems(savedHistory);
+    }
+    
+    // Show indicator if data was restored
+    if (hasRestoredData) {
+      setDataRestored(true);
+      // Hide the indicator after 5 seconds
+      setTimeout(() => setDataRestored(false), 5000);
+    }
+  }, []);
+
+  // Save current state whenever jobs or form state changes
+  useEffect(() => {
+    const currentState = {
+      formState: formState,
+      jobs: jobs,
+      savedAt: new Date().toISOString()
+    };
+    saveToLocalStorage(STORAGE_KEY_CURRENT, currentState);
+  }, [jobs, formState]);
+
+  // Add completed generation to history
+  const addToHistory = (job: GenerationJob) => {
+    if (job.status === 'complete' && job.content) {
+      const updatedHistory = [job, ...historyItems]
+        .filter((item, index, self) => 
+          // Remove duplicates based on id
+          index === self.findIndex(t => t.id === item.id)
+        )
+        .slice(0, MAX_HISTORY_ITEMS);
+      
+      setHistoryItems(updatedHistory);
+      saveToLocalStorage(STORAGE_KEY_HISTORY, updatedHistory);
+    }
+  };
+
+  // Clear all data functions
+  const handleClearCurrent = () => {
+    setJobs([]);
+    setFormState({
+      selectedTemplate: '',
+      projectPath: '',
+      outputFormat: 'markdown',
+      customPrompt: '',
+    });
+    localStorage.removeItem(STORAGE_KEY_CURRENT);
+  };
+
+  const handleClearHistory = () => {
+    setHistoryItems([]);
+    localStorage.removeItem(STORAGE_KEY_HISTORY);
+    setClearDialogOpen(false);
+  };
+
+  const handleClearAll = () => {
+    handleClearCurrent();
+    handleClearHistory();
+  };
+
+  // Load generation from history
+  const handleLoadFromHistory = (historyItem: GenerationJob) => {
+    setFormState({
+      selectedTemplate: historyItem.template,
+      projectPath: historyItem.projectPath,
+      outputFormat: historyItem.format,
+      customPrompt: historyItem.customPrompt || '',
+    });
+    setJobs([historyItem]);
+    setHistoryMenuAnchor(null);
+  };
+
+  // Delete specific item from history
+  const handleDeleteHistoryItem = (itemId: string) => {
+    const updatedHistory = historyItems.filter(item => item.id !== itemId);
+    setHistoryItems(updatedHistory);
+    saveToLocalStorage(STORAGE_KEY_HISTORY, updatedHistory);
+  };
+
+  // Export generation results
+  const handleExportResults = (job: GenerationJob) => {
+    const exportData = {
+      title: job.title,
+      template: job.template,
+      projectPath: job.projectPath,
+      format: job.format,
+      customPrompt: job.customPrompt,
+      createdAt: job.createdAt,
+      content: job.content,
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `generation-${job.template}-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   const generateDocumentContent = (template: string, path: string, custom: string) => {
     const templateName = templates.find(t => t.id === template)?.name || 'Document';
@@ -559,6 +741,8 @@ Audit_Logs, Events
       createdAt: new Date(),
       content: '',
       format: outputFormat,
+      projectPath: projectPath,
+      customPrompt: customPrompt,
     };
 
     setJobs(prev => [newJob, ...prev]);
@@ -618,11 +802,12 @@ Audit_Logs, Events
       if (data.success && data.content) {
         // Update job with AI-generated content
         console.log('✅ Using AI-generated content from API');
+        const completedJob = { ...newJob, status: 'complete' as const, progress: 100, content: data.content };
         setJobs(prev => prev.map(job => 
-          job.id === newJob.id 
-            ? { ...job, status: 'complete', progress: 100, content: data.content }
-            : job
+          job.id === newJob.id ? completedJob : job
         ));
+        // Add to history after successful generation
+        addToHistory(completedJob);
         console.log('✅ AI Generation Success! Metadata:', data.metadata);
       } else {
         console.log('❌ API returned success:false or no content, using fallback');
@@ -630,11 +815,12 @@ Audit_Logs, Events
         console.log('data.content:', data.content ? 'exists' : 'missing');
         // Fallback to template-based generation if API fails
         const fallbackContent = generateDocumentContent(selectedTemplate, projectPath, customPrompt);
+        const completedJob = { ...newJob, status: 'complete' as const, progress: 100, content: fallbackContent };
         setJobs(prev => prev.map(job => 
-          job.id === newJob.id 
-            ? { ...job, status: 'complete', progress: 100, content: fallbackContent }
-            : job
+          job.id === newJob.id ? completedJob : job
         ));
+        // Add to history even with fallback content
+        addToHistory(completedJob);
       }
     } catch (error) {
       console.error('❌ Generation error caught:', error);
@@ -645,11 +831,12 @@ Audit_Logs, Events
       clearInterval(progressInterval);
       // Fallback to template-based generation on error
       const fallbackContent = generateDocumentContent(selectedTemplate, projectPath, customPrompt);
+      const completedJob = { ...newJob, status: 'complete' as const, progress: 100, content: fallbackContent };
       setJobs(prev => prev.map(job => 
-        job.id === newJob.id 
-          ? { ...job, status: 'complete', progress: 100, content: fallbackContent }
-          : job
+        job.id === newJob.id ? completedJob : job
       ));
+      // Add to history even with fallback content
+      addToHistory(completedJob);
     } finally {
       setIsGenerating(false);
     }
@@ -709,11 +896,15 @@ Audit_Logs, Events
   const handleDownload = (job: GenerationJob) => {
     if (!job.content) return;
 
-    const blob = new Blob([job.content], { type: 'text/plain' });
+    // Determine the correct MIME type and extension based on format
+    const mimeType = job.format === 'pdf' ? 'application/pdf' : 'text/markdown';
+    const extension = job.format === 'pdf' ? 'pdf' : 'md';
+    
+    const blob = new Blob([job.content], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${job.title.replace(/[^a-z0-9]/gi, '_')}.${job.format === 'markdown' ? 'md' : job.format}`;
+    a.download = `${job.title.replace(/[^a-z0-9]/gi, '_')}.${extension}`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -747,12 +938,60 @@ Audit_Logs, Events
 
   return (
     <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Document Generator
-      </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-        Generate comprehensive documentation using AI-powered templates and analysis.
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Box>
+          <Typography variant="h4" component="h1" gutterBottom>
+            Document Generator
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Generate comprehensive documentation using AI-powered templates and analysis.
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Tooltip title="View generation history">
+            <Button
+              variant="outlined"
+              startIcon={<HistoryIcon />}
+              onClick={(e) => setHistoryMenuAnchor(e.currentTarget)}
+              disabled={historyItems.length === 0}
+            >
+              History ({historyItems.length})
+            </Button>
+          </Tooltip>
+          <Tooltip title="Clear current generation">
+            <Button
+              variant="outlined"
+              startIcon={<ClearIcon />}
+              onClick={handleClearCurrent}
+              disabled={jobs.length === 0}
+            >
+              Clear Current
+            </Button>
+          </Tooltip>
+          <Tooltip title="Clear all data">
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<DeleteIcon />}
+              onClick={() => setClearDialogOpen(true)}
+              disabled={jobs.length === 0 && historyItems.length === 0}
+            >
+              Clear All
+            </Button>
+          </Tooltip>
+        </Box>
+      </Box>
+
+      {/* Data Restored Notification */}
+      {dataRestored && (
+        <Alert 
+          severity="info" 
+          sx={{ mb: 2 }}
+          onClose={() => setDataRestored(false)}
+        >
+          Previous generation data has been restored from your last session.
+        </Alert>
+      )}
 
       <Grid container spacing={3}>
         {/* Generation Form */}
@@ -855,10 +1094,8 @@ Audit_Logs, Events
                     onChange={(e) => setFormState(prev => ({ ...prev, outputFormat: e.target.value }))}
                     label="Output Format"
                   >
-                    <MenuItem value="markdown">Markdown (.md)</MenuItem>
-                    <MenuItem value="html">HTML (.html)</MenuItem>
-                    <MenuItem value="pdf">PDF (.pdf)</MenuItem>
-                    <MenuItem value="docx">Word (.docx)</MenuItem>
+                    <MenuItem value="markdown">Markdown (.md) - Universal text format</MenuItem>
+                    <MenuItem value="pdf">PDF (.pdf) - Formal documentation</MenuItem>
                   </Select>
                 </FormControl>
 
@@ -912,10 +1149,10 @@ Audit_Logs, Events
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h6">Generation History</Typography>
-                <IconButton size="small">
-                  <RefreshIcon />
-                </IconButton>
+                <Typography variant="h6">Recent Generations</Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {jobs.length} document{jobs.length !== 1 ? 's' : ''}
+                </Typography>
               </Box>
 
               {jobs.length === 0 ? (
@@ -932,20 +1169,30 @@ Audit_Logs, Events
                           <Box sx={{ display: 'flex', gap: 1 }}>
                             {job.status === 'complete' && (
                               <>
-                                <IconButton 
-                                  size="small" 
-                                  onClick={() => handlePreview(job)}
-                                  title="Preview document"
-                                >
-                                  <PreviewIcon />
-                                </IconButton>
-                                <IconButton 
-                                  size="small" 
-                                  onClick={() => handleDownload(job)}
-                                  title="Download document"
-                                >
-                                  <DownloadIcon />
-                                </IconButton>
+                                <Tooltip title="Preview document">
+                                  <IconButton 
+                                    size="small" 
+                                    onClick={() => handlePreview(job)}
+                                  >
+                                    <PreviewIcon />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Download document">
+                                  <IconButton 
+                                    size="small" 
+                                    onClick={() => handleDownload(job)}
+                                  >
+                                    <DownloadIcon />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Export generation data">
+                                  <IconButton 
+                                    size="small" 
+                                    onClick={() => handleExportResults(job)}
+                                  >
+                                    <ExportIcon />
+                                  </IconButton>
+                                </Tooltip>
                               </>
                             )}
                           </Box>
@@ -1021,6 +1268,81 @@ Audit_Logs, Events
           </Card>
         </Grid>
       </Grid>
+
+      {/* History Menu */}
+      <Menu
+        anchorEl={historyMenuAnchor}
+        open={Boolean(historyMenuAnchor)}
+        onClose={() => setHistoryMenuAnchor(null)}
+        PaperProps={{
+          style: {
+            maxHeight: 400,
+            width: '400px',
+          },
+        }}
+      >
+        {historyItems.length === 0 ? (
+          <MenuItem disabled>No history available</MenuItem>
+        ) : (
+          historyItems.map((item) => (
+            <MenuItem
+              key={item.id}
+              onClick={() => handleLoadFromHistory(item)}
+              sx={{ 
+                display: 'flex', 
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: 1,
+              }}
+            >
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="body2">{item.title}</Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Template: {templates.find(t => t.id === item.template)?.name || item.template}
+                </Typography>
+                <Typography variant="caption" color="text.secondary" display="block">
+                  Generated: {item.createdAt.toLocaleDateString()} {item.createdAt.toLocaleTimeString()}
+                </Typography>
+              </Box>
+              <Tooltip title="Delete from history">
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteHistoryItem(item.id);
+                  }}
+                >
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </MenuItem>
+          ))
+        )}
+      </Menu>
+
+      {/* Clear Confirmation Dialog */}
+      <Dialog
+        open={clearDialogOpen}
+        onClose={() => setClearDialogOpen(false)}
+      >
+        <DialogTitle>Clear All Data?</DialogTitle>
+        <DialogContent>
+          <Typography>
+            This will permanently delete all current generation results and history. 
+            This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setClearDialogOpen(false)}>Cancel</Button>
+          <Button 
+            onClick={handleClearAll} 
+            color="error" 
+            variant="contained"
+          >
+            Clear All
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
