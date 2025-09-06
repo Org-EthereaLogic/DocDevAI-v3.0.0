@@ -2,9 +2,9 @@ name: Enhanced 5-Pass CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop, 'feature/**', 'module/**' ]
+    branches: [ main, develop, 'development/**', 'feature/**', 'module/**' ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, develop, 'development/**' ]
   workflow_dispatch:
     inputs:
       module:

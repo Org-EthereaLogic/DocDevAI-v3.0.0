@@ -2,9 +2,9 @@ name: Comprehensive Testing Infrastructure
 
 on:
   push:
-    branches: [ main, develop, 'module/**' ]
+    branches: [ main, develop, 'development/**', 'module/**' ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, develop, 'development/**' ]
   schedule:
     - cron: '0 2 * * *'  # Daily at 2 AM
   workflow_dispatch:
