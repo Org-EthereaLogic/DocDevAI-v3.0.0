@@ -1,0 +1,240 @@
+# Module Template based on Module 1's Unified Architecture
+# This template provides the structure for all DevDocAI modules (M002-M013)
+
+module:
+  id: "{{MODULE_ID}}"
+  name: "{{MODULE_NAME}}"
+  description: "{{MODULE_DESCRIPTION}}"
+  version: "1.0.0"
+  
+  # Module metadata
+  metadata:
+    created: "{{CREATED_DATE}}"
+    author: "DevDocAI Team"
+    status: "development"
+    pass: 0
+    
+  # Dependencies on other modules
+  dependencies:
+    - M001  # Configuration Manager (always required)
+    {{ADDITIONAL_DEPENDENCIES}}
+  
+  # 5-Pass Development Cycle
+  passes:
+    # Pass 0: Design & Architecture
+    pass_0:
+      status: pending
+      tasks:
+        - Define module interfaces
+        - Create API specification
+        - Design data models
+        - Plan integration points
+        - Document performance targets
+        - Define security requirements
+      deliverables:
+        - MODULE_{{MODULE_ID}}_DESIGN.md
+        - api_specification.yaml
+        - data_models.json
+      quality_gates:
+        - complexity_score: "< 10"
+        - design_review: approved
+        
+    # Pass 1: Core Implementation
+    pass_1:
+      status: pending
+      tasks:
+        - Implement core functionality
+        - Create unit tests (80% coverage)
+        - Basic error handling
+        - Integration with M001
+        - API endpoints
+      deliverables:
+        - src/modules/{{MODULE_ID}}/
+        - tests/unit/{{MODULE_ID}}/
+        - MODULE_{{MODULE_ID}}_PASS_1_REPORT.md
+      quality_gates:
+        - test_coverage: ">= 80%"
+        - linting: pass
+        - type_checking: pass
+        
+    # Pass 2: Performance Optimization
+    pass_2:
+      status: pending
+      tasks:
+        - Performance profiling
+        - Implement caching
+        - Optimize algorithms
+        - Parallel processing
+        - Resource optimization
+      deliverables:
+        - src/modules/{{MODULE_ID}}/optimized/
+        - benchmarks/{{MODULE_ID}}/
+        - MODULE_{{MODULE_ID}}_PASS_2_REPORT.md
+      quality_gates:
+        - performance_improvement: ">= 10%"
+        - benchmark_targets: met
+        - memory_usage: optimized
+        
+    # Pass 3: Security Hardening
+    pass_3:
+      status: pending
+      tasks:
+        - Input validation
+        - Output encoding
+        - Authentication/Authorization
+        - Encryption implementation
+        - Security testing (95% coverage)
+        - Vulnerability scanning
+      deliverables:
+        - src/modules/{{MODULE_ID}}/secure/
+        - tests/security/{{MODULE_ID}}/
+        - MODULE_{{MODULE_ID}}_PASS_3_REPORT.md
+      quality_gates:
+        - security_coverage: ">= 95%"
+        - vulnerabilities: "0 critical/high"
+        - security_overhead: "< 10%"
+        
+    # Pass 4: Refactoring & Unification
+    pass_4:
+      status: pending
+      tasks:
+        - Eliminate code duplication
+        - Unify implementations
+        - Apply design patterns
+        - Reduce complexity
+        - Create unified architecture
+      deliverables:
+        - src/modules/{{MODULE_ID}}/unified/
+        - MODULE_{{MODULE_ID}}_PASS_4_REPORT.md
+      quality_gates:
+        - code_reduction: ">= 30%"
+        - duplication: "< 5%"
+        - complexity: "< 8"
+        
+    # Pass 5: Production Readiness
+    pass_5:
+      status: pending
+      tasks:
+        - Production testing
+        - Real-world validation
+        - Documentation completion
+        - Deployment preparation
+        - Monitoring setup
+      deliverables:
+        - docs/{{MODULE_ID}}/
+        - deployment/{{MODULE_ID}}/
+        - MODULE_{{MODULE_ID}}_PASS_5_REPORT.md
+      quality_gates:
+        - production_tests: pass
+        - documentation: complete
+        - monitoring: configured
+
+  # Unified Architecture Structure (based on Module 1)
+  architecture:
+    # Core unified implementation
+    unified:
+      main_class: "{{MODULE_NAME}}Unified"
+      file: "src/modules/{{MODULE_ID}}/unified/{{MODULE_NAME}}_unified.ts"
+      
+    # Operation modes
+    modes:
+      - BASIC       # Minimal functionality
+      - PERFORMANCE # Optimized for speed
+      - SECURE      # Security-hardened
+      - ENTERPRISE  # Full features
+      
+    # Configuration
+    config:
+      file: "src/modules/{{MODULE_ID}}/unified/config_unified.ts"
+      schema: "src/modules/{{MODULE_ID}}/types/config.ts"
+      
+    # Interfaces
+    interfaces:
+      - "I{{MODULE_NAME}}"
+      - "I{{MODULE_NAME}}Config"
+      - "I{{MODULE_NAME}}Options"
+      
+    # Design patterns
+    patterns:
+      - strategy    # For mode switching
+      - factory     # For instance creation
+      - singleton   # For shared instances
+      - observer    # For event handling
+      
+  # Performance Benchmarks
+  benchmarks:
+    baseline:
+      metric: "{{PRIMARY_METRIC}}"
+      value: "{{BASELINE_VALUE}}"
+      unit: "{{METRIC_UNIT}}"
+    target:
+      metric: "{{PRIMARY_METRIC}}"
+      value: "{{TARGET_VALUE}}"
+      unit: "{{METRIC_UNIT}}"
+    achieved:
+      metric: "{{PRIMARY_METRIC}}"
+      value: null
+      unit: "{{METRIC_UNIT}}"
+      
+  # Testing Strategy
+  testing:
+    unit:
+      framework: jest
+      coverage_target: 80
+      files:
+        - "tests/unit/{{MODULE_ID}}/*.test.ts"
+    integration:
+      framework: jest
+      files:
+        - "tests/integration/{{MODULE_ID}}/*.test.ts"
+    performance:
+      framework: custom
+      files:
+        - "benchmarks/{{MODULE_ID}}/*.bench.ts"
+    security:
+      framework: custom
+      coverage_target: 95
+      files:
+        - "tests/security/{{MODULE_ID}}/*.test.ts"
+    e2e:
+      framework: playwright
+      files:
+        - "tests/e2e/{{MODULE_ID}}/*.spec.ts"
+        
+  # Documentation
+  documentation:
+    api:
+      file: "docs/api/{{MODULE_ID}}.md"
+      format: markdown
+    guide:
+      file: "docs/guides/{{MODULE_ID}}-guide.md"
+      format: markdown
+    examples:
+      directory: "examples/{{MODULE_ID}}/"
+      
+  # Monitoring & Observability
+  monitoring:
+    metrics:
+      - name: "{{MODULE_ID}}_operations_per_second"
+        type: counter
+      - name: "{{MODULE_ID}}_latency_ms"
+        type: histogram
+      - name: "{{MODULE_ID}}_errors_total"
+        type: counter
+      - name: "{{MODULE_ID}}_memory_bytes"
+        type: gauge
+    logging:
+      level: info
+      format: json
+      destination: stdout
+    tracing:
+      enabled: true
+      sampling_rate: 0.1
+      
+  # CI/CD Configuration
+  ci_cd:
+    triggers:
+      - push: "module/{{MODULE_ID}}/**"
+      - pull_request: "module/{{MODULE_ID}}/**"
+    workflow: ".github/workflows/module-{{MODULE_ID}}.yml"
+    quality_gates: ".github/quality-gates.yml#module_overrides.{{MODULE_ID}}"

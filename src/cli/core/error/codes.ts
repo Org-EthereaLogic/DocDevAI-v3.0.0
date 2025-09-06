@@ -6,6 +6,31 @@
 
 import { ErrorCategory } from '../../types/core';
 
+// Error Code Enum for unified error handling
+export enum ErrorCode {
+  // Configuration errors
+  CONFIG_NOT_FOUND = 'CONFIG_NOT_FOUND',
+  CONFIG_INVALID = 'CONFIG_INVALID',
+  CONFIG_PARSE_ERROR = 'CONFIG_PARSE_ERROR',
+  
+  // File system errors
+  FILE_NOT_FOUND = 'FILE_NOT_FOUND',
+  PERMISSION_DENIED = 'PERMISSION_DENIED',
+  
+  // Network errors
+  NETWORK_ERROR = 'NETWORK_ERROR',
+  
+  // Validation errors
+  VALIDATION_ERROR = 'VALIDATION_ERROR',
+  
+  // Rate limiting
+  RATE_LIMIT_EXCEEDED = 'RATE_LIMIT_EXCEEDED',
+  
+  // Internal errors
+  INTERNAL_ERROR = 'INTERNAL_ERROR',
+  UNKNOWN_ERROR = 'UNKNOWN_ERROR'
+}
+
 // Configuration Errors (1000-1999)
 export const CONFIG_ERRORS = {
   CONFIG_NOT_FOUND: '1001',

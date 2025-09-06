@@ -1,0 +1,221 @@
+# Quality Gates Configuration
+# Based on Module 1's proven success metrics
+
+quality_gates:
+  # Pass 0: Design Validation Gates
+  design:
+    complexity:
+      max_cyclomatic: 10
+      max_cognitive: 15
+      max_nesting: 4
+    architecture:
+      max_coupling: 5
+      min_cohesion: 0.7
+      max_dependencies: 10
+    documentation:
+      required_sections:
+        - overview
+        - api_specification
+        - integration_points
+        - performance_targets
+        - security_requirements
+      min_completeness: 90
+
+  # Pass 1: Implementation Gates
+  implementation:
+    coverage:
+      unit_tests:
+        minimum: 80
+        target: 85
+        branches: 75
+        functions: 80
+        lines: 80
+        statements: 80
+    code_quality:
+      max_file_size: 350
+      max_function_length: 50
+      max_parameters: 5
+      no_console_logs: true
+      no_commented_code: true
+    testing:
+      required_test_types:
+        - unit
+        - integration
+        - contract
+      min_test_cases_per_function: 3
+      max_test_execution_time: 120 # seconds
+
+  # Pass 2: Performance Gates
+  performance:
+    benchmarks:
+      M001_configuration:
+        retrieval_ops_per_sec: 19000000
+        validation_ops_per_sec: 4000000
+      M002_storage:
+        queries_per_sec: 72000
+        write_ops_per_sec: 10000
+      M003_miair:
+        docs_per_minute: 248000
+        analysis_latency_ms: 10
+      M004_generator:
+        docs_per_second: 100
+        generation_time_ms: 30000
+      M005_quality:
+        analysis_per_sec: 100
+        quality_check_ms: 10
+      default:
+        response_time_p95_ms: 100
+        response_time_p99_ms: 500
+        throughput_rps: 1000
+    improvements:
+      min_performance_gain_percent: 10
+      max_memory_increase_percent: 20
+      max_cpu_increase_percent: 15
+    resource_limits:
+      max_memory_mb: 512
+      max_cpu_percent: 80
+      max_io_ops: 1000
+
+  # Pass 3: Security Gates
+  security:
+    coverage:
+      security_tests:
+        minimum: 95
+        target: 98
+      penetration_tests:
+        minimum: 90
+    vulnerabilities:
+      critical: 0
+      high: 0
+      medium: 3
+      low: 10
+    compliance:
+      owasp_top_10: required
+      gdpr: required
+      ccpa: optional
+      soc2: optional
+    hardening:
+      input_validation: required
+      output_encoding: required
+      authentication: required
+      authorization: required
+      encryption_at_rest: required
+      encryption_in_transit: required
+      rate_limiting: required
+      audit_logging: required
+    overhead:
+      max_performance_impact_percent: 10
+      max_memory_impact_percent: 15
+
+  # Pass 4: Refactoring Gates
+  refactoring:
+    code_reduction:
+      min_reduction_percent: 30
+      target_reduction_percent: 60
+    duplication:
+      max_duplication_percent: 5
+      max_similar_blocks: 3
+    complexity_reduction:
+      min_complexity_reduction_percent: 20
+      max_final_cyclomatic: 8
+    architecture:
+      unified_pattern: required
+      strategy_pattern: recommended
+      factory_pattern: recommended
+      max_inheritance_depth: 3
+    maintainability:
+      maintainability_index_min: 70
+      technical_debt_ratio_max: 5
+
+  # Pass 5: Production Gates
+  production:
+    stability:
+      min_uptime_percent: 99.9
+      max_error_rate_percent: 0.1
+      max_crash_rate_percent: 0.01
+    performance:
+      max_latency_p95_ms: 100
+      max_latency_p99_ms: 500
+      min_throughput_rps: 1000
+      max_cpu_usage_percent: 70
+      max_memory_usage_percent: 80
+    scalability:
+      horizontal_scaling: required
+      auto_scaling: required
+      load_balancing: required
+      max_startup_time_seconds: 30
+    monitoring:
+      metrics_collection: required
+      distributed_tracing: required
+      error_tracking: required
+      performance_monitoring: required
+      custom_dashboards: required
+    documentation:
+      api_documentation: required
+      deployment_guide: required
+      operations_manual: required
+      troubleshooting_guide: required
+      architecture_diagrams: required
+
+# Module-specific overrides
+module_overrides:
+  M001:
+    performance:
+      benchmarks:
+        retrieval_ops_per_sec: 19000000
+        validation_ops_per_sec: 4000000
+  M002:
+    performance:
+      benchmarks:
+        queries_per_sec: 72000
+        encryption_overhead_ms: 5
+  M003:
+    performance:
+      benchmarks:
+        docs_per_minute: 248000
+        entropy_calculation_ms: 2
+  M008:
+    security:
+      compliance:
+        soc2: required
+      hardening:
+        api_key_rotation: required
+        multi_provider_fallback: required
+  M010:
+    security:
+      hardening:
+        sbom_signing: required
+        license_compliance: required
+  M011:
+    production:
+      performance:
+        initial_load_ms: 1200
+        interaction_latency_ms: 35
+      accessibility:
+        wcag_aa: required
+        screen_reader_support: required
+        keyboard_navigation: required
+
+# Notification settings
+notifications:
+  on_gate_failure:
+    slack: true
+    email: true
+    create_issue: true
+  on_gate_warning:
+    slack: true
+    email: false
+    create_issue: false
+  on_success:
+    slack: true
+    email: false
+    create_issue: false
+
+# Enforcement levels
+enforcement:
+  design: strict
+  implementation: strict
+  performance: warning
+  security: strict
+  refactoring: warning
+  production: strict

@@ -1,0 +1,66 @@
+name: 'Setup DevDocAI Environment'
+description: 'Sets up Node.js, Python, and project dependencies'
+
+inputs:
+  node-version:
+    description: 'Node.js version to use'
+    required: false
+    default: '18.x'
+  python-version:
+    description: 'Python version to use'
+    required: false
+    default: '3.11'
+  install-dependencies:
+    description: 'Whether to install dependencies'
+    required: false
+    default: 'true'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'npm'
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ inputs.python-version }}
+        cache: 'pip'
+    
+    - name: Cache node_modules
+      uses: actions/cache@v3
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+    
+    - name: Cache Python packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install Node.js dependencies
+      if: inputs.install-dependencies == 'true'
+      shell: bash
+      run: npm ci
+    
+    - name: Install Python dependencies
+      if: inputs.install-dependencies == 'true'
+      shell: bash
+      run: |
+        pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Setup environment variables
+      shell: bash
+      run: |
+        echo "NODE_ENV=test" >> $GITHUB_ENV
+        echo "PYTHON_ENV=test" >> $GITHUB_ENV
+        echo "CI=true" >> $GITHUB_ENV

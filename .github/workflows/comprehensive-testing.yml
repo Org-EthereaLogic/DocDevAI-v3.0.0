@@ -1,0 +1,478 @@
+name: Comprehensive Testing Infrastructure
+
+on:
+  push:
+    branches: [ main, develop, 'module/**' ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of tests to run'
+        required: true
+        type: choice
+        options:
+          - all
+          - unit
+          - integration
+          - performance
+          - security
+          - e2e
+          - real-world
+
+env:
+  NODE_VERSION: '18.x'
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # ==========================================
+  # Unit Testing
+  # ==========================================
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    if: |
+      github.event.inputs.test_type == 'all' || 
+      github.event.inputs.test_type == 'unit' ||
+      github.event_name != 'workflow_dispatch'
+    
+    strategy:
+      matrix:
+        module: [M001, M002, M003, M004, M005, M006, M007, M008, M009, M010, M011, M012, M013]
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+      
+      - name: Run Unit Tests for ${{ matrix.module }}
+        run: |
+          echo "🧪 Running unit tests for ${{ matrix.module }}"
+          
+          # TypeScript tests
+          if [ -d "src/modules/${{ matrix.module }}" ]; then
+            npm test -- --testPathPattern="${{ matrix.module }}" \
+              --coverage \
+              --coverageDirectory=coverage/${{ matrix.module }} \
+              --json --outputFile=test-results/${{ matrix.module }}.json
+          fi
+          
+          # Python tests
+          if [ -d "devdocai/${{ matrix.module }}" ]; then
+            pytest devdocai/${{ matrix.module }} \
+              --cov=devdocai.${{ matrix.module }} \
+              --cov-report=xml:coverage/${{ matrix.module }}-python.xml \
+              --junit-xml=test-results/${{ matrix.module }}-python.xml
+          fi
+      
+      - name: Check Coverage Threshold
+        run: |
+          # Extract coverage percentage
+          if [ -f "coverage/${{ matrix.module }}/coverage-summary.json" ]; then
+            coverage=$(cat coverage/${{ matrix.module }}/coverage-summary.json | \
+              jq -r '.total.lines.pct')
+            
+            # Check against pass-specific thresholds
+            min_coverage=80
+            if [[ -f "MODULE_${{ matrix.module }}_PASS_3_REPORT.md" ]]; then
+              min_coverage=95
+            fi
+            
+            if (( $(echo "$coverage < $min_coverage" | bc -l) )); then
+              echo "❌ Coverage $coverage% is below minimum $min_coverage%"
+              exit 1
+            else
+              echo "✅ Coverage $coverage% meets minimum $min_coverage%"
+            fi
+          fi
+      
+      - name: Upload Coverage
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/${{ matrix.module }}/*.json,./coverage/${{ matrix.module }}-python.xml
+          flags: unit-${{ matrix.module }}
+          name: ${{ matrix.module }}-unit
+
+  # ==========================================
+  # Integration Testing
+  # ==========================================
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    if: |
+      github.event.inputs.test_type == 'all' || 
+      github.event.inputs.test_type == 'integration'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+      
+      - name: Start Services
+        run: |
+          # Start any required services
+          docker-compose -f tests/docker-compose.yml up -d
+          sleep 10  # Wait for services to be ready
+      
+      - name: Run Integration Tests
+        run: |
+          echo "🔗 Running integration tests"
+          
+          # Module integration tests
+          npm run test:integration -- \
+            --testTimeout=30000 \
+            --json --outputFile=integration-results.json
+          
+          # Cross-module integration
+          npm run test:cross-module
+      
+      - name: Test Module Dependencies
+        run: |
+          # Test M002 depends on M001
+          npm test -- --testNamePattern="M002.*M001 integration"
+          
+          # Test M003 depends on M002
+          npm test -- --testNamePattern="M003.*M002 integration"
+          
+          # Test M004 depends on M001, M003, M006
+          npm test -- --testNamePattern="M004.*dependencies"
+      
+      - name: Stop Services
+        if: always()
+        run: docker-compose -f tests/docker-compose.yml down
+
+  # ==========================================
+  # Performance Testing
+  # ==========================================
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    if: |
+      github.event.inputs.test_type == 'all' || 
+      github.event.inputs.test_type == 'performance'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+      
+      - name: Run Performance Benchmarks
+        run: |
+          echo "⚡ Running performance benchmarks"
+          
+          # Module-specific benchmarks
+          for module in M001 M002 M003 M004 M005 M006 M007 M008 M009 M010 M011 M012 M013; do
+            if [ -f "benchmarks/$module/*.bench.ts" ]; then
+              echo "Benchmarking $module..."
+              npm run module:${module,,}:bench >> benchmark-results.txt
+            fi
+          done
+      
+      - name: Validate Performance Targets
+        run: |
+          # Check against defined targets
+          node .github/scripts/validate-performance.js \
+            --results=benchmark-results.txt \
+            --targets=.github/quality-gates.yml
+      
+      - name: Memory Profiling
+        run: |
+          echo "💾 Running memory profiling"
+          
+          # Profile memory usage
+          npm run profile:memory -- --all-modules
+          
+          # Check for memory leaks
+          npm run test:memory-leaks
+      
+      - name: Load Testing
+        run: |
+          echo "🔥 Running load tests"
+          
+          # Stress test each module
+          npm run test:stress -- \
+            --duration=60 \
+            --concurrent=100 \
+            --ramp-up=10
+      
+      - name: Generate Performance Report
+        run: |
+          npm run report:performance -- \
+            --input=benchmark-results.txt \
+            --output=performance-report.md
+      
+      - name: Upload Performance Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-report-${{ github.run_number }}
+          path: performance-report.md
+
+  # ==========================================
+  # Security Testing
+  # ==========================================
+  security-tests:
+    name: Security Tests
+    runs-on: ubuntu-latest
+    if: |
+      github.event.inputs.test_type == 'all' || 
+      github.event.inputs.test_type == 'security'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+      
+      - name: Run Security Tests
+        run: |
+          echo "🔒 Running security tests"
+          
+          # Security-specific test suites
+          npm run test:security -- --coverage
+          
+          # Input validation tests
+          npm run test:input-validation
+          
+          # Authentication/Authorization tests
+          npm run test:auth
+          
+          # Encryption tests
+          npm run test:encryption
+      
+      - name: Dependency Scanning
+        run: |
+          echo "📦 Scanning dependencies"
+          
+          # NPM audit
+          npm audit --json > npm-audit.json || true
+          
+          # Python dependencies
+          pip-audit --format json > pip-audit.json || true
+          
+          # License compliance
+          npm run check:licenses
+      
+      - name: SAST Scanning
+        run: |
+          echo "🔍 Running SAST analysis"
+          
+          # Static analysis
+          npm run security:sast
+          
+          # Check for common vulnerabilities
+          npm run security:owasp
+      
+      - name: Secret Scanning
+        run: |
+          echo "🔑 Scanning for secrets"
+          
+          # Scan for exposed secrets
+          npm run security:secrets
+      
+      - name: Penetration Testing
+        run: |
+          echo "🎯 Running penetration tests"
+          
+          # API penetration tests
+          npm run test:penetration:api
+          
+          # Input fuzzing
+          npm run test:fuzz
+      
+      - name: Generate Security Report
+        run: |
+          npm run report:security -- \
+            --npm-audit=npm-audit.json \
+            --pip-audit=pip-audit.json \
+            --output=security-report.md
+      
+      - name: Upload Security Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-report-${{ github.run_number }}
+          path: security-report.md
+
+  # ==========================================
+  # End-to-End Testing
+  # ==========================================
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    if: |
+      github.event.inputs.test_type == 'all' || 
+      github.event.inputs.test_type == 'e2e'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+      
+      - name: Install Playwright
+        run: npx playwright install --with-deps
+      
+      - name: Start Application
+        run: |
+          npm run build
+          npm start &
+          npx wait-on http://localhost:3000 --timeout=60000
+      
+      - name: Run E2E Tests
+        run: |
+          echo "🌐 Running E2E tests"
+          
+          # Run Playwright tests
+          npm run test:e2e -- \
+            --project=chromium \
+            --project=firefox \
+            --project=webkit
+      
+      - name: Accessibility Testing
+        run: |
+          echo "♿ Running accessibility tests"
+          
+          npm run test:a11y
+      
+      - name: Visual Regression Testing
+        run: |
+          echo "👁️ Running visual regression tests"
+          
+          npm run test:visual
+      
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-report-${{ github.run_number }}
+          path: playwright-report/
+
+  # ==========================================
+  # Real-World Testing
+  # ==========================================
+  real-world-tests:
+    name: Real-World Tests
+    runs-on: ubuntu-latest
+    if: |
+      github.event.inputs.test_type == 'all' || 
+      github.event.inputs.test_type == 'real-world'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+      
+      - name: Prepare Real-World Data
+        run: |
+          echo "📚 Preparing real-world test data"
+          
+          # Download sample projects
+          ./tests/real-world/download-samples.sh
+      
+      - name: Test with Real Projects
+        run: |
+          echo "🌍 Testing with real-world projects"
+          
+          # Test with various project types
+          for project in tests/real-world/samples/*; do
+            echo "Testing with $(basename $project)..."
+            npm run test:real-world -- --project=$project
+          done
+      
+      - name: Test at Scale
+        run: |
+          echo "📈 Testing at scale"
+          
+          # Test with large datasets
+          npm run test:scale -- \
+            --documents=10000 \
+            --concurrent-users=100
+      
+      - name: Cross-Platform Testing
+        run: |
+          echo "🖥️ Cross-platform testing"
+          
+          # Test on different environments
+          npm run test:cross-platform
+      
+      - name: Generate Real-World Report
+        run: |
+          npm run report:real-world -- \
+            --output=real-world-report.md
+      
+      - name: Upload Real-World Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: real-world-report-${{ github.run_number }}
+          path: real-world-report.md
+
+  # ==========================================
+  # Test Summary and Reporting
+  # ==========================================
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, performance-tests, security-tests, e2e-tests, real-world-tests]
+    if: always()
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download All Test Results
+        uses: actions/download-artifact@v3
+        with:
+          path: test-results/
+      
+      - name: Generate Test Summary
+        run: |
+          echo "📊 Generating test summary"
+          
+          npm run report:test-summary -- \
+            --results=test-results/ \
+            --output=TEST_SUMMARY.md
+      
+      - name: Check Overall Quality
+        run: |
+          # Validate all quality gates
+          npm run gates:validate:all -- \
+            --results=test-results/ \
+            --gates=.github/quality-gates.yml
+      
+      - name: Update Test Dashboard
+        if: github.ref == 'refs/heads/main'
+        run: |
+          npm run dashboard:update:tests -- \
+            --summary=TEST_SUMMARY.md
+      
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('TEST_SUMMARY.md', 'utf8');
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: summary
+            });
+      
+      - name: Send Test Report
+        if: always()
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        run: |
+          if [ -n "$SLACK_WEBHOOK" ]; then
+            npm run notify:test-results -- \
+              --webhook=$SLACK_WEBHOOK \
+              --summary=TEST_SUMMARY.md
+          fi
