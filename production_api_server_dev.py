@@ -151,7 +151,7 @@ class ProductionAPIServer:
             available_providers = [k for k, v in api_keys.items() if v]
             
             if available_providers:
-                logger.info(f"API keys found for: {', '.join(available_providers)}")
+                logger.info("API keys found for one or more supported providers")
                 # Initialize with configuration manager
                 try:
                     from devdocai.core.config import ConfigurationManager
