@@ -78,6 +78,7 @@ const DocumentGenerator: React.FC = () => {
     projectPath: '',
     outputFormat: 'markdown',
     customPrompt: '',
+    formatStyle: 'verbose_prose', // New option for prose vs bullet points
   });
 
   // Persisted jobs list - saves generation history
@@ -93,7 +94,7 @@ const DocumentGenerator: React.FC = () => {
   const [dataRestored, setDataRestored] = useState(false);
 
   // Destructure form state for easier access
-  const { selectedTemplate, projectPath, outputFormat, customPrompt } = formState;
+  const { selectedTemplate, projectPath, outputFormat, customPrompt, formatStyle } = formState;
 
   const templates = [
     { id: 'prd', name: 'Product Requirements Document (PRD)', description: 'Comprehensive product requirements with user stories and success metrics' },
@@ -765,6 +766,7 @@ Audit_Logs, Events
         template: selectedTemplate,
         custom_instructions: customPrompt,
         format: outputFormat,
+        format_style: formatStyle,
       });
 
       const response = await fetch(`/api/generate?t=${Date.now()}`, {
@@ -778,6 +780,7 @@ Audit_Logs, Events
           template: selectedTemplate,
           custom_instructions: customPrompt,
           format: outputFormat,
+          format_style: formatStyle,
         }),
         // Add timeout and other fetch options
         signal: AbortSignal.timeout(60000), // 60 second timeout
@@ -1096,6 +1099,32 @@ Audit_Logs, Events
                   >
                     <MenuItem value="markdown">Markdown (.md) - Universal text format</MenuItem>
                     <MenuItem value="pdf">PDF (.pdf) - Formal documentation</MenuItem>
+                  </Select>
+                </FormControl>
+
+                <FormControl fullWidth>
+                  <InputLabel>Writing Style</InputLabel>
+                  <Select
+                    value={formatStyle}
+                    onChange={(e) => setFormState(prev => ({ ...prev, formatStyle: e.target.value }))}
+                    label="Writing Style"
+                  >
+                    <MenuItem value="verbose_prose">
+                      <Box>
+                        <Typography variant="body2" component="span" display="block">Rich Verbose Prose</Typography>
+                        <Typography variant="caption" color="text.secondary" component="span" display="block">
+                          Flowing narrative paragraphs with detailed explanations
+                        </Typography>
+                      </Box>
+                    </MenuItem>
+                    <MenuItem value="structured">
+                      <Box>
+                        <Typography variant="body2" component="span" display="block">Structured Format</Typography>
+                        <Typography variant="caption" color="text.secondary" component="span" display="block">
+                          Bullet points and lists for quick scanning
+                        </Typography>
+                      </Box>
+                    </MenuItem>
                   </Select>
                 </FormControl>
 

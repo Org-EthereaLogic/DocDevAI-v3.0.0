@@ -1,0 +1,226 @@
+name: "Product Requirements Document (PRD) Generation - Verbose Prose"
+description: "Generate comprehensive Product Requirements Document with rich, verbose prose instead of bullet points"
+category: "generation"
+version: "2.0.0"
+
+# Define what inputs this template needs
+inputs:
+  - name: "project_description"
+    type: "string"
+    required: true
+    description: "Initial project idea and description"
+    
+  - name: "project_name"
+    type: "string"
+    required: true
+    description: "Name of the product/project"
+    
+  - name: "target_audience"
+    type: "string"
+    required: false
+    default: "general users"
+    description: "Primary target audience for the product"
+    
+  - name: "business_context"
+    type: "string"
+    required: false
+    default: ""
+    description: "Business context and market opportunity"
+    
+  - name: "constraints"
+    type: "string"
+    required: false
+    default: ""
+    description: "Known constraints and limitations"
+    
+  - name: "format_style"
+    type: "string"
+    required: false
+    default: "verbose_prose"
+    description: "Output format style preference"
+
+# LLM configuration for multi-provider synthesis
+llm_config:
+  providers:
+    - name: "claude"
+      weight: 0.4
+      model: "claude-3-opus-20240229"
+    - name: "openai"
+      weight: 0.35
+      model: "gpt-4-turbo-preview"
+    - name: "google"
+      weight: 0.25
+      model: "gemini-pro"
+  
+  temperature: 0.7
+  max_tokens: 10000
+
+# The actual prompt template
+prompt:
+  system: |
+    You are an expert Product Manager who creates comprehensive, contextual Product Requirements Documents (PRDs) using RICH, VERBOSE PROSE.
+    
+    CRITICAL WRITING STYLE REQUIREMENTS:
+    
+    1. **WRITE IN FLOWING NARRATIVE PROSE**: Use complete paragraphs with rich, descriptive language. Each section should read like a well-written business document, not a bulleted list.
+    
+    2. **NO BULLET POINTS OR LISTS**: Express all information in paragraph form with smooth transitions between ideas. Even when presenting multiple items, weave them into the narrative.
+    
+    3. **VERBOSE AND COMPREHENSIVE**: Be thorough and expansive in your descriptions. Use professional business language that fully explores each concept.
+    
+    4. **STORYTELLING APPROACH**: Frame requirements as narratives that explain the why, what, and how in an engaging manner.
+    
+    5. **RICH CONTEXT**: Provide extensive background, rationale, and justification for each decision and requirement.
+    
+    Your approach is:
+    - ANALYZE FIRST: Understand the project deeply
+    - WRITE RICHLY: Create flowing, professional prose
+    - BE COMPREHENSIVE: Explore topics thoroughly
+    - USE TRANSITIONS: Connect ideas smoothly
+    - AVOID LISTS: Express everything in paragraph form
+  
+  user: |
+    CRITICAL INSTRUCTION: Generate a Product Requirements Document written ENTIRELY in rich, verbose prose. NO bullet points, NO lists, NO short fragments. Every section must be written in complete, flowing paragraphs with professional business language.
+    
+    <project_description>
+    {{project_description}}
+    </project_description>
+    
+    Project Name: {{project_name}}
+    Target Audience: {{target_audience}}
+    {% if business_context %}
+    Business Context: {{business_context}}
+    {% endif %}
+    {% if constraints %}
+    Known Constraints: {{constraints}}
+    {% endif %}
+    
+    FORMAT REQUIREMENT: Write the entire document in rich, narrative prose with NO bullet points or lists.
+    
+    # {{project_name}} - Product Requirements Document
+    
+    ## Executive Summary
+    
+    ### Product Vision
+    
+    Write 2-3 flowing paragraphs that paint a vivid picture of what {{project_name}} aims to achieve. Begin with the transformative impact this product will have on its users and market. Describe how it represents a fundamental shift in how people approach the problems it solves. Weave in the long-term aspirations and the broader ecosystem this product will create or enhance. The vision should inspire stakeholders while remaining grounded in achievable reality.
+    
+    ### Problem Statement
+    
+    Compose 3-4 comprehensive paragraphs that deeply explore the problems {{project_name}} addresses. Start by painting a picture of the current state of affairs, describing in detail the frustrations and inefficiencies users face today. Transition into explaining why existing solutions fall short, providing specific examples of where current approaches break down. Conclude with the consequences of not solving these problems, emphasizing the urgency and importance of this initiative.
+    
+    ### Value Proposition
+    
+    Dedicate 2-3 rich paragraphs to articulating the unique value {{project_name}} delivers. Begin by describing the transformation users will experience, painting a before-and-after picture that resonates emotionally and logically. Explain how the product's approach differs fundamentally from alternatives, not just in features but in philosophy and execution. Close with the measurable impacts on productivity, satisfaction, or business outcomes that justify investment in this solution.
+    
+    ### Success Metrics
+    
+    In 2-3 detailed paragraphs, describe how success will be measured for {{project_name}}. Start by establishing the primary indicators of market acceptance and user adoption, explaining why these particular metrics matter most for this product's success. Continue with a discussion of engagement and retention metrics that will demonstrate ongoing value delivery. Conclude with business impact measurements that connect product success to organizational objectives, explaining the relationships between user behaviors and business outcomes.
+    
+    ## Target Users and Market Analysis
+    
+    ### Primary User Segments
+    
+    Devote 3-4 paragraphs to painting a comprehensive picture of who will use {{project_name}}. Begin with demographic and psychographic profiles, but go beyond statistics to describe their daily lives, challenges, and aspirations. Explore their current workflows and pain points in detail, explaining how they currently cope with the problems this product will solve. Discuss their technical capabilities, preferences, and the context in which they'll use the product. Conclude with insights about their decision-making processes and what influences their choice of tools or solutions.
+    
+    ### User Personas and Journey
+    
+    Create 4-5 flowing paragraphs that bring your users to life through detailed personas. Start with your primary persona, giving them a name and telling their story in a way that makes them feel real and relatable. Describe their typical day, the moments when they encounter the problems your product solves, and their emotional journey from frustration to relief. Continue with secondary personas, explaining how their needs differ and overlap with the primary user. Weave in the user journey throughout, showing how different personas discover, evaluate, adopt, and advocate for your product.
+    
+    ### Market Context and Opportunity
+    
+    In 3-4 comprehensive paragraphs, analyze the market landscape for {{project_name}}. Begin with market size and growth trends, but present these as part of a narrative about changing user expectations and technological possibilities. Discuss competitive dynamics not as a simple list but as an evolving story of how different approaches have tried and failed to fully address user needs. Explain market timing factors that make now the right moment for this product, weaving together technological, social, and business trends that create a unique opportunity window.
+    
+    ## Product Requirements and Specifications
+    
+    ### Core Functionality
+    
+    Dedicate 4-5 rich paragraphs to describing the essential capabilities of {{project_name}}. Begin with the fundamental value-creating features, explaining not just what they do but why they matter and how they work together to solve user problems. Describe the user experience of interacting with these features, painting a picture of smooth workflows and intuitive interactions. Discuss how features build upon each other to create a cohesive whole greater than the sum of its parts. Explain the technical sophistication behind the apparent simplicity, showing how complex problems are solved in ways that feel effortless to users.
+    
+    ### User Experience Philosophy
+    
+    In 3-4 thoughtful paragraphs, articulate the design philosophy that will guide {{project_name}}'s user experience. Start with the emotional journey you want users to have, from their first interaction through becoming power users. Describe the design principles that will ensure consistency and delight across all touchpoints. Discuss how the interface will adapt to different user contexts and skill levels while maintaining its core identity. Explain how visual design, interaction patterns, and information architecture work together to reduce cognitive load and increase user confidence.
+    
+    ### Performance and Scalability Requirements
+    
+    Write 3-4 detailed paragraphs about the technical performance expectations for {{project_name}}. Begin with user-facing performance requirements, explaining why specific response times and reliability levels are crucial for user satisfaction and trust. Transition into discussing scalability needs, painting a picture of how the system will grow from initial launch to widespread adoption. Address data handling and processing requirements in the context of user privacy and system efficiency. Conclude with infrastructure considerations that ensure the product can deliver consistent performance across different conditions and usage patterns.
+    
+    ### Security and Compliance Framework
+    
+    Compose 3-4 comprehensive paragraphs detailing the security and compliance approach for {{project_name}}. Start with the security philosophy, explaining how user trust will be earned and maintained through robust protection of data and privacy. Describe the specific security measures in narrative form, showing how multiple layers of protection work together to create a secure environment. Discuss compliance requirements not as a checklist but as part of a broader commitment to responsible product development. Explain how security features will be made transparent to users without compromising effectiveness.
+    
+    ## Technical Architecture and Integration
+    
+    ### System Architecture Overview
+    
+    In 4-5 flowing paragraphs, describe the technical foundation of {{project_name}}. Begin with the high-level architecture philosophy, explaining choices between monolithic and microservices approaches, cloud versus on-premise deployments, and build versus buy decisions. Describe how different system components interact to deliver functionality, using analogies and clear explanations rather than technical jargon. Discuss data flow through the system, showing how information is captured, processed, stored, and presented to users. Explain how the architecture supports both current requirements and future evolution. Conclude with how technical choices align with business objectives and user needs.
+    
+    ### Integration Strategy
+    
+    Dedicate 3-4 paragraphs to explaining how {{project_name}} will connect with other systems and services. Start with the integration philosophy, whether it's about being a central hub, a specialized tool in a larger ecosystem, or a standalone solution with selective connections. Describe key integrations in narrative form, explaining not just what systems will be connected but why these connections create value for users. Discuss the technical approach to integration, whether through APIs, webhooks, or other mechanisms, in terms of flexibility and reliability rather than technical specifications. Conclude with how the integration strategy supports user workflows and business processes.
+    
+    ### Data Management Philosophy
+    
+    Write 3-4 thoughtful paragraphs about how {{project_name}} will handle data. Begin with the types of data the system will manage and why this data matters for delivering user value. Describe the approach to data quality, consistency, and integrity in terms of user trust and system reliability. Discuss data retention, archival, and deletion policies as part of a broader narrative about respecting user privacy while maintaining system usefulness. Explain how data insights will be derived and presented to users in ways that drive better decisions without overwhelming them with complexity.
+    
+    ## Implementation Strategy and Roadmap
+    
+    ### Development Approach
+    
+    In 3-4 comprehensive paragraphs, outline the development strategy for {{project_name}}. Begin with the methodology choice, explaining why agile, waterfall, or hybrid approaches best suit this product's needs and constraints. Describe how the team will balance speed with quality, innovation with stability, and features with technical debt management. Discuss the approach to testing and quality assurance as an integral part of development rather than a separate phase. Explain how user feedback will be incorporated throughout development to ensure the product meets real needs rather than assumed requirements.
+    
+    ### Release Strategy and Phasing
+    
+    Compose 4-5 flowing paragraphs that tell the story of how {{project_name}} will come to market. Start with the MVP strategy, explaining what constitutes minimum viability for this particular product and user base. Describe the phased rollout plan as a journey from early adopters to mainstream users, showing how each phase builds on learnings from the previous one. Discuss feature prioritization not as a simple list but as strategic choices that balance user value, technical dependencies, and business objectives. Explain how the release strategy manages risk while maintaining momentum. Conclude with the long-term vision for product evolution beyond initial releases.
+    
+    ### Go-to-Market Considerations
+    
+    In 3-4 detailed paragraphs, describe how {{project_name}} will be introduced to its market. Begin with positioning strategy, explaining how the product will be perceived relative to alternatives and user expectations. Discuss the launch approach, whether it's a quiet beta, a splashy announcement, or something in between, and why this approach suits the product and market. Explain how early users will be identified, engaged, and supported to become product champions. Conclude with how launch success will be measured and how the team will respond to different scenarios.
+    
+    ## Risk Analysis and Mitigation
+    
+    ### Technical and Operational Risks
+    
+    Write 3-4 comprehensive paragraphs analyzing potential technical and operational challenges for {{project_name}}. Begin with technology risks, discussing potential points of failure or limitation in a way that acknowledges uncertainty while showing preparedness. Describe operational risks related to scaling, support, and maintenance, explaining how the team will identify early warning signs and respond effectively. Discuss dependency risks on third-party services, technologies, or resources, showing how the product design minimizes single points of failure. Conclude with contingency planning that ensures project continuity even when things don't go as planned.
+    
+    ### Market and Business Risks
+    
+    In 3-4 thoughtful paragraphs, explore market and business risks facing {{project_name}}. Start with competitive risks, discussing how the market might evolve and how competitors might respond, while explaining the product's defensive and offensive strategies. Address adoption risks, acknowledging that user behavior change is difficult and describing how the product will overcome inertia and skepticism. Discuss business model risks, including pricing, cost structure, and revenue assumptions, showing how different scenarios have been considered. Conclude with regulatory and compliance risks that could impact product development or deployment.
+    
+    ## Success Metrics and Evaluation Framework
+    
+    ### Quantitative Success Measures
+    
+    Dedicate 3-4 paragraphs to describing measurable success indicators for {{project_name}}. Begin with user metrics that demonstrate adoption, engagement, and satisfaction, explaining why these particular measurements matter for this product's success. Discuss performance metrics that show the system is meeting its technical objectives while delivering user value. Address business metrics that connect product success to organizational goals, showing how user behaviors translate into business outcomes. Explain how these metrics will be collected, analyzed, and acted upon to drive continuous improvement.
+    
+    ### Qualitative Success Indicators
+    
+    In 2-3 flowing paragraphs, discuss the qualitative aspects of success for {{project_name}}. Describe how user sentiment and feedback will be gathered and interpreted to understand the emotional and practical impact of the product. Explain how market perception and industry recognition contribute to long-term success beyond immediate metrics. Discuss how team satisfaction and organizational learning represent important but less tangible measures of project success.
+    
+    ## Conclusion and Next Steps
+    
+    ### Summary and Call to Action
+    
+    Conclude with 2-3 powerful paragraphs that synthesize the entire PRD for {{project_name}}. Revisit the vision and problem statement, reinforcing why this product matters and why now is the time to build it. Summarize the key requirements and approach in a way that builds confidence in the plan while acknowledging the work ahead. End with specific next steps and a call to action that mobilizes stakeholders and team members around the shared goal of bringing this product to life.
+    
+    ### Living Document Philosophy
+    
+    Close with a paragraph acknowledging that this PRD is a living document that will evolve as the team learns more about users, technology, and the market. Explain how feedback and updates will be incorporated while maintaining the core vision and objectives that guide the product's development.
+
+# Output processing configuration
+output:
+  format: "verbose_prose"
+  style: "narrative"
+  avoid: ["bullets", "lists", "fragments"]
+  emphasis: "flowing_paragraphs"
+
+# MIAIR optimization settings  
+miair_config:
+  enabled: true
+  target_quality: 0.95
+  max_iterations: 3
+  focus_areas:
+    - "prose_quality"
+    - "narrative_flow"
+    - "completeness"
+    - "professional_tone"

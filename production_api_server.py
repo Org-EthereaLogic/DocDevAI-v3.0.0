@@ -55,12 +55,16 @@ from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from enum import Enum
 import uuid
+import re
 
 # Load environment variables
 load_dotenv()
 
 # Add the devdocai directory to Python path
 sys.path.insert(0, str(Path(__file__).parent))
+
+# Import custom template service
+from custom_template_service import get_custom_template_service
 
 # Configure structured logging with correlation IDs
 logging.basicConfig(
@@ -323,6 +327,108 @@ class APIValidator:
             logger.error(f"Response validation error: {e}")
             return False
 
+class CustomTemplateService:
+    """Service to load and render custom templates from DevDocAI-templete-examples directory"""
+    
+    def __init__(self, templates_dir='/workspaces/DocDevAI-v3.0.0/DevDocAI-templete-examples'):
+        self.templates_dir = Path(templates_dir)
+        self.template_cache = {}
+        logger.info(f"CustomTemplateService initialized with templates_dir: {templates_dir}")
+    
+    def get_available_templates(self):
+        """Get list of available custom templates"""
+        templates = []
+        try:
+            if self.templates_dir.exists():
+                for template_file in self.templates_dir.glob('*.md'):
+                    template_name = template_file.stem
+                    template_id = template_name.lower().replace(' ', '_')
+                    templates.append({
+                        'id': template_id,
+                        'name': template_name,
+                        'file': template_file.name
+                    })
+                logger.info(f"Found {len(templates)} custom templates")
+            else:
+                logger.warning(f"Templates directory not found: {self.templates_dir}")
+        except Exception as e:
+            logger.error(f"Error scanning templates directory: {e}")
+        
+        return templates
+    
+    def load_template(self, template_id):
+        """Load a custom template from file"""
+        try:
+            # Check cache first
+            if template_id in self.template_cache:
+                return self.template_cache[template_id]
+            
+            # Find template file by ID
+            template_file = None
+            for file_path in self.templates_dir.glob('*.md'):
+                if file_path.stem.lower().replace(' ', '_') == template_id.lower():
+                    template_file = file_path
+                    break
+            
+            if not template_file or not template_file.exists():
+                raise FileNotFoundError(f"Template not found: {template_id}")
+            
+            # Read template content
+            with open(template_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            # Cache the template
+            self.template_cache[template_id] = content
+            logger.info(f"Loaded custom template: {template_id}")
+            
+            return content
+        except Exception as e:
+            logger.error(f"Failed to load template {template_id}: {e}")
+            raise
+    
+    def render_template(self, template_id, variables, format_style='verbose_prose'):
+        """Render a custom template with variables and format style"""
+        try:
+            # Load the template
+            template_content = self.load_template(template_id)
+            
+            # Replace variables in template
+            rendered_content = template_content
+            for key, value in variables.items():
+                placeholder = f"{{{{{key}}}}}"
+                rendered_content = rendered_content.replace(placeholder, str(value))
+            
+            # Add format style instructions if verbose prose is requested
+            if format_style == 'verbose_prose':
+                verbose_instruction = """
+
+IMPORTANT FORMATTING INSTRUCTIONS:
+- Write in rich, verbose prose with flowing narrative paragraphs
+- Avoid bullet points and lists wherever possible
+- Use complete, descriptive sentences that tell a story
+- Provide comprehensive context and detailed explanations
+- Write each section as continuous, engaging text
+- Use storytelling techniques to make content compelling
+- Ensure all content flows naturally from one idea to the next
+
+"""
+                # Insert the instruction after the initial prompt but before the main content
+                if "Here is the user input" in rendered_content:
+                    rendered_content = rendered_content.replace(
+                        "Here is the user input",
+                        verbose_instruction + "\nHere is the user input"
+                    )
+                else:
+                    # If pattern not found, append at the end of the system message
+                    rendered_content = rendered_content + verbose_instruction
+            
+            logger.info(f"Rendered custom template: {template_id} with format_style: {format_style}")
+            return rendered_content
+            
+        except Exception as e:
+            logger.error(f"Failed to render template {template_id}: {e}")
+            raise
+
 class ProductionAPIServer:
     """Production-ready API server with enterprise reliability features"""
     
@@ -330,6 +436,7 @@ class ProductionAPIServer:
         self.app = Flask(__name__)
         self.llm_adapter = None
         self.template_engine = None
+        self.custom_template_service = CustomTemplateService()
         self.circuit_breakers = {}
         self.rate_limiters = defaultdict(lambda: RateLimiter())
         self.request_metrics = defaultdict(int)
@@ -491,6 +598,65 @@ class ProductionAPIServer:
                 'server': 'DevDocAI Production API Server v3.0.0'
             }), 200
         
+        @self.app.route('/api/custom-templates', methods=['GET', 'OPTIONS'])
+        def list_custom_templates():
+            """List available custom templates"""
+            if request.method == 'OPTIONS':
+                return jsonify({'status': 'OK'}), 200
+            
+            try:
+                # Get available templates
+                templates = self.custom_template_service.get_available_templates()
+                
+                return jsonify({
+                    'success': True,
+                    'templates': templates,
+                    'count': len(templates),
+                    'timestamp': datetime.utcnow().isoformat()
+                }), 200
+            except Exception as e:
+                logger.error(f"Error listing custom templates: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': 'Failed to list custom templates',
+                    'templates': []
+                }), 500
+        
+        @self.app.route('/api/custom-template/<template_id>', methods=['GET', 'OPTIONS'])
+        def get_custom_template_preview(template_id):
+            """Get preview of a specific custom template"""
+            if request.method == 'OPTIONS':
+                return jsonify({'status': 'OK'}), 200
+            
+            try:
+                # Load template content as preview
+                template_content = self.custom_template_service.load_template(template_id)
+                
+                # Extract sections for preview (first 500 chars of each major section)
+                lines = template_content.split('\n')
+                preview_lines = []
+                for line in lines[:20]:  # First 20 lines as preview
+                    preview_lines.append(line)
+                
+                preview = {
+                    'id': template_id,
+                    'content_preview': '\n'.join(preview_lines),
+                    'full_length': len(template_content),
+                    'line_count': len(lines)
+                }
+                
+                return jsonify({
+                    'success': True,
+                    'template': preview,
+                    'timestamp': datetime.utcnow().isoformat()
+                }), 200
+            except Exception as e:
+                logger.error(f"Error getting template preview: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': 'Failed to get template preview'
+                }), 500
+        
         @self.app.route('/api/analyze', methods=['POST', 'OPTIONS'])
         @self.circuit_breakers.get('analyze', CircuitBreaker('analyze'))
         def analyze_quality():
@@ -575,6 +741,25 @@ class ProductionAPIServer:
                 project_path = data.get('project_path', '/tmp/project')
                 custom_instructions = data.get('custom_instructions', '')
                 output_format = data.get('format', 'markdown')
+                format_style = data.get('format_style', 'verbose_prose')  # New parameter for prose vs structured
+                use_custom_template = data.get('use_custom_template', False)  # Flag to use custom templates
+                custom_template_id = data.get('custom_template_id', None)  # ID of custom template if selected
+                
+                # Auto-detect custom templates for known document types
+                if not use_custom_template and not custom_template_id:
+                    auto_custom_templates = {
+                        'prd': 'product_requirements_document_creation'
+                    }
+                    auto_template_id = auto_custom_templates.get(frontend_template)
+                    if auto_template_id:
+                        # Check if custom template exists
+                        available_templates = self.custom_template_service.get_available_templates()
+                        for template in available_templates:
+                            if template['id'] == auto_template_id:
+                                use_custom_template = True
+                                custom_template_id = auto_template_id
+                                logger.info(f"Auto-selected custom template: {custom_template_id}")
+                                break
                 
                 # Validate output format - only markdown and pdf are supported
                 if output_format not in ['markdown', 'pdf']:
@@ -582,19 +767,35 @@ class ProductionAPIServer:
                     output_format = 'markdown'
                 
                 # Map frontend template IDs to prompt template names
-                template_mapping = {
-                    'prd': 'prd_generation',
-                    'wbs': 'wbs_generation', 
-                    'srs': 'software_requirements_generation',
-                    'architecture': 'architecture_blueprint_generation',
-                    # Legacy mappings for backward compatibility
-                    'api-docs': 'api_documentation',
-                    'readme': 'readme_generation',
-                    'code-docs': 'code_documentation',
-                    'user-guide': 'user_guide',
-                    'changelog': 'changelog',
-                    'technical-spec': 'technical_specification'
-                }
+                # Use verbose versions when format_style is 'verbose_prose'
+                if format_style == 'verbose_prose':
+                    template_mapping = {
+                        'prd': 'prd_generation_verbose',  # Use verbose version
+                        'wbs': 'wbs_generation_verbose', 
+                        'srs': 'software_requirements_generation_verbose',
+                        'architecture': 'architecture_blueprint_generation_verbose',
+                        # Legacy mappings for backward compatibility
+                        'api-docs': 'api_documentation',
+                        'readme': 'readme_generation',
+                        'code-docs': 'code_documentation',
+                        'user-guide': 'user_guide',
+                        'changelog': 'changelog',
+                        'technical-spec': 'technical_specification'
+                    }
+                else:
+                    template_mapping = {
+                        'prd': 'prd_generation',
+                        'wbs': 'wbs_generation', 
+                        'srs': 'software_requirements_generation',
+                        'architecture': 'architecture_blueprint_generation',
+                        # Legacy mappings for backward compatibility
+                        'api-docs': 'api_documentation',
+                        'readme': 'readme_generation',
+                        'code-docs': 'code_documentation',
+                        'user-guide': 'user_guide',
+                        'changelog': 'changelog',
+                        'technical-spec': 'technical_specification'
+                    }
                 
                 template_name = template_mapping.get(frontend_template, 'prd_generation')
                 project_name = Path(project_path).name or 'Project'
@@ -646,8 +847,39 @@ This is sample content. To generate real AI-powered documentation:
                 # Generate real AI content
                 start_time = time.time()
                 
-                # Try to use template engine if available
-                if self.template_engine:
+                # Check if using custom template
+                if use_custom_template and custom_template_id:
+                    try:
+                        logger.info(f"Using custom template: {custom_template_id}")
+                        
+                        # Prepare variables for custom template
+                        template_vars = {
+                            'USER_INPUT': custom_instructions or f"Create documentation for {project_name} located at {project_path}",
+                            'PROJECT_NAME': project_name,
+                            'PROJECT_PATH': project_path,
+                            'CUSTOM_INSTRUCTIONS': custom_instructions
+                        }
+                        
+                        # Render custom template with selected writing style
+                        rendered_template = self.custom_template_service.render_template(
+                            custom_template_id,
+                            template_vars,
+                            format_style
+                        )
+                        
+                        # Extract system prompt and user prompt from the rendered template
+                        # Your custom template should have the exact structure from Anthropics Workbench
+                        system_prompt = "Technical Communicator and Documentation Specialist"
+                        user_prompt = rendered_template
+                        
+                        logger.info(f"Custom template rendered successfully")
+                        
+                    except Exception as e:
+                        logger.warning(f"Failed to use custom template {custom_template_id}: {e}, falling back to default")
+                        use_custom_template = False
+                
+                # Try to use template engine if available (and not using custom template)
+                if not use_custom_template and self.template_engine:
                     try:
                         logger.info(f"Loading template: {template_name}")
                         
@@ -674,11 +906,30 @@ This is sample content. To generate real AI-powered documentation:
                     except Exception as e:
                         logger.warning(f"Failed to load template {template_name}: {e}, falling back to default prompts")
                         # Fallback to simple prompts
-                        system_prompt = """You are an expert technical documentation specialist. 
-                        Generate comprehensive, professional documentation that follows industry best practices.
-                        Focus on clarity, completeness, and practical value for developers."""
-                        
-                        user_prompt = f"""Generate a {template_name.replace('_', ' ').title()} for the following project:
+                        if format_style == 'verbose_prose':
+                            system_prompt = """You are an expert technical documentation specialist who writes in RICH, VERBOSE PROSE. 
+                            Generate comprehensive, professional documentation using flowing narrative paragraphs.
+                            CRITICAL: Write everything in complete, descriptive paragraphs. NO bullet points, NO lists, NO fragments.
+                            Focus on storytelling, context, and thorough explanations."""
+                            
+                            user_prompt = f"""Generate a {template_name.replace('_', ' ').title()} for the following project using RICH, VERBOSE PROSE:
+
+Project Name: {project_name}
+Project Path: {project_path}
+Document Type: {frontend_template.upper()}
+
+CRITICAL FORMAT REQUIREMENT: Write the ENTIRE document in flowing, narrative prose. Use complete paragraphs with smooth transitions.
+NO bullet points, NO lists, NO short fragments. Every section must be written in rich, professional paragraphs.
+
+{f"Additional Requirements: {custom_instructions}" if custom_instructions else "Follow best practices using verbose, descriptive prose throughout."}
+
+Generate a complete, professional document with all sections written in rich, flowing paragraphs."""
+                        else:
+                            system_prompt = """You are an expert technical documentation specialist. 
+                            Generate comprehensive, professional documentation that follows industry best practices.
+                            Focus on clarity, completeness, and practical value for developers."""
+                            
+                            user_prompt = f"""Generate a {template_name.replace('_', ' ').title()} for the following project:
 
 Project Name: {project_name}
 Project Path: {project_path}
@@ -689,11 +940,30 @@ Document Type: {frontend_template.upper()}
 Generate a complete, professional document with all appropriate sections."""
                 else:
                     # No template engine, use fallback prompts
-                    system_prompt = """You are an expert technical documentation specialist. 
-                    Generate comprehensive, professional documentation that follows industry best practices.
-                    Focus on clarity, completeness, and practical value for developers."""
-                    
-                    user_prompt = f"""Generate a {template_name.replace('_', ' ').title()} for the following project:
+                    if format_style == 'verbose_prose':
+                        system_prompt = """You are an expert technical documentation specialist who writes in RICH, VERBOSE PROSE. 
+                        Generate comprehensive, professional documentation using flowing narrative paragraphs.
+                        CRITICAL: Write everything in complete, descriptive paragraphs. NO bullet points, NO lists, NO fragments.
+                        Focus on storytelling, context, and thorough explanations."""
+                        
+                        user_prompt = f"""Generate a {template_name.replace('_', ' ').title()} for the following project using RICH, VERBOSE PROSE:
+
+Project Name: {project_name}
+Project Path: {project_path}
+Document Type: {frontend_template.upper()}
+
+CRITICAL FORMAT REQUIREMENT: Write the ENTIRE document in flowing, narrative prose. Use complete paragraphs with smooth transitions.
+NO bullet points, NO lists, NO short fragments. Every section must be written in rich, professional paragraphs.
+
+{f"Additional Requirements: {custom_instructions}" if custom_instructions else "Follow best practices using verbose, descriptive prose throughout."}
+
+Generate a complete, professional document with all sections written in rich, flowing paragraphs."""
+                    else:
+                        system_prompt = """You are an expert technical documentation specialist. 
+                        Generate comprehensive, professional documentation that follows industry best practices.
+                        Focus on clarity, completeness, and practical value for developers."""
+                        
+                        user_prompt = f"""Generate a {template_name.replace('_', ' ').title()} for the following project:
 
 Project Name: {project_name}
 Project Path: {project_path}
@@ -709,9 +979,9 @@ Generate a complete, professional document with all appropriate sections."""
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_prompt}
                     ],
-                    model="gpt-4-turbo",  # Default model, adapter will handle provider selection
-                    max_tokens=4000,  # Reduced to work with both OpenAI and Claude
-                    temperature=0.7,
+                    model="claude-3.5-sonnet" if use_custom_template else "gpt-4-turbo",  # Use Claude 3.5 Sonnet for custom templates
+                    max_tokens=4000,  # Appropriate for all models  
+                    temperature=1.0 if use_custom_template else 0.7,  # Higher temperature for creative custom template generation
                     metadata={
                         'template': template_name,
                         'project': project_name,
