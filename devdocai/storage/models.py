@@ -446,3 +446,32 @@ class DocumentVersion(BaseModel):
         default=None,
         description="Content checksum for this version"
     )
+
+
+class SearchIndex(BaseModel):
+    """Search index entry for full-text search."""
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    document_id: str
+    content: str
+    title: str
+    indexed_at: datetime = Field(default_factory=datetime.utcnow)
+    
+    model_config = ConfigDict(
+        json_encoders={datetime: lambda v: v.isoformat()}
+    )
+
+
+class AuditLog(BaseModel):
+    """Audit log entry for security tracking."""
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    action: str
+    user_role: str
+    details: Optional[str] = None
+    document_id: Optional[str] = None
+    
+    model_config = ConfigDict(
+        json_encoders={datetime: lambda v: v.isoformat()}
+    )
