@@ -13,7 +13,9 @@
     "lint": "eslint src/**/*.ts tests/**/*.ts",
     "lint:fix": "eslint src/**/*.ts tests/**/*.ts --fix",
     "format": "prettier --write src/**/*.ts tests/**/*.ts",
-    "benchmark": "node scripts/benchmark.js"
+    "benchmark": "node scripts/benchmark.js",
+    "benchmark:core": "npx ts-node src/cli/core/performance/run-benchmarks.ts",
+    "benchmark:compare": "npx ts-node src/cli/core/performance/comparison-benchmarks.ts"
   },
   "keywords": [
     "devdocai",
