@@ -67,7 +67,7 @@ jobs:
         run: pytest --cov=devdocai --cov-report=html --cov-report=term --cov-fail-under=80
       
       - name: Upload Coverage Reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-reports
           path: |
@@ -80,6 +80,7 @@ jobs:
     name: "Python Version Compatibility"
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false  # Continue testing other versions if one fails
       matrix:
         python-version: ['3.8', '3.9', '3.10', '3.11']
     
@@ -94,7 +95,11 @@ jobs:
       
       - name: Install Dependencies
         run: |
-          python -m pip install --upgrade pip
+          python -m pip install --upgrade pip setuptools wheel
+          # For Python 3.8, we need to ensure numpy/scipy compile correctly
+          if [ "${{ matrix.python-version }}" = "3.8" ]; then
+            pip install "numpy<1.25.0" "scipy<1.11.0"  # Use versions known to work with Python 3.8
+          fi
           pip install -e .
           pip install pytest
       
@@ -167,7 +172,7 @@ jobs:
           echo "✅ M002 Local Storage: Security components validated" >> performance-report.txt
       
       - name: Upload Performance Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: performance-report
           path: performance-report.txt
