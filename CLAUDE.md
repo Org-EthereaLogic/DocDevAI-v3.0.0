@@ -4,35 +4,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Context
 
-DevDocAI v3.0.0 is an AI-powered documentation generation and analysis system for solo developers. This is a **clean slate development branch** that follows strict design document compliance to prevent architectural drift.
+DevDocAI v3.0.0 is a **Python-based** AI-powered documentation generation and analysis system for solo developers. This is a **clean slate development branch** that follows strict design document compliance.
 
-**CRITICAL**: This project follows a **design-first approach**. All implementation must adhere exactly to the specifications in the design documents located in `docs/01-specifications/`.
+**CRITICAL**: This project follows a **design-first approach**. All implementation must adhere exactly to the specifications in the design documents located in `docs/`.
 
 ## Current Project Status
 
-**🎉 MODULE 1: CORE INFRASTRUCTURE - PATHFINDER COMPLETE! 🎉**
+**🎯 CLEAN SLATE PYTHON REBUILD - READY TO BEGIN**
 
-- **Implementation Status**: 7.7% Complete (Module 1 finished - all 6 passes done!)
-- **Design Status**: Complete and approved
-- **Development Method**: [Enhanced 5-Pass TDD Methodology](docs/02-implementation/planning/PHASE_1_CLI_ENHANCED_5PASS_PLAN.md) ✅ **VALIDATED**
-- **Next Step**: Ready for Module 2-13 development using proven pathfinder patterns
-- **Repository State**: Production-ready Module 1 with CI/CD infrastructure
+- **Implementation Status**: 0% Complete (Clean slate - previous TypeScript build removed)
+- **Design Status**: Complete and approved (Python-based architecture)
+- **Technology Stack**: Python 3.8+ (as specified in design docs)
+- **Architecture**: Python packages following `docs/04-reference/COMPREHENSIVE_PROJECT_FINDINGS.md`
+- **Next Step**: Begin M001 Configuration Manager in Python
 
 **What exists:**
-✅ Complete design documentation (PRD, SRS, SDD, Architecture)
-✅ Enhanced 5-Pass implementation plan - **PROVEN SUCCESSFUL**
-✅ **Module 1: Core Infrastructure - PRODUCTION READY** (6 unified components, 2,583 lines tests)
-✅ **CI/CD Pathfinder Infrastructure** (7 GitHub Actions workflows, module generator)
-✅ **Comprehensive Test Framework** (73 test cases, 95%+ coverage)
-✅ **Unified Architecture Pattern** (60% code reduction achieved!)
+✅ Complete design documentation (PRD v3.6.0, SRS v3.6.0, SDD v3.5.0, Architecture v3.5.0)
+✅ Python-based architecture specification in `docs/04-reference/`
+✅ CI/CD pipeline infrastructure (successfully identified architectural drift)
+✅ Comprehensive design compliance framework
+✅21 User Stories (US-001 through US-021) ready for implementation
 
-**Module 1 Achievements:**
-✅ **Pass 0**: Design Validation - Architecture approved
-✅ **Pass 1**: TDD Implementation (RED-GREEN-REFACTOR, 264 tests)
-✅ **Pass 2**: Performance Optimization (all targets exceeded)
-✅ **Pass 3**: Security Hardening (enterprise-grade, <10% overhead)
-✅ **Pass 4**: Refactoring (60% code reduction - exceeded 40-50% target!)
-✅ **Pass 5**: Real-World Testing (PRODUCTION READY certification)
+**Previous Build Status:**
+A previous TypeScript-based implementation existed but was architecturally incompatible with design specifications. The CI/CD pipeline successfully identified this drift, and we are now proceeding with the correct Python-based implementation as designed.
 
 ## Single Source of Truth: Design Documents
 
@@ -42,7 +36,7 @@ DevDocAI v3.0.0 is an AI-powered documentation generation and analysis system fo
 3. **[Software Design Document (SDD)](docs/01-specifications/architecture/DESIGN-devdocsai-sdd.md)** - How we're building it
 4. **[Architecture Document](docs/01-specifications/architecture/DESIGN-devdocsai-architecture.md)** - System architecture
 5. **[User Stories](docs/01-specifications/requirements/DESIGN-devdocsai-user-stories.md)** - User requirements
-6. **[Build Instructions](docs/03-guides/deployment/DESIGN-devdocai-build-instructions.md)** - Implementation phases
+6. **[Comprehensive Project Findings](docs/04-reference/COMPREHENSIVE_PROJECT_FINDINGS.md)** - Python architecture specification
 
 ### Design Compliance Rules
 
@@ -53,140 +47,186 @@ DevDocAI v3.0.0 is an AI-powered documentation generation and analysis system fo
 - Add dependencies not specified in design docs
 - Create files not outlined in project structure
 - Deviate from specified naming conventions
+- Use TypeScript/Node.js (design specifies Python)
 
 **✅ ALWAYS DO:**
 - Reference specific design document sections when implementing
-- Follow the exact development phases outlined
+- Follow the exact Python architecture from `docs/04-reference/`
 - Implement test-driven development as specified
 - Meet all quality gates (coverage, performance, security)
-- Use only specified technologies and frameworks
+- Use only Python 3.8+ and specified frameworks
 - Follow the modular architecture exactly as designed
-
-## Development Phases (Strict Sequence)
-
-### Phase 1: CLI Interface
-**Design Reference**: SDD Section 4.1  
-**Implementation**: Follow build instructions exactly  
-**Quality Gates**: 95% test coverage, performance benchmarks  
-
-### Phase 2: Web Dashboard  
-**Design Reference**: User Stories US-001 through US-006  
-**Implementation**: React + TypeScript as specified  
-**Quality Gates**: Accessibility compliance, responsive design  
-
-### Phase 3: AI Integration
-**Design Reference**: SDD Section 3.3  
-**Implementation**: OpenAI/Anthropic integration as designed  
-**Quality Gates**: Response time <2 seconds, cost controls  
-
-### Phase 4: Template System
-**Design Reference**: SDD Section 3.4  
-**Implementation**: 35+ templates as specified  
-**Quality Gates**: Template validation, generation accuracy  
-
-### Phase 5: VS Code Extension
-**Design Reference**: SDD Section 4.3  
-**Implementation**: Follow extension architecture  
-**Quality Gates**: IDE integration, performance  
-
-### Phase 6: Performance Optimization
-**Design Reference**: SDD Performance Requirements  
-**Implementation**: Meet all benchmark targets  
-**Quality Gates**: 248,000 documents/minute target  
-
-## Architecture Compliance
-
-### Module Structure (Mandatory)
-```
-src/
-├── cli/           # CLI interface (Phase 1)
-├── web/           # Web dashboard (Phase 2)  
-├── ai/            # AI integration (Phase 3)
-├── templates/     # Template system (Phase 4)
-├── vscode/        # VS Code extension (Phase 5)
-└── core/          # Shared utilities
-```
-
-### Quality Requirements
-- **Test Coverage**: 95% minimum for core modules
-- **Performance**: Meet specific benchmarks in design docs
-- **Security**: Privacy-first, local-only processing
-- **Code Quality**: <10 cyclomatic complexity
-- **Documentation**: All public APIs documented
-
-## Warning Signs of Architectural Drift
-
-**🚨 STOP IMMEDIATELY if you see:**
-- Implementation not matching design document specifications
-- New dependencies not listed in design docs
-- Architecture changes without design doc updates
-- Features being added beyond specified requirements
-- Quality gates being skipped or lowered
-- Development phases being done out of order
-
-## Agent Usage Guidelines
-
-See [AGENTS.md](AGENTS.md) for specific agent workflow specifications. All agents must follow design document compliance rules.
-
-## Error Recovery
-
-If architectural drift is detected:
-1. **HALT** all development immediately  
-2. Compare current implementation to design docs
-3. Document all deviations found
-4. Create rollback plan to compliant state
-5. Update implementation to match design exactly
-6. Resume development only after compliance restored
-
-## Success Metrics
-
-**Target Goals - Module 1 ACHIEVED:**
-- **Design Compliance**: 100% traceability to design documents ✅ **ACHIEVED** - All components follow SDD specifications
-- **Phase Completion**: Module 1 pathfinder completed in specified order ✅ **ACHIEVED** - All 6 passes successful
-- **Quality Gates**: All benchmarks met as specified ✅ **EXCEEDED** - 60% code reduction achieved
-- **Zero Drift**: No architectural deviations from design ✅ **MAINTAINED** - Perfect design compliance
-
-**Next Phase Target Goals:**
-- **Module Development**: Complete Modules 2-13 using pathfinder patterns (Estimated: 12-16 days each)
-- **CI/CD Integration**: Automated quality gates and testing (Infrastructure complete)
-- **Performance Validation**: Meet all remaining performance benchmarks
 
 ## Development Commands
 
-### Current Module 1 Commands
-```bash
-# Build and test Module 1
-npm run build              # Compile TypeScript
-npm test                   # Run all tests (95%+ coverage)
-npm run test:coverage      # Generate coverage report
-npm run benchmark          # Performance benchmarks
+### Python Development (Primary)
 
-# Real-world testing
-npm run test:real-world    # Comprehensive validation suite
-npm run test:scenarios     # Usage scenarios
-npm run test:edge         # Edge cases and stress tests
-npm run test:perf         # Performance benchmarks
+```bash
+# Environment setup
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# OR: venv\Scripts\activate  # Windows
+
+# Dependencies
+pip install -r requirements.txt
+pip install -r requirements-dev.txt
+
+# Testing
+pytest                      # Run Python tests
+pytest --cov=devdocai      # Coverage report (target: 95%)
+pytest --cov=devdocai --cov-report=html  # HTML coverage report
 
 # Code quality
-npm run lint              # ESLint check
-npm run lint:fix          # Auto-fix issues
+black devdocai/            # Format Python code
+pylint devdocai/           # Lint Python code
+mypy devdocai/             # Type checking
+
+# Development
+python -m devdocai --help # Run CLI
+python -m devdocai.cli     # Alternative CLI entry point
 ```
 
-### Next Module Development
+### Build & Package
+
 ```bash
-# Generate new module using pathfinder patterns
-npx ts-node .github/scripts/generate-module.ts [MODULE] [Name] [Description] [Dependencies]
+# Build package
+python -m build
 
-# Run 5-pass pipeline for any module
-gh workflow run enhanced-5pass-pipeline.yml -f module=[MODULE] -f pass=all-passes
+# Install for development
+pip install -e .
+
+# Run specific modules
+python -m devdocai.core.config    # M001: Configuration Manager
+python -m devdocai.intelligence.miair  # M003: MIAIR Engine
 ```
 
----
+### Git Operations
 
-**Remember**: Design documents are law. Code is implementation. Any deviation from the approved design specifications will result in architectural drift and project instability.
+```bash
+git status           # Always check status first
+git diff --cached    # Review staged changes before commit
+```
 
-**When in doubt, consult the design documents first.**
+## Architecture Overview
 
----
+### Python Package Structure (Per Design Docs)
 
-*Last Updated: September 6, 2025 - Clean Development Branch Created*
+```
+devdocai/
+├── core/
+│   ├── config.py          # M001: Configuration Manager
+│   ├── storage.py         # M002: Local Storage (SQLite + encryption)
+│   ├── generator.py       # M004: Document Generator
+│   ├── tracking.py        # M005: Tracking Matrix
+│   ├── suite.py          # M006: Suite Manager
+│   └── review.py         # M007: Review Engine
+├── intelligence/
+│   ├── miair.py          # M003: MIAIR Engine (entropy optimization)
+│   ├── llm_adapter.py    # M008: LLM Adapter with cost management
+│   └── enhance.py        # M009: Enhancement Pipeline
+├── compliance/
+│   ├── sbom.py           # M010: SBOM Generator
+│   ├── pii.py            # PII Detection (95% accuracy target)
+│   └── dsr.py            # Data Subject Rights handler
+├── operations/
+│   ├── batch.py          # M011: Batch Operations
+│   ├── version.py        # M012: Version Control Integration
+│   └── marketplace.py    # M013: Template Marketplace
+├── cli.py                # Command-line interface (Click/argparse)
+└── main.py               # Entry point
+```
+
+### Module System (M001-M013)
+
+Each module is self-contained with specific responsibilities as defined in the SDD:
+
+- **M001 Configuration Manager**: Python-based config with validation
+- **M002 Local Storage**: SQLite with encryption, not TypeScript
+- **M003 MIAIR Engine**: Python ML/AI processing (requires Python)
+- **M004-M013**: All specified as Python modules in design docs
+
+### Quality Gates
+
+- **All modules**: 95% test coverage requirement (as per design docs)
+- **Code complexity**: <10 cyclomatic complexity
+- **Performance**: Specific benchmarks per module (M003: 248K docs/min)
+- **Technology**: Python 3.8+ only (no TypeScript/Node.js)
+
+## Critical Implementation Notes
+
+### M001 Configuration Manager Specifics
+- Must implement in Python (not TypeScript as previously attempted)
+- Privacy-first: telemetry disabled by default
+- Use Python cryptography library for encryption
+- Configuration loading from `.devdocai.yml` with pydantic validation
+
+### M003 MIAIR Engine Requirements
+- **CRITICAL**: Requires Python for ML/AI processing
+- Shannon entropy calculations in Python
+- This is why the entire system must be Python-based
+
+### Testing Strategy
+- Follow TDD: Write tests first, then implementation
+- Use pytest for Python testing
+- Performance benchmarks required for each module
+- Coverage thresholds enforced in pytest.ini
+
+### Security Requirements
+- All API keys encrypted using Python cryptography
+- SQLCipher for database encryption (M002)
+- Input validation on all external inputs
+- No telemetry by default
+
+## GitHub Actions Workflows
+
+The CI/CD pipeline successfully identified the TypeScript architectural drift and is now configured for Python development:
+
+- **ci.yml**: Main pipeline - Python testing and validation
+- **python-tests.yml**: Python-specific testing pipeline  
+- **security-scan.yml**: Python security analysis
+
+## Current Development Focus
+
+### Phase 1: M001 Configuration Manager (Python)
+Following the proven Enhanced 5-Pass TDD Development Methodology adapted for Python:
+
+1. **Pass 0**: Design Validation (verify Python architecture)
+2. **Pass 1**: TDD Implementation (pytest, 95% coverage)
+3. **Pass 2**: Performance Optimization (meet Python benchmarks)
+4. **Pass 3**: Security Hardening (Python cryptography)
+5. **Pass 4**: Refactoring (Python code quality)
+6. **Pass 5**: Real-World Testing (production readiness)
+
+## Development Philosophy
+
+- **Privacy-First**: All data local, no telemetry by default
+- **Offline-First**: Full functionality without internet
+- **Test-Driven**: Tests before implementation (pytest)
+- **Modular**: Each module independent and self-contained
+- **Performance**: Meet specific benchmarks (M003: 248K docs/min)
+- **AI-Powered**: Python-based ML/AI processing via MIAIR Engine
+- **Design-First**: Strict adherence to documented architecture
+
+## Development Method
+
+Following the validated Enhanced 5-Pass TDD Development Methodology:
+
+1. **Pass 0**: Design Validation (0.5 days)
+2. **Pass 1**: TDD Implementation (1.5 days, RED-GREEN-REFACTOR)
+3. **Pass 2**: Performance Optimization (1 day)
+4. **Pass 3**: Security Hardening (1 day)
+5. **Pass 4**: Mandatory Refactoring (1 day, 40-50% code reduction)
+6. **Pass 5**: Real-World Testing (1 day)
+
+Total per module: 6 days | Total project: 30 development days for all 13 modules
+
+Git tags created at each pass for rollback capability (e.g., `m001-python-implementation-v1`)
+
+# Important Instructions
+
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
+ALWAYS follow the Python architecture specified in the design documents.
+NEVER use TypeScript/Node.js - this project is Python-based as per design specifications.
