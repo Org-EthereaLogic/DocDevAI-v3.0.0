@@ -347,7 +347,7 @@ class ProductionAPIServer:
                 logger.error(traceback.format_exc())
                 return jsonify({
                     'success': False,
-                    'error': f'Analysis failed: {str(e)}',
+                    'error': 'An internal error occurred during analysis.',
                     'correlation_id': g.correlation_id
                 }), 500
         
