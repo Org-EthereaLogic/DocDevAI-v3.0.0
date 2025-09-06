@@ -1,362 +1,182 @@
-# DevDocAI
+# DevDocAI v3.0.0 - Development Branch
 
 <div align="center">
+
+**🚧 DEVELOPMENT BRANCH - CLEAN SLATE REBUILD 🚧**
 
 ![DevDocAI Logo](https://raw.githubusercontent.com/Org-EthereaLogic/DocDevAI-v3.0.0/main/docs/assets/devdocai-logo.png)
 
 **Transform your code into beautiful documentation with AI**
 
-[![Version](https://img.shields.io/badge/Version-3.0.0-blue)](https://github.com/Org-EthereaLogic/DocDevAI-v3.0.0/releases)
+[![Version](https://img.shields.io/badge/Version-3.0.0--dev-orange)](https://github.com/Org-EthereaLogic/DocDevAI-v3.0.0/tree/development/v3.1.0-clean)
 [![License](https://img.shields.io/badge/License-Apache_2.0-green)](LICENSE)
-[![Build Status](https://img.shields.io/badge/Build-Passing-green)](.github/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/Coverage-95%25-green)](docs/05-quality/)
-[![Node](https://img.shields.io/badge/Node.js-18+-green)](https://nodejs.org)
-[![Python](https://img.shields.io/badge/Python-3.9+-blue)](https://python.org)
+[![Design Docs](https://img.shields.io/badge/Design_Docs-Complete-blue)](docs/01-specifications/)
+[![Implementation](https://img.shields.io/badge/Implementation-0%25-red)](docs/01-specifications/)
 
-[**Live Demo**](http://localhost:3000) • [**Quick Start**](#-quick-start) • [**Documentation**](docs/) • [**Contributing**](#-contributing)
+[**Design Documents**](docs/01-specifications/) • [**Build Status**](docs/) • [**Contributing**](CONTRIBUTING.md)
 
 </div>
 
 ---
 
-## 🚀 What is DevDocAI?
+## 🎯 **Project Status: Clean Slate Development**
 
-DevDocAI is your AI-powered documentation assistant that generates, analyzes, and improves technical documentation automatically. Perfect for solo developers who want to spend more time coding and less time writing docs.
+**Current Branch**: `development/v3.1.0-clean`  
+**Implementation Status**: 0% - Starting fresh  
+**Design Status**: Complete and approved  
 
-### ✨ Key Benefits
+### ⚠️ **Important**: This is a Development Branch
 
-- 📝 **Generate docs from code** - Turn your codebase into comprehensive documentation in seconds
-- 🤖 **AI-powered analysis** - Get intelligent suggestions to improve your documentation quality
-- 🔒 **100% private** - Everything runs locally. Your code never leaves your machine
-- ⚡ **Lightning fast** - Process 248,000 documents per minute with our MIAIR engine
-- 🎨 **35+ templates** - Professional documentation templates for every need
+This branch represents a **complete restart** of DevDocAI v3.0.0 following strict design compliance. Previous attempts had architectural drift that caused instability.
 
-### 🎥 See It In Action
-
-![DevDocAI Dashboard Demo](docs/assets/dashboard-demo.gif)
-<!-- TODO: Add animated GIF showing the dashboard in action -->
+**For the stable version, see**: `main` branch  
+**For archived experiments, see**: `archive/template-quality-experiments` branch
 
 ---
 
-## 🏃 Quick Start
+## 📋 **Single Source of Truth: Design Documents**
 
-Get up and running in less than 2 minutes:
+**All development MUST follow the comprehensive design specifications:**
 
-```bash
-# Install DevDocAI CLI globally
-npm install -g devdocai
+### **Core Specifications**
+- 📘 **[Product Requirements Document (PRD)](docs/01-specifications/requirements/DESIGN-devdocai-prd.md)** - What we're building
+- 📗 **[Software Requirements Specification (SRS)](docs/01-specifications/requirements/DESIGN-devdocai-srs.md)** - Detailed requirements  
+- 📙 **[Software Design Document (SDD)](docs/01-specifications/architecture/DESIGN-devdocsai-sdd.md)** - How we're building it
+- 📕 **[Architecture Document](docs/01-specifications/architecture/DESIGN-devdocsai-architecture.md)** - System architecture
 
-# Generate documentation for your project
-devdocai generate README.md
-
-# Launch the web dashboard
-devdocai dashboard
-```
-
-That's it! Visit http://localhost:3000 to see your documentation dashboard.
+### **Implementation Guidance**  
+- 🔧 **[Build Instructions](docs/03-guides/deployment/DESIGN-devdocai-build-instructions.md)** - How to build
+- 👥 **[User Stories](docs/01-specifications/requirements/DESIGN-devdocsai-user-stories.md)** - User requirements
+- 🧪 **[Test Plan](docs/05-quality/testing/DESIGN-devdocai-test-plan.md)** - Quality assurance
 
 ---
 
-## 📦 Installation Options
+## 🏗️ **What We're Building (Per Design Docs)**
 
-### For Users (Recommended)
+DevDocAI is an **AI-powered documentation assistant** for solo developers with three main interfaces:
 
-<details>
-<summary><b>Option 1: NPM Package (Easiest)</b></summary>
+### **Core Product Vision**
+- 📝 **AI-powered document generation** from code
+- 🤖 **Intelligent quality analysis** with improvement suggestions  
+- 🔒 **100% private** - everything runs locally
+- ⚡ **High performance** - 248,000 documents per minute
+- 🎨 **Professional templates** - 35+ templates for every need
 
-```bash
-npm install -g devdocai
-devdocai --version
-```
-</details>
-
-<details>
-<summary><b>Option 2: VS Code Extension</b></summary>
-
-1. Open VS Code
-2. Go to Extensions (Ctrl+Shift+X)
-3. Search for "DevDocAI"
-4. Click Install
-
-![VS Code Extension](docs/assets/vscode-extension.png)
-<!-- TODO: Add VS Code extension screenshot -->
-</details>
-
-<details>
-<summary><b>Option 3: Web Application</b></summary>
-
-```bash
-# Clone and run locally
-git clone https://github.com/Org-EthereaLogic/DocDevAI-v3.0.0.git
-cd DocDevAI-v3.0.0
-npm install
-npm run dev:react
-```
-
-Open http://localhost:3000 in your browser.
-</details>
-
-### For Developers
-
-<details>
-<summary><b>Development Setup</b></summary>
-
-```bash
-# Prerequisites
-node --version  # v18.0+ required
-python --version # v3.9+ required
-git --version   # v2.0+ required
-
-# Clone and install
-git clone https://github.com/Org-EthereaLogic/DocDevAI-v3.0.0.git
-cd DocDevAI-v3.0.0
-npm install
-pip install -r requirements.txt
-
-# Configure API keys (optional for AI features)
-cp .env.example .env
-# Edit .env with your OpenAI/Anthropic/Google keys
-
-# Run tests
-npm test
-pytest
-
-# Start development
-npm run dev:react
-```
-
-See [Developer Guide](docs/03-guides/developer/) for detailed setup instructions.
-</details>
+### **Three Main Interfaces**
+1. **🖥️ CLI Interface**: `devdocai generate README.md`
+2. **🌐 Web Dashboard**: http://localhost:3000  
+3. **🔌 VS Code Extension**: Integrated development experience
 
 ---
 
-## 💻 Usage Examples
-
-### CLI Commands
-
-```bash
-# Generate documentation
-devdocai generate README.md --template api-docs
-devdocai generate docs/ --recursive
-
-# Analyze existing docs
-devdocai analyze README.md --format json
-devdocai quality-check ./docs
-
-# Manage templates
-devdocai template list
-devdocai template create my-template
-
-# Security scanning
-devdocai security scan --pii --compliance gdpr
-```
-
-### Web Dashboard Features
-
-The web dashboard at http://localhost:3000 provides:
-
-- 📊 **Real-time Analytics** - Monitor documentation quality scores
-- 🎨 **Template Gallery** - Browse and customize 35+ templates  
-- 🔍 **Quality Inspector** - Get AI-powered improvement suggestions
-- 📈 **Progress Tracking** - View documentation coverage metrics
-- 🛡️ **Security Center** - PII detection and compliance checking
-
-![Dashboard Screenshot](docs/assets/dashboard-main.png)
-<!-- TODO: Add dashboard screenshot -->
-
-### VS Code Integration
-
-Right-click any file in VS Code to:
-- Generate documentation instantly
-- Analyze documentation quality
-- Apply AI-powered improvements
-- Preview rendered documentation
-
----
-
-## 🌟 Features
-
-### Core Capabilities
-
-<details>
-<summary><b>🤖 AI-Powered Generation</b></summary>
-
-- Multi-LLM synthesis (OpenAI, Anthropic, Google)
-- Context-aware documentation
-- Code understanding and explanation
-- Automatic API documentation from code
-</details>
-
-<details>
-<summary><b>📊 Quality Analysis</b></summary>
-
-- Real-time quality scoring
-- Readability metrics
-- Completeness checking
-- Best practice validation
-- WCAG accessibility compliance
-</details>
-
-<details>
-<summary><b>🔒 Privacy & Security</b></summary>
-
-- 100% local processing available
-- AES-256 encryption
-- PII detection and masking
-- GDPR/CCPA compliance tools
-- Zero telemetry by default
-</details>
-
-<details>
-<summary><b>⚡ Performance</b></summary>
-
-- 248,000 documents/minute processing
-- Sub-second analysis
-- Parallel processing
-- Smart caching
-- Incremental updates
-</details>
-
----
-
-## 🏗️ Architecture
-
-DevDocAI uses a modular, privacy-first architecture:
+## 📁 **Project Structure**
 
 ```
-┌─────────────────────────────────────┐
-│         User Interfaces             │
-│  Web UI • CLI • VS Code Extension   │
-└─────────────┬───────────────────────┘
-              │
-┌─────────────▼───────────────────────┐
-│         Core Engine                 │
-│  Document Generation • AI Synthesis │
-│  Quality Analysis • Templates       │
-└─────────────┬───────────────────────┘
-              │
-┌─────────────▼───────────────────────┐
-│      Security & Storage             │
-│  Local-First • Encrypted • Private  │
-└─────────────────────────────────────┘
+DevDocAI-v3.0.0/
+├── docs/01-specifications/          # 📋 DESIGN SPECIFICATIONS (SOURCE OF TRUTH)
+│   ├── requirements/                # PRD, SRS, User Stories
+│   ├── architecture/                # SDD, Architecture diagrams  
+│   └── api/                         # API specifications
+├── docs/03-guides/                  # 🔧 Implementation guides
+├── docs/05-quality/                 # 🧪 Testing and quality plans
+├── src/                            # 💻 Source code (to be built)
+├── tests/                          # 🧪 Test suites (to be built)
+├── README.md                       # 📖 This file
+├── CLAUDE.md                       # 🤖 AI development guidelines
+└── AGENTS.md                       # 🛠️ Agent workflow specifications
 ```
 
-All processing happens locally by default. Cloud AI features are optional and require explicit opt-in.
+---
+
+## 🚀 **Development Approach**
+
+### **Strict Design Compliance**
+- ✅ **Follow design docs exactly** - no architectural drift
+- ✅ **Build in phases** - CLI → Web → VS Code Extension
+- ✅ **Keep it simple** - avoid over-engineering 
+- ✅ **Test continuously** - maintain quality gates
+
+### **Development Phases**
+1. **Phase 1**: Basic CLI Interface (`devdocai generate`)
+2. **Phase 2**: Simple Web Dashboard (localhost:3000)
+3. **Phase 3**: Direct AI Integration (OpenAI/Anthropic)
+4. **Phase 4**: Template System (35+ templates)
+5. **Phase 5**: VS Code Extension
+6. **Phase 6**: Performance Optimization
 
 ---
 
-## 🤝 Contributing
+## 🛡️ **Quality Assurance**
 
-We welcome contributions! DevDocAI is built by developers, for developers.
+### **Design Compliance Checks**
+- Every feature must map to design documents
+- No implementation without specification
+- Regular design document review sessions
 
-### How to Contribute
-
-1. **Fork & Clone**
-   ```bash
-   git clone https://github.com/YourUsername/DevDocAI-v3.0.0.git
-   ```
-
-2. **Create a Feature Branch**
-   ```bash
-   git checkout -b feature/amazing-feature
-   ```
-
-3. **Make Your Changes**
-   - Write tests first (TDD approach)
-   - Follow existing code style
-   - Add documentation
-
-4. **Submit a Pull Request**
-   - Clear description of changes
-   - Link any related issues
-   - Ensure all tests pass
-
-See [CONTRIBUTING.md](docs/03-guides/developer/CONTRIBUTING.md) for detailed guidelines.
-
-### Areas We Need Help
-
-- 🌍 **Internationalization** - Help translate to other languages
-- 🎨 **UI/UX Design** - Improve the dashboard experience
-- 📚 **Documentation** - Write tutorials and guides
-- 🧪 **Testing** - Increase test coverage
-- 🔌 **Integrations** - Add support for more platforms
+### **Testing Strategy**  
+- Test-driven development
+- Continuous integration
+- Performance benchmarking
+- User acceptance testing
 
 ---
 
-## 📚 Documentation
+## 🤝 **Contributing**
 
-- [**User Guide**](docs/03-guides/user/) - Getting started tutorials
-- [**API Reference**](docs/04-reference/) - Complete API documentation
-- [**Developer Guide**](docs/03-guides/developer/) - Contributing and architecture
-- [**Templates Gallery**](docs/templates/) - Browse all 35+ templates
+### **For Developers**
+1. **Read the design docs first**: Start with [PRD](docs/01-specifications/requirements/DESIGN-devdocai-prd.md)
+2. **Follow CLAUDE.md**: AI development guidelines
+3. **Use AGENTS.md**: Agent workflow specifications
+4. **Maintain compliance**: Every PR must reference design docs
 
----
-
-## 🙋 Support
-
-### Getting Help
-
-- 💬 [**Discussions**](https://github.com/Org-EthereaLogic/DocDevAI-v3.0.0/discussions) - Ask questions and share ideas
-- 🐛 [**Issues**](https://github.com/Org-EthereaLogic/DocDevAI-v3.0.0/issues) - Report bugs or request features
-- 📧 [**Email**](mailto:support@devdocai.com) - Direct support (placeholder)
-- 🎮 [**Discord**](https://discord.gg/devdocai) - Community chat (placeholder)
-
-### Frequently Asked Questions
-
-<details>
-<summary><b>Does DevDocAI send my code to the cloud?</b></summary>
-
-No! By default, all processing happens locally on your machine. Cloud AI features (OpenAI, Anthropic, etc.) are completely optional and require explicit configuration. Your code privacy is our top priority.
-</details>
-
-<details>
-<summary><b>What programming languages are supported?</b></summary>
-
-DevDocAI supports all major programming languages including JavaScript, TypeScript, Python, Java, C++, Go, Rust, and more. The AI models can understand and document code in 30+ languages.
-</details>
-
-<details>
-<summary><b>Can I use my own AI API keys?</b></summary>
-
-Yes! You can configure your own OpenAI, Anthropic, or Google AI API keys in the `.env` file. This gives you full control over costs and usage.
-</details>
-
-<details>
-<summary><b>Is there a cloud/SaaS version available?</b></summary>
-
-Currently, DevDocAI is self-hosted only to ensure maximum privacy and control. We may offer an optional cloud service in the future, but local-first will always be our priority.
-</details>
+### **For Reviewers**
+- Verify design document compliance
+- Check implementation matches specifications
+- Ensure no architectural drift
 
 ---
 
-## 🏆 Acknowledgments
+## 📖 **Documentation Hierarchy**
 
-### Built With
+1. **📋 Design Documents** (Primary source of truth)
+   - What features to build
+   - How to architect them  
+   - Quality requirements
 
-- [React](https://reactjs.org/) - UI framework
-- [TypeScript](https://www.typescriptlang.org/) - Type safety
-- [Material-UI](https://mui.com/) - Component library
-- [OpenAI](https://openai.com/) - AI capabilities
-- [SQLite](https://www.sqlite.org/) - Local storage
+2. **📖 README.md** (This file - Project overview)
+   - Project status and structure
+   - Links to design documents
+   - Development workflow
 
-### Special Thanks
+3. **🤖 CLAUDE.md** (AI development guidance)
+   - Design document compliance
+   - Implementation guidelines
+   - Quality standards
 
-- All our contributors and early adopters
-- The open-source community for inspiration
-- You, for choosing DevDocAI! 
+4. **🛠️ AGENTS.md** (Agent workflows)
+   - Specialized agent usage
+   - Task delegation patterns
+   - Development automation
 
 ---
 
-## 📄 License
+## ⚖️ **License**
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+- **Core System**: Apache-2.0
+- **Plugin SDK**: MIT
 
 ---
 
-<div align="center">
+## 🎯 **Mission Statement**
 
-**Made with ❤️ by developers, for developers**
+Build DevDocAI v3.0.0 **exactly as specified** in the design documents, with:
+- Zero architectural drift
+- Complete design compliance  
+- Sustainable, maintainable code
+- Focus on core value: **AI-powered documentation that works**
 
-[⬆ Back to Top](#devdocai)
+**Design documents are law. Code is implementation.**
 
-</div>
+---
+
+*Last Updated: September 6, 2025 - Clean Development Branch Created*

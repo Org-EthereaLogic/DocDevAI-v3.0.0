@@ -1,1 +1,0 @@
-"""Test suite for M006 Template Registry."""

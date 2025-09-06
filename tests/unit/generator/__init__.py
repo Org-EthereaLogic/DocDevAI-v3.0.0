@@ -1,1 +1,0 @@
-"""Tests for M004 Document Generator module."""
