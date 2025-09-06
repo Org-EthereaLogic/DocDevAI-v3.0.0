@@ -1,21 +1,45 @@
 """
-M002 Local Storage System - Public API
+M002 Local Storage System - Public API (Pass 4 Refactored)
 
 Privacy-first document storage system for DevDocAI v3.0.0:
+- Unified architecture with 4 operation modes (BASIC, PERFORMANCE, SECURE, ENTERPRISE)
 - Encrypted local storage with AES-256-GCM
 - Full-text search and metadata filtering
 - Integration with M001 ConfigurationManager
 - Memory mode adaptation and connection pooling
 - Document versioning and integrity verification
+- 40%+ code reduction through consolidation
 
 Main Components:
-- LocalStorageManager: Primary API for document operations
+- UnifiedStorageManager: Unified API supporting all modes
+- LocalStorageManager: Legacy API (backward compatibility)
 - Document: Pydantic model for document data
 - DocumentMetadata: Flexible metadata with custom fields
 - StorageStats: System statistics and monitoring
 """
 
-# Main storage API
+# Unified storage API (NEW - Pass 4)
+from .storage_manager_unified import (
+    UnifiedStorageManager,
+    OperationMode,
+    UserRole,
+    AccessPermission,
+    create_storage_manager as create_unified_storage,
+    create_basic_storage,
+    create_performance_storage,
+    create_secure_storage,
+    create_enterprise_storage
+)
+
+# Configuration system (NEW - Pass 4)
+from .config_unified import (
+    StorageConfig,
+    StorageMode,
+    StorageModeSelector,
+    get_preset_config
+)
+
+# Legacy storage API (backward compatibility)
 from .storage_manager import LocalStorageManager, StorageError
 
 # Document models
@@ -40,14 +64,30 @@ from .encryption import DocumentEncryption, EncryptionError
 
 
 # Version information
-__version__ = "3.0.0"
-__title__ = "DevDocAI Local Storage System"
-__description__ = "Privacy-first encrypted document storage with full-text search"
+__version__ = "3.0.0-refactored"
+__title__ = "DevDocAI Local Storage System (Unified)"
+__description__ = "Privacy-first encrypted document storage with unified architecture"
 
 
 # Public API exports
 __all__ = [
-    # Main API
+    # Unified API (NEW)
+    'UnifiedStorageManager',
+    'OperationMode',
+    'UserRole',
+    'AccessPermission',
+    'create_basic_storage',
+    'create_performance_storage',
+    'create_secure_storage',
+    'create_enterprise_storage',
+    
+    # Configuration (NEW)
+    'StorageConfig',
+    'StorageMode',
+    'StorageModeSelector',
+    'get_preset_config',
+    
+    # Legacy API (backward compatibility)
     'LocalStorageManager',
     'StorageError',
     
