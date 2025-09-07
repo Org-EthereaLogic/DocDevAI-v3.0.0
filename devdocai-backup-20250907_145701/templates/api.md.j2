@@ -1,0 +1,208 @@
+# {{ api_title }} API Documentation
+
+{% if version %}
+**Version:** {{ version }}
+{% endif %}
+
+{% if base_url %}
+**Base URL:** `{{ base_url }}`
+{% endif %}
+
+{% if description %}
+## Overview
+
+{{ description }}
+{% endif %}
+
+{% if authentication %}
+## Authentication
+
+{{ authentication.description | default('This API uses the following authentication method:') }}
+
+{% if authentication.type %}
+**Type:** {{ authentication.type }}
+{% endif %}
+
+{% if authentication.details %}
+{{ authentication.details }}
+{% endif %}
+
+{% if authentication.example %}
+### Example
+
+```{{ authentication.example.language | default('bash') }}
+{{ authentication.example.code }}
+```
+{% endif %}
+{% endif %}
+
+{% if rate_limiting %}
+## Rate Limiting
+
+{{ rate_limiting.description | default('This API implements rate limiting:') }}
+
+{% if rate_limiting.limits %}
+{% for limit in rate_limiting.limits %}
+- {{ limit }}
+{% endfor %}
+{% endif %}
+{% endif %}
+
+## Endpoints
+
+{% for endpoint in endpoints %}
+### {{ endpoint.summary | default(endpoint.path) }}
+
+**{{ endpoint.method }}** `{{ endpoint.path }}`
+
+{% if endpoint.description %}
+{{ endpoint.description }}
+{% endif %}
+
+{% if endpoint.parameters %}
+#### Parameters
+
+| Name | Type | In | Required | Description |
+|------|------|-----|----------|-------------|
+{% for param in endpoint.parameters %}
+| {{ param.name }} | {{ param.type }} | {{ param.in | default('query') }} | {{ param.required | default('No') }} | {{ param.description }} |
+{% endfor %}
+{% endif %}
+
+{% if endpoint.request_body %}
+#### Request Body
+
+{% if endpoint.request_body.description %}
+{{ endpoint.request_body.description }}
+{% endif %}
+
+```json
+{{ endpoint.request_body.example | default(endpoint.request_body.schema) }}
+```
+{% endif %}
+
+{% if endpoint.responses %}
+#### Responses
+
+{% for response in endpoint.responses %}
+##### {{ response.status }} {{ response.description | default('') }}
+
+{% if response.schema %}
+```json
+{{ response.schema }}
+```
+{% endif %}
+
+{% if response.example %}
+```json
+{{ response.example }}
+```
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{% if endpoint.example %}
+#### Example Request
+
+```{{ endpoint.example.language | default('bash') }}
+{{ endpoint.example.code }}
+```
+
+{% if endpoint.example.response %}
+##### Example Response
+
+```json
+{{ endpoint.example.response }}
+```
+{% endif %}
+{% endif %}
+
+---
+
+{% endfor %}
+
+{% if models %}
+## Models
+
+{% for model in models %}
+### {{ model.name }}
+
+{% if model.description %}
+{{ model.description }}
+{% endif %}
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+{% for field in model.fields %}
+| {{ field.name }} | {{ field.type }} | {{ field.required | default('No') }} | {{ field.description }} |
+{% endfor %}
+
+{% if model.example %}
+#### Example
+
+```json
+{{ model.example }}
+```
+{% endif %}
+
+{% endfor %}
+{% endif %}
+
+{% if errors %}
+## Error Responses
+
+The API uses standard HTTP status codes and returns error details in the response body.
+
+### Error Format
+
+```json
+{
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable error message",
+    "details": {}
+  }
+}
+```
+
+### Common Error Codes
+
+| Status | Code | Description |
+|--------|------|-------------|
+{% for error in errors %}
+| {{ error.status }} | {{ error.code }} | {{ error.description }} |
+{% endfor %}
+{% endif %}
+
+{% if webhooks %}
+## Webhooks
+
+{% for webhook in webhooks %}
+### {{ webhook.event }}
+
+{% if webhook.description %}
+{{ webhook.description }}
+{% endif %}
+
+#### Payload
+
+```json
+{{ webhook.payload }}
+```
+
+{% endfor %}
+{% endif %}
+
+{% if changelog %}
+## Changelog
+
+{{ changelog }}
+{% endif %}
+
+---
+
+{% if footer %}
+{{ footer }}
+{% else %}
+Generated with DevDocAI v3.0.0
+{% endif %}
