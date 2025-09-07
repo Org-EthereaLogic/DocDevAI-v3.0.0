@@ -3,9 +3,26 @@ coverage/
 dist/
 node_modules/
 
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
+
 # Development files  
 .DS_Store
 *.log
+.devdocai.key
+profile_config.py
+benchmark_validation_minimal.py
+test_optimization_comparison.py
+*_optimized.py
 
 
 #Ignore vscode AI rules

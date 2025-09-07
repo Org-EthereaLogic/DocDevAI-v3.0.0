@@ -1,13 +1,26 @@
 """
-DevDocAI Core Components
-
-Foundation layer modules that provide essential functionality.
+DevDocAI Core Module
+Configuration management and foundational components.
 """
 
-from typing import TYPE_CHECKING
+from .config import ConfigurationManager, ValidationError, ConfigurationError
+from .models import (
+    PrivacyConfig,
+    SystemConfig,
+    SecurityConfig,
+    LLMConfig,
+    QualityConfig
+)
 
-# Lazy imports to avoid circular dependencies
-if TYPE_CHECKING:
-    from .config import ConfigurationManager
+__all__ = [
+    'ConfigurationManager',
+    'PrivacyConfig',
+    'SystemConfig',
+    'SecurityConfig',
+    'LLMConfig',
+    'QualityConfig',
+    'ValidationError',
+    'ConfigurationError'
+]
 
-__all__ = ["ConfigurationManager"]
+__version__ = '3.0.0'
