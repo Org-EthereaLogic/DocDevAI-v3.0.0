@@ -93,14 +93,45 @@ class DocumentRepository:
         Returns:
             Created document with timestamps
         """
-        # Check for existing document
+        # Check for existing document (including soft-deleted)
         existing = session.query(DocumentTable).filter_by(
-            id=document.id,
-            is_deleted=False
+            id=document.id
         ).first()
-        
+
         if existing:
-            raise RepositoryError(f"Document with ID '{document.id}' already exists")
+            if existing.is_deleted:
+                # Revive soft-deleted document by updating fields
+                document.update_timestamp()
+                encrypted_content = self.encryption.encrypt_content(
+                    document.content,
+                    document.id
+                )
+                encrypted_metadata = None
+                if document.metadata:
+                    metadata_dict = document.metadata.model_dump()
+                    encrypted_metadata = self.encryption.encrypt_metadata(metadata_dict)
+
+                existing.title = document.title
+                existing.content = encrypted_content
+                existing.content_type = document.content_type.value
+                existing.status = document.status.value
+                existing.source_path = str(document.source_path) if document.source_path else None
+                existing.checksum = document.checksum
+                existing.metadata_json = encrypted_metadata
+                existing.created_at = existing.created_at or document.created_at
+                existing.updated_at = document.updated_at
+                existing.is_deleted = False
+                existing.deleted_at = None
+
+                session.commit()
+
+                # Update cache
+                if self._cache_enabled and document.metadata:
+                    self._metadata_cache[document.id] = document.metadata
+
+                return document
+            else:
+                raise RepositoryError(f"Document with ID '{document.id}' already exists")
         
         # Encrypt content if encryption enabled
         encrypted_content = self.encryption.encrypt_content(
@@ -173,6 +204,32 @@ class DocumentRepository:
                 
         except Exception as e:
             raise RepositoryError(f"Document retrieval failed: {e}")
+
+    def get_documents_by_ids(self, document_ids: List[str]) -> List[Optional[Document]]:
+        """
+        Retrieve multiple documents by their IDs.
+
+        Args:
+            document_ids: A list of document identifiers.
+
+        Returns:
+            A list of Document models. If a document ID is not found, the
+            corresponding item in the list is None.
+        """
+        try:
+            with self.db_manager.get_session() as session:
+                db_documents = session.query(DocumentTable).filter(
+                    DocumentTable.id.in_(document_ids),
+                    DocumentTable.is_deleted == False
+                ).all()
+
+                docs_map = {doc.id: self._convert_db_to_model(doc) for doc in db_documents}
+                
+                # Return documents in the same order as requested IDs
+                return [docs_map.get(doc_id) for doc_id in document_ids]
+
+        except Exception as e:
+            raise RepositoryError(f"Batch document retrieval failed: {e}")
     
     def update_document(self, document: Document) -> Optional[Document]:
         """
