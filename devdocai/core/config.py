@@ -106,8 +106,12 @@ class ConfigurationManager:
         if not self._validator.validate_file_size(str(self.config_file)):
             raise ValidationError("Configuration file too large")
         
-        with open(self.config_file, 'r', encoding='utf-8') as f:
-            data = yaml.safe_load(f) or {}
+        try:
+            with open(self.config_file, 'r', encoding='utf-8') as f:
+                data = yaml.safe_load(f) or {}
+        except (yaml.YAMLError, PermissionError, OSError) as e:
+            logger.warning(f"Failed to load configuration file: {e}")
+            return  # Use defaults
         
         data = self._validator.sanitize_data(data)
         
@@ -116,7 +120,8 @@ class ConfigurationManager:
                 if section in data:
                     setter(data[section])
         except PydanticValidationError as e:
-            raise ValidationError(f"Configuration validation failed: {e}")
+            logger.warning(f"Configuration validation failed, using defaults: {e}")
+            # Continue with defaults - don't raise error
     
     def get(self, path: str, default: Any = None) -> Any:
         """Get configuration value using dot notation."""
@@ -151,8 +156,8 @@ class ConfigurationManager:
         """Set configuration value using dot notation."""
         with self._lock:
             parts = path.split('.')
-            if len(parts) < 2:
-                raise ValueError(f"Invalid path: {path}")
+            if len(parts) != 2:  # Only support section.field format
+                raise ConfigurationError(f"Invalid path: {path}")
             
             self._cache.invalidate(f"config:{path}")
             
@@ -160,12 +165,19 @@ class ConfigurationManager:
             field = parts[1]
             
             # Update configuration
-            if section in self._configs:
-                getter, setter = self._configs[section]
-                obj = getter()
-                data = obj.model_dump()
-                data[field] = value
-                setter(data)
+            if section not in self._configs:
+                raise ConfigurationError(f"Unknown configuration section: {section}")
+            
+            getter, setter = self._configs[section]
+            obj = getter()
+            data = obj.model_dump()
+            
+            # Check if field exists in the model
+            if field not in data:
+                raise ConfigurationError(f"Unknown field '{field}' in section '{section}'")
+                
+            data[field] = value
+            setter(data)
     
     def save(self):
         """Save configuration to file."""
@@ -204,7 +216,10 @@ class ConfigurationManager:
         """Decrypt an API key."""
         if not self._encryptor.has_key():
             raise ValidationError("Encryption not configured")
-        return self._encryptor.decrypt(encrypted)
+        try:
+            return self._encryptor.decrypt(encrypted)
+        except (ValueError, Exception) as e:
+            raise ConfigurationError(f"Failed to decrypt API key: {e}")
     
     def set_api_key(self, provider: str, api_key: str):
         """Set API key for provider."""

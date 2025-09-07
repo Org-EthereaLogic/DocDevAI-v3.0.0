@@ -4,7 +4,7 @@ Pass 4: Simplified Pydantic models with reduced complexity
 """
 
 from typing import Optional, Literal, Union
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
 import psutil
 import logging
 
@@ -32,22 +32,23 @@ class SystemConfig(BaseModel):
     cache_size: str = Field(default="100MB")
     cache_size_bytes: Optional[int] = None
     
-    @field_validator('memory_mode')
-    @classmethod
-    def detect_memory_mode(cls, v):
-        """Auto-detect memory mode based on RAM."""
-        if v == "auto":
-            ram_gb = psutil.virtual_memory().total / (1024**3)
-            if ram_gb < 2: return "baseline"
-            elif ram_gb < 4: return "standard"
-            elif ram_gb < 8: return "enhanced"
-            else: return "performance"
-        return v
-    
     def model_post_init(self, __context):
-        """Set computed fields."""
+        """Set computed fields and auto-detect memory mode."""
         # Set detected RAM
-        object.__setattr__(self, 'detected_ram', psutil.virtual_memory().total / (1024**3))
+        ram_gb = psutil.virtual_memory().total / (1024**3)
+        object.__setattr__(self, 'detected_ram', ram_gb)
+        
+        # Auto-detect memory mode if set to "auto"
+        if self.memory_mode == "auto":
+            if ram_gb < 2:
+                detected_mode = "baseline"
+            elif ram_gb < 4:
+                detected_mode = "standard"
+            elif ram_gb < 8:
+                detected_mode = "enhanced"
+            else:
+                detected_mode = "performance"
+            object.__setattr__(self, 'memory_mode', detected_mode)
         
         # Adjust workers based on mode
         if self.max_workers == 4:  # Default only
