@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from typing import Dict, Any, Optional, List
 from pathlib import Path
 from enum import Enum
+import uuid
 
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 

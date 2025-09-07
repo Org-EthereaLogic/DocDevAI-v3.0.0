@@ -10,6 +10,7 @@ SQLAlchemy-based database layer for document storage:
 
 import sqlite3
 import threading
+import uuid
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 from contextlib import contextmanager
@@ -85,6 +86,19 @@ class DocumentSearchIndex(Base):
     title_indexed = Column(Text, nullable=False)
     content_indexed = Column(Text, nullable=False)
     tags_indexed = Column(Text, nullable=True)
+
+
+class AuditLogTable(Base):
+    """SQLAlchemy model for the audit_log table."""
+
+    __tablename__ = 'audit_log'
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    timestamp = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
+    action = Column(String(255), nullable=False)
+    user_role = Column(String(50), nullable=False)
+    details = Column(Text, nullable=True)
+    document_id = Column(String(255), nullable=True)
 
 
 class DatabaseManager:

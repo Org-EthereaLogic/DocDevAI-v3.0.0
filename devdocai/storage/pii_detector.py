@@ -300,7 +300,7 @@ class PIIDetector:
         
         return base_confidence
     
-    def detect(self, text: str, types: Optional[List[PIIType]] = None) -> List[PIIMatch]:
+    def detect_pii(self, text: str, types: Optional[List[PIIType]] = None) -> List[PIIMatch]:
         """
         Detect PII in text.
         
