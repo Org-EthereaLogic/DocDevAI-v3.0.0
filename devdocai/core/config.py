@@ -18,6 +18,7 @@ import platform
 import psutil
 from pathlib import Path
 from typing import Dict, Any, Optional, List, Union
+from types import SimpleNamespace
 from enum import Enum
 import yaml
 import json
@@ -381,6 +382,32 @@ class ConfigurationManager:
             Configuration value or default
         """
         return getattr(self._schema, key, default)
+
+    def get_config(self) -> Any:
+        """
+        Compatibility view for integration with M002.
+
+        Provides a simple, read-only namespaced object so callers can access:
+        - config.performance.memory_mode -> str (e.g., 'enhanced')
+        - config.telemetry.enabled -> bool
+        - config.security.encryption_enabled -> bool
+
+        This aligns with SDD 5.1 (M001 Configuration Manager) where
+        performance, telemetry, and security settings must be consumable by
+        other modules.
+        """
+        # Ensure memory_mode is exposed as a lowercase string for simple equality checks
+        memory_mode = (
+            self._schema.memory_mode.value
+            if hasattr(self._schema.memory_mode, 'value') else str(self._schema.memory_mode)
+        )
+        memory_mode = memory_mode.lower()
+
+        return SimpleNamespace(
+            performance=SimpleNamespace(memory_mode=memory_mode),
+            telemetry=SimpleNamespace(enabled=self._schema.telemetry_enabled),
+            security=SimpleNamespace(encryption_enabled=self._schema.encryption_enabled)
+        )
     
     def set(self, key: str, value: Any) -> None:
         """

@@ -31,15 +31,15 @@ from sqlalchemy import text, and_, or_, func, event
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
-from devdocai.storage.database import DatabaseManager
+from devdocai.storage.database import DatabaseManager, AuditLogTable
 from devdocai.storage.repositories import DocumentRepository
 from devdocai.storage.models import (
     Document, DocumentMetadata, DocumentSearchResult,
     StorageStats, ContentType, DocumentStatus,
-    DocumentVersion, SearchIndex, AuditLog
+    DocumentVersion, SearchIndex
 )
 from devdocai.storage.encryption import DocumentEncryption
-from devdocai.storage.pii_detector import PIIDetector, PIICategory
+from devdocai.storage.pii_detector import PIIDetector, PIIType
 from devdocai.core.config import ConfigurationManager, MemoryMode
 
 logger = logging.getLogger(__name__)
