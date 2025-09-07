@@ -17,7 +17,7 @@ LLMProvider = Literal["openai", "anthropic", "gemini", "local"]
 
 class PrivacyConfig(BaseModel):
     """Privacy configuration with opt-in defaults."""
-    model_config = ConfigDict(validate_assignment=True, frozen=True)
+    model_config = ConfigDict(validate_assignment=True)
     
     telemetry: bool = Field(default=False)
     analytics: bool = Field(default=False)

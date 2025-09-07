@@ -23,6 +23,7 @@ DevDocAI v3.0.0 is a **Python-based** AI-powered documentation generation and an
 ## Why the Restart?
 
 **Architectural Drift Discovered**: Previous implementation had fundamental issues:
+
 - ❌ M004 Document Generator used template substitution instead of AI-powered generation
 - ❌ Missing M008 LLM Adapter (critical dependency for AI functionality)
 - ❌ Wrong technology stack (TypeScript instead of Python as specified in design docs)
@@ -32,6 +33,7 @@ DevDocAI v3.0.0 is a **Python-based** AI-powered documentation generation and an
 ## Single Source of Truth: Design Documents
 
 ### Mandatory Reading Order
+
 1. **[Comprehensive Project Findings](docs/04-reference/COMPREHENSIVE_PROJECT_FINDINGS.md)** - Python architecture overview
 2. **[Product Requirements Document (PRD)](docs/01-specifications/requirements/DESIGN-devdocai-prd.md)** - What we're building
 3. **[Software Requirements Specification (SRS)](docs/01-specifications/requirements/DESIGN-devdocai-srs.md)** - Detailed requirements
@@ -42,15 +44,17 @@ DevDocAI v3.0.0 is a **Python-based** AI-powered documentation generation and an
 ### Design Compliance Rules
 
 **🚫 NEVER DO:**
+
 - Implement features not specified in design documents
 - Change architecture without design document update
-- Skip any steps outlined in build instructions  
+- Skip any steps outlined in build instructions
 - Add dependencies not specified in design docs
 - Create files not outlined in project structure
 - Deviate from specified naming conventions
 - Use TypeScript/Node.js (design specifies Python 3.8+ only)
 
 **✅ ALWAYS DO:**
+
 - Reference specific design document sections when implementing
 - Follow the exact Python architecture from `docs/04-reference/`
 - Implement test-driven development as specified
@@ -61,10 +65,11 @@ DevDocAI v3.0.0 is a **Python-based** AI-powered documentation generation and an
 ## Implementation Roadmap
 
 ### Phase 1: Foundation ✅ COMPLETE
+
 **Dependency Order - Critical Path:**
 
 1. **M001: Configuration Manager** ✅ **PRODUCTION READY** (INDEPENDENT - Complete)
-   - ✅ Privacy-first defaults (local-only, no telemetry) 
+   - ✅ Privacy-first defaults (local-only, no telemetry)
    - ✅ Memory mode detection (4 modes based on available RAM)
    - ✅ Encrypted API key storage (AES-256-GCM with Argon2id)
    - ✅ YAML configuration with Pydantic validation
@@ -85,6 +90,7 @@ DevDocAI v3.0.0 is a **Python-based** AI-powered documentation generation and an
    - Integration with M001 configuration
 
 ### Phase 2: Core Generation
+
 4. **M004: Document Generator** (Depends: M001, M002, M008)
    - **AI-POWERED GENERATION** (uses M008 for LLM calls)
    - Templates guide prompts, NOT content substitution
@@ -96,6 +102,7 @@ DevDocAI v3.0.0 is a **Python-based** AI-powered documentation generation and an
    - AI-powered refinement
 
 ### Phase 3: Analysis & Enhancement (6 more modules)
+
 6-13. **Remaining modules** following dependency chain
 
 ## Python Package Structure (Per Design Docs)
@@ -128,6 +135,7 @@ devdocai/
 ## Development Commands
 
 ### Environment Setup (To Be Created)
+
 ```bash
 # Create new Python environment
 python -m venv venv
@@ -167,18 +175,21 @@ Git tags at each pass for rollback capability (e.g., `m001-pass1-v1`)
 ## Critical Implementation Notes
 
 ### M001 Configuration Manager Specifics
+
 - Must implement in Python (previous TypeScript attempts were wrong)
 - Privacy-first: telemetry disabled by default
 - Use Python `cryptography` library for encryption
 - Configuration loading from `.devdocai.yml` with pydantic validation
 
 ### M008 LLM Adapter Requirements (Critical)
+
 - **ESSENTIAL for M004**: M004 cannot work without M008 LLM integration
 - Multi-provider support with cost management
 - Response caching and smart routing
 - Local fallback when APIs unavailable or budget exhausted
 
 ### M004 Document Generator Requirements
+
 - **AI-POWERED**: Uses M008 to call LLMs for content generation
 - **NOT template substitution**: Templates guide AI prompts only
 - Fails gracefully with error messages when LLMs unavailable
@@ -187,6 +198,7 @@ Git tags at each pass for rollback capability (e.g., `m001-pass1-v1`)
 ## Repository Status
 
 **Current State**: Foundation module complete with production-grade quality
+
 - ✅ Design documentation complete (52 files)
 - ✅ M001 Configuration Manager complete (589 lines across 6 modules)
 - ✅ Comprehensive test suite (27/29 security tests passing, 81.53% coverage)

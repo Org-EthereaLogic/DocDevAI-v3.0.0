@@ -63,16 +63,17 @@ class ConfigurationManager:
             'quality': (lambda: self.quality, lambda d: setattr(self, 'quality', QualityConfig(**d)))
         }
         
-        # Load configuration
-        self._load_environment()
-        if self.config_file.exists():
-            self._load_file()
-        
-        # Setup encryption
+        # Setup encryption BEFORE loading config file
+        # This ensures encrypted API keys can be decrypted when loaded
         if self.security.encryption_enabled:
             password = os.environ.get('DEVDOCAI_MASTER_PASSWORD', 'devdocai_default')
             key = self._encryptor.derive_key(password)
             self._encryptor.set_key(key)
+        
+        # Load configuration (after encryption is ready)
+        self._load_environment()
+        if self.config_file.exists():
+            self._load_file()
     
     def _load_environment(self):
         """Load environment variable overrides."""
@@ -199,10 +200,14 @@ class ConfigurationManager:
         """Prepare LLM config for saving."""
         data = self.llm.model_dump()
         
-        # Encrypt API key if needed
-        if data.get('api_key') and self.security.api_keys_encrypted and self._encryptor.has_key():
-            encrypted = self._encryptor.encrypt(data['api_key'])
-            data['api_key'] = f"encrypted:{encrypted}"
+        # Don't double-encrypt - key is already encrypted if it starts with 'encrypted:'
+        # Only encrypt plaintext keys (for backward compatibility)
+        api_key = data.get('api_key')
+        if api_key and self.security.api_keys_encrypted and self._encryptor.has_key():
+            if not (api_key.startswith('encrypted:') or api_key.startswith('${ENCRYPTED}')):
+                # Only encrypt if it's not already encrypted
+                encrypted = self._encryptor.encrypt(api_key)
+                data['api_key'] = f"encrypted:{encrypted}"
         
         return data
     
@@ -222,10 +227,22 @@ class ConfigurationManager:
             raise ConfigurationError(f"Failed to decrypt API key: {e}")
     
     def set_api_key(self, provider: str, api_key: str):
-        """Set API key for provider."""
+        """Set API key for provider with encryption."""
         self._encryptor.audit_log('api_key_set', {'provider': provider})
         self.set("llm.provider", provider)
-        self.set("llm.api_key", api_key)
+        
+        # Encrypt API key if encryption is enabled and key is available
+        if self.security.api_keys_encrypted and self._encryptor.has_key():
+            try:
+                encrypted = self._encryptor.encrypt(api_key)
+                encrypted_key = f"encrypted:{encrypted}"
+                self.set("llm.api_key", encrypted_key)
+            except Exception as e:
+                logger.error(f"Failed to encrypt API key: {e}")
+                raise ConfigurationError(f"Failed to encrypt API key: {e}")
+        else:
+            # Store plaintext if encryption not available (backward compatibility)
+            self.set("llm.api_key", api_key)
     
     def get_api_key(self, provider: str) -> Optional[str]:
         """Get API key for provider."""
