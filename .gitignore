@@ -6,3 +6,7 @@ node_modules/
 # Development files  
 .DS_Store
 *.log
+
+
+#Ignore vscode AI rules
+.github/instructions/codacy.instructions.md
