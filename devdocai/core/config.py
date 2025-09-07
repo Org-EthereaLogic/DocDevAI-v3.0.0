@@ -90,6 +90,28 @@ class ConfigurationSchema(BaseModel):
         description="Memory operation mode (auto-detected)"
     )
     
+    # Operation mode for modules (added for M004 generator)
+    operation_mode: str = Field(
+        default="basic",
+        description="Operation mode for unified modules (basic, performance, secure, enterprise)"
+    )
+    
+    # Quality gate threshold for document generation (added for M004)
+    quality_gate_threshold: float = Field(
+        default=85.0,
+        ge=0.0,
+        le=100.0,
+        description="Minimum quality score threshold for documents"
+    )
+    
+    # Maximum document size in MB (added for M004)
+    max_document_size_mb: int = Field(
+        default=10,
+        ge=1,
+        le=100,
+        description="Maximum document size in megabytes"
+    )
+    
     max_concurrent_operations: int = Field(
         default=4,
         ge=1,
