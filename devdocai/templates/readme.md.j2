@@ -1,0 +1,110 @@
+# {{ title }}
+
+{% if badges %}
+{% for badge in badges %}
+![{{ badge.name }}]({{ badge.url }})
+{% endfor %}
+{% endif %}
+
+## Description
+
+{{ description }}
+
+{% if features %}
+## Features
+
+{% for feature in features %}
+- {{ feature }}
+{% endfor %}
+{% endif %}
+
+{% if installation %}
+## Installation
+
+{{ installation }}
+{% endif %}
+
+{% if usage %}
+## Usage
+
+{{ usage }}
+
+{% if examples %}
+### Examples
+
+{% for example in examples %}
+```{{ example.language | default('bash') }}
+{{ example.code }}
+```
+{% if example.description %}
+{{ example.description }}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% endif %}
+
+{% if requirements %}
+## Requirements
+
+{% for req in requirements %}
+- {{ req }}
+{% endfor %}
+{% endif %}
+
+{% if configuration %}
+## Configuration
+
+{{ configuration }}
+{% endif %}
+
+{% if api_reference %}
+## API Reference
+
+{{ api_reference }}
+{% endif %}
+
+{% if contributing %}
+## Contributing
+
+{{ contributing }}
+{% endif %}
+
+{% if license %}
+## License
+
+{{ license }}
+{% endif %}
+
+{% if authors %}
+## Authors
+
+{% for author in authors %}
+- {{ author.name }}{% if author.email %} - {{ author.email }}{% endif %}
+{% endfor %}
+{% endif %}
+
+{% if acknowledgments %}
+## Acknowledgments
+
+{{ acknowledgments }}
+{% endif %}
+
+{% if changelog %}
+## Changelog
+
+{{ changelog }}
+{% endif %}
+
+{% if support %}
+## Support
+
+{{ support }}
+{% endif %}
+
+---
+
+{% if footer %}
+{{ footer }}
+{% else %}
+Generated with DevDocAI v3.0.0
+{% endif %}

@@ -1,0 +1,498 @@
+# Software Design Document: {{ system_name }}
+
+{% if version %}
+**Version:** {{ version }}
+{% endif %}
+
+{% if date %}
+**Date:** {{ date }}
+{% endif %}
+
+{% if authors %}
+**Authors:** {% for author in authors %}{{ author }}{% if not loop.last %}, {% endif %}{% endfor %}
+{% endif %}
+
+## 1. Introduction
+
+{% if purpose %}
+### 1.1 Purpose
+
+{{ purpose }}
+{% endif %}
+
+{% if scope %}
+### 1.2 Scope
+
+{{ scope }}
+{% endif %}
+
+{% if definitions %}
+### 1.3 Definitions and Acronyms
+
+| Term | Definition |
+|------|------------|
+{% for term in definitions %}
+| {{ term.term }} | {{ term.definition }} |
+{% endfor %}
+{% endif %}
+
+{% if references %}
+### 1.4 References
+
+{% for ref in references %}
+- {{ ref }}
+{% endfor %}
+{% endif %}
+
+## 2. System Overview
+
+{% if system_description %}
+{{ system_description }}
+{% endif %}
+
+{% if system_context %}
+### 2.1 System Context
+
+{{ system_context }}
+
+{% if external_systems %}
+#### External Systems
+
+{% for system in external_systems %}
+- **{{ system.name }}:** {{ system.description }}
+{% endfor %}
+{% endif %}
+{% endif %}
+
+## 3. System Architecture
+
+{% if architecture %}
+### 3.1 Architectural Overview
+
+{{ architecture }}
+
+{% if architecture_diagram %}
+```
+{{ architecture_diagram }}
+```
+{% endif %}
+{% endif %}
+
+{% if architectural_patterns %}
+### 3.2 Architectural Patterns
+
+{% for pattern in architectural_patterns %}
+#### {{ pattern.name }}
+
+{{ pattern.description }}
+
+{% if pattern.rationale %}
+**Rationale:** {{ pattern.rationale }}
+{% endif %}
+
+{% if pattern.implementation %}
+**Implementation:** {{ pattern.implementation }}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{% if design_patterns %}
+### 3.3 Design Patterns
+
+{% for pattern in design_patterns %}
+- **{{ pattern.name }}:** {{ pattern.description }}{% if pattern.usage %} (Used in: {{ pattern.usage }}){% endif %}
+{% endfor %}
+{% endif %}
+
+## 4. System Design
+
+{% if modules %}
+### 4.1 Module Design
+
+{% for module in modules %}
+#### 4.1.{{ loop.index }} {{ module.name }}
+
+**Purpose:** {{ module.purpose }}
+
+{% if module.responsibilities %}
+**Responsibilities:**
+{% for resp in module.responsibilities %}
+- {{ resp }}
+{% endfor %}
+{% endif %}
+
+{% if module.interfaces %}
+**Interfaces:**
+
+{% for interface in module.interfaces %}
+##### {{ interface.name }}
+
+```{{ interface.language | default('python') }}
+{{ interface.signature }}
+```
+
+{% if interface.description %}
+{{ interface.description }}
+{% endif %}
+
+{% if interface.parameters %}
+**Parameters:**
+{% for param in interface.parameters %}
+- `{{ param.name }}` ({{ param.type }}): {{ param.description }}
+{% endfor %}
+{% endif %}
+
+{% if interface.returns %}
+**Returns:** {{ interface.returns }}
+{% endif %}
+
+{% endfor %}
+{% endif %}
+
+{% if module.dependencies %}
+**Dependencies:**
+{% for dep in module.dependencies %}
+- {{ dep }}
+{% endfor %}
+{% endif %}
+
+{% if module.data_structures %}
+**Data Structures:**
+
+{% for struct in module.data_structures %}
+```{{ struct.language | default('python') }}
+{{ struct.definition }}
+```
+{% endfor %}
+{% endif %}
+
+{% endfor %}
+{% endif %}
+
+{% if class_design %}
+### 4.2 Class Design
+
+{% for class in class_design %}
+#### {{ class.name }}
+
+{{ class.description }}
+
+{% if class.attributes %}
+**Attributes:**
+
+| Name | Type | Visibility | Description |
+|------|------|------------|-------------|
+{% for attr in class.attributes %}
+| {{ attr.name }} | {{ attr.type }} | {{ attr.visibility | default('private') }} | {{ attr.description }} |
+{% endfor %}
+{% endif %}
+
+{% if class.methods %}
+**Methods:**
+
+{% for method in class.methods %}
+##### {{ method.name }}
+
+```{{ method.language | default('python') }}
+{{ method.signature }}
+```
+
+{{ method.description }}
+
+{% endfor %}
+{% endif %}
+
+{% if class.relationships %}
+**Relationships:**
+{% for rel in class.relationships %}
+- {{ rel }}
+{% endfor %}
+{% endif %}
+
+{% endfor %}
+{% endif %}
+
+## 5. Data Design
+
+{% if database_design %}
+### 5.1 Database Design
+
+{% if database_design.schema %}
+#### Database Schema
+
+```sql
+{{ database_design.schema }}
+```
+{% endif %}
+
+{% if database_design.tables %}
+#### Tables
+
+{% for table in database_design.tables %}
+##### {{ table.name }}
+
+{{ table.description }}
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+{% for column in table.columns %}
+| {{ column.name }} | {{ column.type }} | {{ column.constraints | default('') }} | {{ column.description }} |
+{% endfor %}
+
+{% if table.indexes %}
+**Indexes:**
+{% for index in table.indexes %}
+- {{ index }}
+{% endfor %}
+{% endif %}
+
+{% endfor %}
+{% endif %}
+
+{% if database_design.relationships %}
+#### Relationships
+
+{% for rel in database_design.relationships %}
+- {{ rel }}
+{% endfor %}
+{% endif %}
+{% endif %}
+
+{% if data_flow %}
+### 5.2 Data Flow
+
+{{ data_flow.description }}
+
+{% if data_flow.diagram %}
+```
+{{ data_flow.diagram }}
+```
+{% endif %}
+{% endif %}
+
+## 6. Interface Design
+
+{% if user_interface %}
+### 6.1 User Interface Design
+
+{{ user_interface.description }}
+
+{% if user_interface.screens %}
+#### Screens
+
+{% for screen in user_interface.screens %}
+##### {{ screen.name }}
+
+{{ screen.description }}
+
+{% if screen.components %}
+**Components:**
+{% for comp in screen.components %}
+- {{ comp }}
+{% endfor %}
+{% endif %}
+
+{% if screen.actions %}
+**User Actions:**
+{% for action in screen.actions %}
+- {{ action }}
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% endif %}
+
+{% if api_design %}
+### 6.2 API Design
+
+{% for api in api_design %}
+#### {{ api.name }}
+
+{{ api.description }}
+
+**Endpoint:** `{{ api.endpoint }}`
+
+**Method:** {{ api.method }}
+
+{% if api.request %}
+**Request:**
+```json
+{{ api.request }}
+```
+{% endif %}
+
+{% if api.response %}
+**Response:**
+```json
+{{ api.response }}
+```
+{% endif %}
+
+{% if api.errors %}
+**Error Codes:**
+{% for error in api.errors %}
+- `{{ error.code }}`: {{ error.description }}
+{% endfor %}
+{% endif %}
+
+{% endfor %}
+{% endif %}
+
+## 7. Algorithm Design
+
+{% if algorithms %}
+{% for algo in algorithms %}
+### {{ algo.name }}
+
+**Purpose:** {{ algo.purpose }}
+
+{% if algo.input %}
+**Input:** {{ algo.input }}
+{% endif %}
+
+{% if algo.output %}
+**Output:** {{ algo.output }}
+{% endif %}
+
+{% if algo.steps %}
+**Algorithm Steps:**
+
+{% for step in algo.steps %}
+{{ loop.index }}. {{ step }}
+{% endfor %}
+{% endif %}
+
+{% if algo.complexity %}
+**Complexity:**
+- Time: {{ algo.complexity.time }}
+- Space: {{ algo.complexity.space }}
+{% endif %}
+
+{% if algo.pseudocode %}
+**Pseudocode:**
+
+```
+{{ algo.pseudocode }}
+```
+{% endif %}
+
+{% endfor %}
+{% endif %}
+
+## 8. Security Design
+
+{% if security %}
+### 8.1 Security Architecture
+
+{{ security.architecture }}
+
+{% if security.mechanisms %}
+### 8.2 Security Mechanisms
+
+{% for mechanism in security.mechanisms %}
+- **{{ mechanism.name }}:** {{ mechanism.description }}
+{% endfor %}
+{% endif %}
+
+{% if security.data_protection %}
+### 8.3 Data Protection
+
+{% for protection in security.data_protection %}
+- {{ protection }}
+{% endfor %}
+{% endif %}
+{% endif %}
+
+## 9. Performance Design
+
+{% if performance %}
+{% if performance.requirements %}
+### 9.1 Performance Requirements
+
+{% for req in performance.requirements %}
+- {{ req }}
+{% endfor %}
+{% endif %}
+
+{% if performance.optimizations %}
+### 9.2 Performance Optimizations
+
+{% for opt in performance.optimizations %}
+- **{{ opt.name }}:** {{ opt.description }}
+{% endfor %}
+{% endif %}
+{% endif %}
+
+## 10. Testing Strategy
+
+{% if testing %}
+### 10.1 Testing Approach
+
+{{ testing.approach }}
+
+{% if testing.levels %}
+### 10.2 Testing Levels
+
+{% for level in testing.levels %}
+- **{{ level.name }}:** {{ level.description }}
+{% endfor %}
+{% endif %}
+
+{% if testing.tools %}
+### 10.3 Testing Tools
+
+{% for tool in testing.tools %}
+- {{ tool }}
+{% endfor %}
+{% endif %}
+{% endif %}
+
+## 11. Deployment Design
+
+{% if deployment %}
+### 11.1 Deployment Architecture
+
+{{ deployment.architecture }}
+
+{% if deployment.environments %}
+### 11.2 Environments
+
+{% for env in deployment.environments %}
+#### {{ env.name }}
+
+- **Purpose:** {{ env.purpose }}
+- **Configuration:** {{ env.configuration }}
+{% if env.resources %}
+- **Resources:** {{ env.resources }}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{% if deployment.process %}
+### 11.3 Deployment Process
+
+{% for step in deployment.process %}
+{{ loop.index }}. {{ step }}
+{% endfor %}
+{% endif %}
+{% endif %}
+
+## 12. Technology Stack
+
+{% if technology_stack %}
+{% for category, technologies in technology_stack.items() %}
+### {{ category }}
+
+{% for tech in technologies %}
+- **{{ tech.name }}:**{% if tech.version %} v{{ tech.version }}{% endif %} - {{ tech.purpose }}
+{% endfor %}
+{% endfor %}
+{% endif %}
+
+---
+
+{% if footer %}
+{{ footer }}
+{% else %}
+Generated with DevDocAI v3.0.0
+{% endif %}

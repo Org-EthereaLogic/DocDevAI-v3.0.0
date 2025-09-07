@@ -23,6 +23,7 @@ This is the main entry point for all MIAIR operations, providing a consistent
 interface while adapting behavior based on the selected operation mode.
 """
 
+import asyncio
 import logging
 import time
 from typing import Optional, Dict, Any, List
@@ -223,6 +224,11 @@ class MIAIREngineUnified:
         """
         self.logger.debug(f"Analyzing document {document.id}")
         
+        # Use performance engine if available
+        if self.mode in [OperationMode.PERFORMANCE, OperationMode.ENTERPRISE]:
+            if hasattr(self, 'performance_engine'):
+                return self.performance_engine.analyze(document)
+        
         # Calculate entropy
         entropy = self.entropy_calculator.calculate_entropy(document)
         
@@ -388,7 +394,24 @@ class MIAIREngineUnified:
         """Initialize components based on operation mode."""
         
         if self.mode in [OperationMode.PERFORMANCE, OperationMode.ENTERPRISE]:
-            # Performance components will be initialized in the strategy
+            # Import and initialize performance components
+            from .performance_optimized import (
+                MIAIREnginePerformance, OptimizedEntropyCalculator, 
+                CacheManager, BatchProcessor
+            )
+            
+            # Initialize performance engine
+            self.performance_engine = MIAIREnginePerformance(
+                cache_size=10000,
+                max_workers=4,
+                enable_async=True
+            )
+            
+            # Replace default components with optimized versions
+            self.entropy_calculator = self.performance_engine.entropy_calculator
+            self.batch_processor = self.performance_engine.batch_processor
+            self.cache_manager = self.performance_engine.cache_manager
+            
             self.logger.debug("Performance mode - caching and parallel processing enabled")
             
         if self.mode in [OperationMode.SECURE, OperationMode.ENTERPRISE]:
@@ -623,6 +646,40 @@ class MIAIREngineUnified:
                 self.audit_logger['log_entries'] = self.audit_logger['log_entries'][-self.audit_logger['max_entries']:]
             
             self.logger.debug(f"Audit entry created for optimization {document_id}")
+    
+    def analyze_batch(self, documents: List[Document]) -> List[AnalysisResult]:
+        """
+        Analyze a batch of documents with parallel processing.
+        
+        Args:
+            documents: List of documents to analyze
+            
+        Returns:
+            List of AnalysisResult objects
+        """
+        if self.mode in [OperationMode.PERFORMANCE, OperationMode.ENTERPRISE]:
+            if hasattr(self, 'performance_engine'):
+                return self.performance_engine.analyze_batch(documents)
+        
+        # Fallback to sequential processing
+        return [self.analyze(doc) for doc in documents]
+    
+    async def analyze_batch_async(self, documents: List[Document]) -> List[AnalysisResult]:
+        """
+        Analyze a batch of documents asynchronously.
+        
+        Args:
+            documents: List of documents to analyze
+            
+        Returns:
+            List of AnalysisResult objects
+        """
+        if self.mode in [OperationMode.PERFORMANCE, OperationMode.ENTERPRISE]:
+            if hasattr(self, 'performance_engine'):
+                return await self.performance_engine.analyze_batch_async(documents)
+        
+        # Fallback to sync processing
+        return self.analyze_batch(documents)
     
     def _update_stats(self, result: OptimizationResult):
         """Update engine statistics."""

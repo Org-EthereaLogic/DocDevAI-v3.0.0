@@ -203,15 +203,11 @@ class OptimizationResult(BaseModel):
     
     initial_entropy: float = Field(
         ...,
-        ge=0.0,
-        le=1.0,
         description="Initial entropy score"
     )
     
     final_entropy: float = Field(
         ...,
-        ge=0.0,
-        le=1.0,
         description="Final entropy score"
     )
     
@@ -246,8 +242,6 @@ class AnalysisResult(BaseModel):
     
     entropy: float = Field(
         ...,
-        ge=0.0,
-        le=1.0,
         description="Document entropy score"
     )
     
@@ -317,8 +311,6 @@ class CachedResult(BaseModel):
     
     entropy: float = Field(
         ...,
-        ge=0.0,
-        le=1.0,
         description="Cached entropy score"
     )
     
@@ -352,15 +344,11 @@ class MIAIRConfig(BaseModel):
     # Core optimization parameters
     entropy_threshold: float = Field(
         default=0.35,
-        ge=0.0,
-        le=1.0,
         description="Maximum acceptable entropy"
     )
     
     target_entropy: float = Field(
         default=0.15,
-        ge=0.0,
-        le=1.0,
         description="Target entropy for optimization"
     )
     
@@ -415,15 +403,7 @@ class MIAIRConfig(BaseModel):
         description="Rate limit per minute"
     )
     
-    @field_validator('target_entropy')
-    @classmethod
-    def validate_target_entropy(cls, v: float, info) -> float:
-        """Validate target entropy is less than threshold."""
-        # Note: We can't access entropy_threshold here directly in Pydantic v2
-        # This will be validated in the engine initialization
-        if v < 0.0 or v > 1.0:
-            raise ValueError("Target entropy must be between 0.0 and 1.0")
-        return v
+    
 
 
 # Type aliases for better readability
