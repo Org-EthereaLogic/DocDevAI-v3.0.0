@@ -4,80 +4,40 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Context
 
-DevDocAI v3.0.0 is a **Python-based** AI-powered documentation generation and analysis system for solo developers. This is a **clean slate development branch** that follows strict design document compliance.
+DevDocAI v3.0.0 is a **Python-based** AI-powered documentation generation and analysis system for solo developers. This project follows a **design-first approach** with strict adherence to design document specifications.
 
-**CRITICAL**: This project follows a **design-first approach**. All implementation must adhere exactly to the specifications in the design documents located in `docs/`.
+**CRITICAL**: This project has been **RESTARTED FROM CLEAN SLATE** (September 7, 2025). All implementation must be built from scratch following the exact specifications in the design documents located in `docs/`.
 
 ## Current Project Status
 
-**🎯 READY FOR M004 DOCUMENT GENERATOR IMPLEMENTATION**
+**🎯 CLEAN SLATE - READY FOR DESIGN-COMPLIANT IMPLEMENTATION**
 
-- **Implementation Status**: 23.1% Complete (3/13 modules - M001/M002/M003 Complete & Validated)
-- **Repository Status**: ✅ **CLEANED & PREPARED** - Temporary files removed, structure verified for M004
-- **Design Status**: Enhanced 4-Pass TDD methodology proven with massive performance gains
-- **Technology Stack**: Python 3.8+ with SQLite, SQLCipher, Pydantic v2, Shannon entropy mathematics
-- **Architecture**: M003 unified architecture with 4 operation modes achieving 3.4M docs/min performance
-- **Current Milestone**: ✅ M003 MIAIR Engine Complete - All 4 Passes Finished with 74% Code Reduction
-- **CI/CD Status**: 🔧 **FULLY OPERATIONAL** - Comprehensive Python pipeline with advanced testing
-- **Refactoring Success**: 🏗️ 74% code reduction in M003, unified architecture patterns proven
-- **Performance Achievement**: ⚡ 3.4M docs/min (9.4x target), sub-millisecond analysis times
-- **Next Step**: 🚀 M004 Document Generator Implementation - Template-based document creation (devdocai/core/generator.py)
+- **Implementation Status**: **0% Complete** - Complete clean restart achieved
+- **Repository Status**: ✅ **COMPLETELY CLEAN** - All previous implementation removed
+- **Design Status**: **Complete** - 52 comprehensive design documents ready
+- **Technology Stack**: **Python 3.8+ ONLY** (previous TypeScript attempts were incorrect)
+- **Architecture**: **To be built** - Following docs/04-reference/COMPREHENSIVE_PROJECT_FINDINGS.md
+- **Development Method**: **Enhanced 4-Pass TDD** - Proven methodology from design docs
+- **Next Step**: **Begin M001 Configuration Manager** - Foundation module implementation
 
-**What exists:**
-✅ Complete design documentation (PRD v3.6.0, SRS v3.6.0, SDD v3.5.0, Architecture v3.5.0)
-✅ Python-based architecture specification in `docs/04-reference/`
-✅ CI/CD pipeline infrastructure (FULLY OPERATIONAL: Complete resolution including pipeline failures)
-✅ Comprehensive design compliance framework
-✅ 21 User Stories (US-001 through US-021) ready for implementation
+## Why the Restart?
 
-**✅ M001 Configuration Manager - COMPLETE:**
-- 90% test coverage (34/34 tests passing) - Production-ready
-- Privacy-first defaults implemented and verified ✅
-- Memory mode detection working perfectly (4 modes: baseline/standard/enhanced/performance) ✅
-- YAML configuration loading with Pydantic v2 validation ✅
-- AES-256-GCM encryption validated - secure API key storage ✅
-- Rich CLI integration with comprehensive config commands ✅
-- **Human Validation**: 100% PASSED - All SDD 5.1 specifications confirmed working
-
-**✅ M002 Local Storage System - ALL 4 PASSES COMPLETE:**
-- **Pass 1** ✅: Core Implementation (CRUD, versioning, FTS5, transaction support)
-- **Pass 2** ✅: Performance Optimization (72K queries/sec, 743x improvement)
-- **Pass 3** ✅: Security Hardening (SQLCipher, PII detection, AES-256-GCM encryption)
-- **Pass 4** ✅: Refactoring & Integration (66% duplication reduction, unified architecture)
-- **Unified Architecture**: 3 implementations → 1 (1,948 lines), 4 operation modes
-- **Production Status**: Enterprise-grade with BASIC, PERFORMANCE, SECURE, ENTERPRISE modes
-- **M001 Integration**: Seamless ConfigurationManager compatibility with get_config() method
-- **Human Validation**: 100% SUCCESS - All 9 comprehensive tests passed (7/7 final suite)
-
-**✅ M003 MIAIR Engine - ALL 4 PASSES COMPLETE:**
-- **Pass 1** ✅: Core Implementation (Shannon entropy calculations, 2,730+ lines, 55% test pass rate)
-- **Pass 2** ✅: Performance Optimization (3.4M docs/min - 9.4x target!, sub-millisecond analysis)
-- **Pass 3** ✅: Security Hardening (Enterprise-grade, OWASP Top 10 compliant, 95% test coverage)
-- **Pass 4** ✅: Refactoring & Integration (74% code reduction, unified architecture)
-- **Mathematical Foundation**: Shannon entropy formula S = -Σ[p(xi) × log2(p(xi))] × f(Tx) implemented
-- **Performance Achievement**: 3,405,477 docs/min in PERFORMANCE mode (56,607% of target!)
-- **Architecture**: Unified engine with 4 operation modes (BASIC, PERFORMANCE, SECURE, ENTERPRISE)
-- **Security Features**: Input validation, rate limiting, encrypted caching, PII detection, audit logging
-- **Production Status**: Enterprise-ready with mathematical optimization and security hardening
-
-**Development Methodology:**
-Using the proven Enhanced 5-Pass TDD methodology:
-- **Pass 0**: Design Validation & Architecture ✅
-- **Pass 1**: Core Implementation (80% coverage) ✅
-- **Pass 2**: Performance Optimization (advanced features) ✅
-- **Pass 3**: Security Hardening (95% coverage) ✅
-- **Pass 4**: Refactoring & Integration 🎯 CURRENT
-- **Pass 5**: Production Polish
+**Architectural Drift Discovered**: Previous implementation had fundamental issues:
+- ❌ M004 Document Generator used template substitution instead of AI-powered generation
+- ❌ Missing M008 LLM Adapter (critical dependency for AI functionality)
+- ❌ Wrong technology stack (TypeScript instead of Python as specified in design docs)
+- ❌ Only 23% compliance with design document specifications
+- ✅ **Solution**: Complete restart following design documents exactly
 
 ## Single Source of Truth: Design Documents
 
 ### Mandatory Reading Order
-1. **[Product Requirements Document (PRD)](docs/01-specifications/requirements/DESIGN-devdocai-prd.md)** - What we're building
-2. **[Software Requirements Specification (SRS)](docs/01-specifications/requirements/DESIGN-devdocai-srs.md)** - Detailed requirements
-3. **[Software Design Document (SDD)](docs/01-specifications/architecture/DESIGN-devdocsai-sdd.md)** - How we're building it
-4. **[Architecture Document](docs/01-specifications/architecture/DESIGN-devdocsai-architecture.md)** - System architecture
-5. **[User Stories](docs/01-specifications/requirements/DESIGN-devdocsai-user-stories.md)** - User requirements
-6. **[Comprehensive Project Findings](docs/04-reference/COMPREHENSIVE_PROJECT_FINDINGS.md)** - Python architecture specification
+1. **[Comprehensive Project Findings](docs/04-reference/COMPREHENSIVE_PROJECT_FINDINGS.md)** - Python architecture overview
+2. **[Product Requirements Document (PRD)](docs/01-specifications/requirements/DESIGN-devdocai-prd.md)** - What we're building
+3. **[Software Requirements Specification (SRS)](docs/01-specifications/requirements/DESIGN-devdocai-srs.md)** - Detailed requirements
+4. **[Software Design Document (SDD)](docs/01-specifications/architecture/DESIGN-devdocsai-sdd.md)** - How we're building it
+5. **[Architecture Document](docs/01-specifications/architecture/DESIGN-devdocsai-architecture.md)** - System architecture
+6. **[User Stories](docs/01-specifications/requirements/DESIGN-devdocsai-user-stories.md)** - User requirements
 
 ### Design Compliance Rules
 
@@ -88,7 +48,7 @@ Using the proven Enhanced 5-Pass TDD methodology:
 - Add dependencies not specified in design docs
 - Create files not outlined in project structure
 - Deviate from specified naming conventions
-- Use TypeScript/Node.js (design specifies Python)
+- Use TypeScript/Node.js (design specifies Python 3.8+ only)
 
 **✅ ALWAYS DO:**
 - Reference specific design document sections when implementing
@@ -98,66 +58,50 @@ Using the proven Enhanced 5-Pass TDD methodology:
 - Use only Python 3.8+ and specified frameworks
 - Follow the modular architecture exactly as designed
 
-## Development Commands
+## Implementation Roadmap
 
-### Python Development (Primary)
+### Phase 1: Foundation (Start Here)
+**Dependency Order - Critical Path:**
 
-```bash
-# Environment setup
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# OR: venv\Scripts\activate  # Windows
+1. **M001: Configuration Manager** (INDEPENDENT - Start here)
+   - Privacy-first defaults (local-only, no telemetry) 
+   - Memory mode detection (4 modes based on available RAM)
+   - Encrypted API key storage (AES-256-GCM)
+   - YAML configuration with Pydantic validation
 
-# Dependencies
-pip install -r requirements.txt
-pip install -r requirements-dev.txt
+2. **M008: LLM Adapter** (Depends: M001) - **CRITICAL FOR AI**
+   - Multi-provider support (OpenAI, Anthropic, Google, Local fallback)
+   - Cost management and budget enforcement
+   - Smart routing and response caching
+   - **Essential for M004 AI-powered document generation**
 
-# Testing
-pytest                      # Run Python tests
-pytest --cov=devdocai      # Coverage report (target: 95%)
-pytest --cov=devdocai --cov-report=html  # HTML coverage report
+3. **M002: Local Storage System** (Depends: M001)
+   - SQLite with SQLCipher encryption
+   - Document versioning and full-text search
+   - Integration with M001 configuration
 
-# Code quality
-black devdocai/            # Format Python code
-pylint devdocai/           # Lint Python code
-mypy devdocai/             # Type checking
+### Phase 2: Core Generation
+4. **M004: Document Generator** (Depends: M001, M002, M008)
+   - **AI-POWERED GENERATION** (uses M008 for LLM calls)
+   - Templates guide prompts, NOT content substitution
+   - 40+ document types with AI synthesis
 
-# Development
-python -m devdocai --help # Run CLI
-python -m devdocai.cli     # Alternative CLI entry point
-```
+5. **M003: MIAIR Engine** (Depends: M001, M002, M008)
+   - Shannon entropy optimization
+   - Mathematical quality improvement
+   - AI-powered refinement
 
-### Build & Package
+### Phase 3: Analysis & Enhancement (6 more modules)
+6-13. **Remaining modules** following dependency chain
 
-```bash
-# Build package
-python -m build
-
-# Install for development
-pip install -e .
-
-# Run specific modules
-python -m devdocai.core.config    # M001: Configuration Manager
-python -m devdocai.intelligence.miair  # M003: MIAIR Engine
-```
-
-### Git Operations
-
-```bash
-git status           # Always check status first
-git diff --cached    # Review staged changes before commit
-```
-
-## Architecture Overview
-
-### Python Package Structure (Per Design Docs)
+## Python Package Structure (Per Design Docs)
 
 ```
 devdocai/
 ├── core/
 │   ├── config.py          # M001: Configuration Manager
 │   ├── storage.py         # M002: Local Storage (SQLite + encryption)
-│   ├── generator.py       # M004: Document Generator
+│   ├── generator.py       # M004: Document Generator (AI-powered)
 │   ├── tracking.py        # M005: Tracking Matrix
 │   ├── suite.py          # M006: Suite Manager
 │   └── review.py         # M007: Review Engine
@@ -173,70 +117,78 @@ devdocai/
 │   ├── batch.py          # M011: Batch Operations
 │   ├── version.py        # M012: Version Control Integration
 │   └── marketplace.py    # M013: Template Marketplace
-├── cli.py                # Command-line interface (Click/argparse)
+├── cli.py                # Command-line interface
 └── main.py               # Entry point
 ```
 
-### Module System (M001-M013)
+## Development Commands
 
-Each module is self-contained with specific responsibilities as defined in the SDD:
+### Environment Setup (To Be Created)
+```bash
+# Create new Python environment
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
 
-- **M001 Configuration Manager**: Python-based config with validation
-- **M002 Local Storage**: SQLite with encryption, not TypeScript
-- **M003 MIAIR Engine**: Python ML/AI processing (requires Python)
-- **M004-M013**: All specified as Python modules in design docs
+# Install dependencies (to be determined from design docs)
+pip install -r requirements.txt
 
-### Quality Gates
+# Testing (to be implemented)
+pytest --cov=devdocai --cov-report=html
 
-- **All modules**: 95% test coverage requirement (as per design docs)
+# Code quality (to be configured)
+black devdocai/
+pylint devdocai/
+mypy devdocai/
+```
+
+## Quality Gates (Per Design Docs)
+
+- **All modules**: 85-95% test coverage requirement
 - **Code complexity**: <10 cyclomatic complexity
 - **Performance**: Specific benchmarks per module (M003: 248K docs/min)
 - **Technology**: Python 3.8+ only (no TypeScript/Node.js)
+- **Security**: AES-256-GCM encryption, privacy-first defaults
+
+## Development Method
+
+**Enhanced 4-Pass TDD Development Methodology:**
+
+1. **Pass 1**: Core Implementation (TDD with 80% coverage)
+2. **Pass 2**: Performance Optimization (meet benchmarks)
+3. **Pass 3**: Security Hardening (95% coverage, OWASP where applicable)
+4. **Pass 4**: Refactoring & Integration (40-50% code reduction target)
+
+Git tags at each pass for rollback capability (e.g., `m001-pass1-v1`)
 
 ## Critical Implementation Notes
 
 ### M001 Configuration Manager Specifics
-- Must implement in Python (not TypeScript as previously attempted)
+- Must implement in Python (previous TypeScript attempts were wrong)
 - Privacy-first: telemetry disabled by default
-- Use Python cryptography library for encryption
+- Use Python `cryptography` library for encryption
 - Configuration loading from `.devdocai.yml` with pydantic validation
 
-### M003 MIAIR Engine Requirements
-- **CRITICAL**: Requires Python for ML/AI processing
-- Shannon entropy calculations in Python
-- This is why the entire system must be Python-based
+### M008 LLM Adapter Requirements (Critical)
+- **ESSENTIAL for M004**: M004 cannot work without M008 LLM integration
+- Multi-provider support with cost management
+- Response caching and smart routing
+- Local fallback when APIs unavailable or budget exhausted
 
-### Testing Strategy
-- Follow TDD: Write tests first, then implementation
-- Use pytest for Python testing
-- Performance benchmarks required for each module
-- Coverage thresholds enforced in pytest.ini
+### M004 Document Generator Requirements
+- **AI-POWERED**: Uses M008 to call LLMs for content generation
+- **NOT template substitution**: Templates guide AI prompts only
+- Fails gracefully with error messages when LLMs unavailable
+- This was the core architectural issue in previous implementation
 
-### Security Requirements
-- All API keys encrypted using Python cryptography
-- SQLCipher for database encryption (M002)
-- Input validation on all external inputs
-- No telemetry by default
+## Repository Status
 
-## GitHub Actions Workflows
+**Current State**: Complete clean slate achieved
+- ✅ Design documentation complete (52 files)
+- ❌ No implementation code (ready for fresh start)
+- ❌ No configuration files (to be created from design specs)
+- ❌ No test files (to be implemented with TDD approach)
 
-The CI/CD pipeline successfully identified the TypeScript architectural drift and is now configured for Python development:
-
-- **ci.yml**: Main pipeline - Python testing and validation
-- **python-tests.yml**: Python-specific testing pipeline  
-- **security-scan.yml**: Python security analysis
-
-## Current Development Focus
-
-### Phase 1: M001 Configuration Manager (Python)
-Following the proven Enhanced 5-Pass TDD Development Methodology adapted for Python:
-
-1. **Pass 0**: Design Validation (verify Python architecture)
-2. **Pass 1**: TDD Implementation (pytest, 95% coverage)
-3. **Pass 2**: Performance Optimization (meet Python benchmarks)
-4. **Pass 3**: Security Hardening (Python cryptography)
-5. **Pass 4**: Refactoring (Python code quality)
-6. **Pass 5**: Real-World Testing (production readiness)
+**Git History**: Previous implementation work preserved in commits for reference, but completely removed from working directory.
 
 ## Development Philosophy
 
@@ -244,24 +196,9 @@ Following the proven Enhanced 5-Pass TDD Development Methodology adapted for Pyt
 - **Offline-First**: Full functionality without internet
 - **Test-Driven**: Tests before implementation (pytest)
 - **Modular**: Each module independent and self-contained
-- **Performance**: Meet specific benchmarks (M003: 248K docs/min)
-- **AI-Powered**: Python-based ML/AI processing via MIAIR Engine
+- **Performance**: Meet specific benchmarks per design docs
+- **AI-Powered**: Python-based ML/AI processing via MIAIR Engine and LLM Adapter
 - **Design-First**: Strict adherence to documented architecture
-
-## Development Method
-
-Following the validated Enhanced 5-Pass TDD Development Methodology:
-
-1. **Pass 0**: Design Validation (0.5 days)
-2. **Pass 1**: TDD Implementation (1.5 days, RED-GREEN-REFACTOR)
-3. **Pass 2**: Performance Optimization (1 day)
-4. **Pass 3**: Security Hardening (1 day)
-5. **Pass 4**: Mandatory Refactoring (1 day, 40-50% code reduction)
-6. **Pass 5**: Real-World Testing (1 day)
-
-Total per module: 6 days | Total project: 30 development days for all 13 modules
-
-Git tags created at each pass for rollback capability (e.g., `m001-python-implementation-v1`)
 
 # Important Instructions
 
@@ -271,3 +208,4 @@ ALWAYS prefer editing an existing file to creating a new one.
 NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
 ALWAYS follow the Python architecture specified in the design documents.
 NEVER use TypeScript/Node.js - this project is Python-based as per design specifications.
+CRITICAL: All implementation must use AI-powered generation via M008 LLM Adapter, not template substitution.

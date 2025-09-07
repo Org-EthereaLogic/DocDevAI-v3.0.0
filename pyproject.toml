@@ -1,0 +1,261 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel", "setuptools-scm[toml]>=8.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "devdocai"
+version = "3.0.0"
+description = "AI-powered documentation generation and analysis system for solo developers"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "DevDocAI Team", email = "support@devdocai.com"}
+]
+keywords = ["documentation", "ai", "automation", "quality", "analysis"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Documentation",
+    "Topic :: Software Development :: Documentation",
+    "Topic :: Software Development :: Quality Assurance",
+]
+
+[project.dependencies]
+# Core dependencies
+pydantic = ">=2.0.0,<3.0.0"  # Data validation with v2 for performance
+pyyaml = ">=6.0.1"            # YAML configuration loading
+click = ">=8.1.0"             # CLI framework
+rich = ">=13.0.0"             # Beautiful terminal output
+python-dotenv = ">=1.0.0"     # Environment variable management
+
+# Security dependencies
+cryptography = ">=41.0.0"     # AES-256-GCM encryption
+argon2-cffi = ">=23.0.0"      # Argon2id key derivation
+pyotp = ">=2.9.0"             # TOTP for 2FA (future)
+
+# Storage dependencies
+sqlalchemy = ">=2.0.0"        # ORM for database
+alembic = ">=1.12.0"          # Database migrations
+sqlcipher3 = {version = ">=0.5.0", markers = "platform_system != 'Windows'"}  # Encrypted SQLite
+
+# Development quality
+typing-extensions = ">=4.8.0"  # Enhanced type hints for Python 3.8+
+
+[project.optional-dependencies]
+dev = [
+    # Testing
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.12.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-benchmark>=4.0.0",
+    "hypothesis>=6.90.0",        # Property-based testing
+    
+    # Code quality
+    "black>=24.0.0",              # Code formatting
+    "ruff>=0.1.0",                # Fast linter (replaces flake8, isort, etc.)
+    "mypy>=1.7.0",                # Type checking
+    "bandit[toml]>=1.7.5",        # Security linting
+    "safety>=3.0.0",              # Dependency vulnerability scanning
+    
+    # Documentation
+    "mkdocs>=1.5.0",
+    "mkdocs-material>=9.5.0",
+    "mkdocstrings[python]>=0.24.0",
+    
+    # Development tools
+    "pre-commit>=3.5.0",
+    "commitizen>=3.12.0",         # Conventional commits
+    "ipython>=8.12.0",            # Enhanced REPL
+    "ipdb>=0.13.0",               # Debugger
+]
+
+# Enhanced features (M003 MIAIR, M008 LLM)
+ai = [
+    "numpy>=1.24.0",              # Mathematical operations
+    "scipy>=1.11.0",              # Shannon entropy calculations
+    "tiktoken>=0.5.0",            # Token counting for LLM
+    "aiohttp>=3.9.0",             # Async HTTP for API calls
+    "tenacity>=8.2.0",            # Retry logic for API calls
+    "cachetools>=5.3.0",          # Caching for optimization
+]
+
+# Compliance features (M010 SBOM, PII detection)
+compliance = [
+    "spdx-tools>=0.8.0",          # SBOM generation (SPDX format)
+    "cyclonedx-bom>=4.0.0",       # SBOM generation (CycloneDX format)
+    "presidio-analyzer>=2.2.0",   # PII detection
+    "cryptography>=41.0.0",       # Ed25519 signatures for SBOM
+]
+
+# Local AI support (Enhanced/Performance modes)
+local-ai = [
+    "llama-cpp-python>=0.2.0",   # Local LLM support
+    "transformers>=4.35.0",       # Hugging Face models
+    "torch>=2.1.0",               # PyTorch for local AI
+]
+
+[project.scripts]
+devdocai = "devdocai.cli:main"
+
+[project.urls]
+Homepage = "https://devdocai.com"
+Documentation = "https://docs.devdocai.com"
+Repository = "https://github.com/devdocai/devdocai"
+Issues = "https://github.com/devdocai/devdocai/issues"
+Changelog = "https://github.com/devdocai/devdocai/blob/main/CHANGELOG.md"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["devdocai*"]
+exclude = ["tests*", "docs*"]
+
+[tool.setuptools.package-data]
+devdocai = ["py.typed", "*.yaml", "templates/**/*"]
+
+# Testing configuration
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--cov=devdocai",
+    "--cov-branch",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-report=xml",
+    "--cov-fail-under=95",  # M001 target: 95% coverage
+]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "performance: Performance tests",
+    "security: Security tests",
+    "slow: Tests that take > 1 second",
+]
+
+# Code formatting
+[tool.black]
+line-length = 100
+target-version = ["py38", "py39", "py310", "py311", "py312"]
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+    | \.venv
+    | build
+    | dist
+    | migrations
+)/
+'''
+
+# Linting configuration
+[tool.ruff]
+target-version = "py38"
+line-length = 100
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "ARG", # flake8-unused-arguments
+    "SIM", # flake8-simplify
+    "TCH", # flake8-type-checking
+]
+ignore = [
+    "E501",  # Line too long (handled by black)
+    "B008",  # Do not perform function calls in argument defaults
+]
+exclude = [
+    ".git",
+    ".venv",
+    "build",
+    "dist",
+    "__pycache__",
+    "migrations",
+]
+
+[tool.ruff.isort]
+known-first-party = ["devdocai"]
+
+# Type checking
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_any_unimported = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+check_untyped_defs = true
+strict_equality = true
+ignore_missing_imports = true
+namespace_packages = true
+explicit_package_bases = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+ignore_errors = true
+
+# Security scanning
+[tool.bandit]
+targets = ["devdocai"]
+exclude_dirs = ["tests", "docs"]
+skips = []
+
+# Coverage configuration
+[tool.coverage.run]
+source = ["devdocai"]
+branch = true
+parallel = true
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__pycache__/*",
+    "*/migrations/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if __name__ == .__main__.:",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+]
+precision = 2
+show_missing = true
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+# Commitizen for conventional commits
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "3.0.0"
+tag_format = "v$version"
+version_files = [
+    "pyproject.toml:version",
+    "devdocai/__init__.py:__version__"
+]
+update_changelog_on_bump = true

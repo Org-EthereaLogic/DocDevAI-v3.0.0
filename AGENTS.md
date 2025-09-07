@@ -2,7 +2,7 @@
 
 Agent workflow specifications for DevDocAI v3.0.0 development.
 
-**🎉 STATUS: M002 UNIFIED ARCHITECTURE COMPLETE + 4-PASS TDD METHODOLOGY PROVEN! 🎉**
+**🔄 STATUS: CLEAN SLATE RESTART - READY FOR DESIGN-COMPLIANT IMPLEMENTATION**
 
 ## Purpose
 
@@ -14,19 +14,19 @@ This document defines **how to use specialized AI agents** during DevDocAI devel
 
 ---
 
-## Agent Selection Matrix - **VALIDATED BY M001 & M002 SUCCESS**
+## Agent Selection Matrix - **READY FOR DESIGN-FIRST IMPLEMENTATION**
 
-### Primary Development Agents ✅ PROVEN EFFECTIVE ACROSS 2 MODULES
+### Primary Development Agents - **READY FOR IMPLEMENTATION**
 
-| Agent Type | Use For | Design Compliance Check | M001 Result | M002 Result |
-|-----------|---------|------------------------|-------------|-------------|
-| **software-architect** | System architecture, Pass 0 design validation | ✅ Must reference SDD sections | ✅ **EXCELLENT** | ✅ **EXCELLENT** - Comprehensive M002 blueprint |
-| **python-expert** | Python implementation, TDD development, Pass 1 | ✅ Must reference SDD sections | ✅ **EXCEPTIONAL** - 90% coverage | ✅ **EXCEPTIONAL** - Complete implementation |
-| **performance-optimizer** | Performance optimization, Pass 2 | ✅ Must meet SDD performance targets | 🚧 **PENDING** | ✅ **OUTSTANDING** - 72K queries/sec, 743x improvement |
-| **security-engineer-devsecops** | Security hardening, Pass 3 | ✅ Security requirements compliance | 🚧 **PENDING** | ✅ **OUTSTANDING** - Enterprise security, PII detection |
-| **code-quality-refactorer** | Technical debt reduction, Pass 4 | ✅ <10 cyclomatic complexity | 🚧 **PENDING** | ✅ **OUTSTANDING** - 66% duplication reduction, unified architecture |
-| **qa-testing-specialist** | Test strategy, comprehensive validation | ✅ 95%+ coverage requirement | ✅ **EXCELLENT** | ✅ **EXCELLENT** - All testing frameworks |
-| **root-cause-analyzer** | Systematic issue investigation, CI/CD troubleshooting | ✅ Evidence-based analysis | 🚧 **PENDING** | ✅ **OUTSTANDING** - Identified CI/CD tech stack mismatch |
+| Agent Type | Use For | Design Compliance Check | Status |
+|-----------|---------|------------------------|---------|
+| **software-architect** | System architecture, Pass 0 design validation | ✅ Must reference SDD sections | 🔄 **READY** - Architecture patterns defined |
+| **python-expert** | Python implementation, TDD development, Pass 1 | ✅ Must reference SDD sections | 🔄 **READY** - TDD patterns established |
+| **performance-optimizer** | Performance optimization, Pass 2 | ✅ Must meet SDD performance targets | 🔄 **READY** - Performance benchmarks defined |
+| **security-engineer-devsecops** | Security hardening, Pass 3 | ✅ Security requirements compliance | 🔄 **READY** - Security requirements documented |
+| **code-quality-refactorer** | Technical debt reduction, Pass 4 | ✅ <10 cyclomatic complexity | 🔄 **READY** - Quality standards established |
+| **qa-testing-specialist** | Test strategy, comprehensive validation | ✅ 95%+ coverage requirement | 🔄 **READY** - Testing frameworks specified |
+| **root-cause-analyzer** | Systematic issue investigation, CI/CD troubleshooting | ✅ Evidence-based analysis | 🔄 **READY** - Analysis patterns documented |
 
 ### Quality Assurance Agents
 
@@ -39,24 +39,26 @@ This document defines **how to use specialized AI agents** during DevDocAI devel
 
 ---
 
-## Agent Workflow Patterns - **PROVEN BY M001 & M002**
+## Agent Workflow Patterns - **DESIGN-FIRST APPROACH**
 
-### Pattern 1: Enhanced 4-Pass TDD Module Implementation ✅ VALIDATED ACROSS 2 MODULES
+### Pattern 1: Enhanced 4-Pass TDD Module Implementation 
 
-**M001 & M002 Complete Workflow:**
+**Clean Implementation Workflow (Starting Fresh):**
 
 ```
-PASS 0: software-architect → Design validation → Architecture approved ✅
-PASS 1: python-expert → Core implementation (TDD) → Foundation complete ✅  
-PASS 2: performance-optimizer → Advanced optimization → Performance targets exceeded ✅
-PASS 3: security-engineer-devsecops → Security hardening → Enterprise-grade achieved ✅
-PASS 4: code-quality-refactorer → Unified architecture → 66% duplication reduction ✅
+PASS 0: software-architect → Design validation → Architecture approved
+PASS 1: python-expert → Core implementation (TDD) → Foundation established  
+PASS 2: performance-optimizer → Performance optimization → Targets achieved
+PASS 3: security-engineer-devsecops → Security hardening → Enterprise-grade security
+PASS 4: code-quality-refactorer → Code quality improvement → Technical debt reduction
 ```
 
-**Results**: 
-- **M001**: 90% coverage, 34/34 tests, production-ready configuration system
-- **M002**: Unified architecture (1,948 lines), 4 operation modes, 66% duplication reduction
-- **Combined**: Proven 4-pass methodology delivering enterprise-grade quality consistently
+**Implementation Order (Per Design Documents)**: 
+- **M001**: Configuration Manager (INDEPENDENT) - Foundation layer
+- **M008**: LLM Adapter (Depends: M001) - **CRITICAL FOR AI** - Must be implemented before M004
+- **M002**: Local Storage System (Depends: M001) - Foundation layer  
+- **M004**: Document Generator (Depends: M001, M002, M008) - **AI-POWERED GENERATION**
+- **M003**: MIAIR Engine (Depends: M001, M002, M008) - Intelligence layer
 
 ### Pattern 2: Integration Workflow
 
@@ -113,8 +115,8 @@ After agent completes work:
 ## Quality Gates by Agent Type
 
 ### Development Agents
-- **Test Coverage**: 85% minimum, 95% for critical modules (M001, M002)
-- **Performance**: Must meet SDD benchmarks (M001: 19M ops/sec)
+- **Test Coverage**: 85% minimum, 95% for critical modules (per design documents)
+- **Performance**: Must meet SDD benchmarks (specific targets defined per module)
 - **Code Quality**: <10 cyclomatic complexity, max 350 lines per file
 - **Design Compliance**: 100% traceability to design documents
 
@@ -157,35 +159,30 @@ COMPLIANCE TEMPLATE:
 
 ## Development Phase Agent Assignment
 
-### Phase 1: CLI Interface (Per Build Instructions)
-- **Primary**: lead-software-engineer
+### Phase 1: Foundation Layer (M001, M008, M002)
+- **Primary**: python-expert, software-architect
 - **Support**: requirements-analyst, qa-test-automation
-- **Design Focus**: SDD Section 4.1 (CLI Architecture)
+- **Design Focus**: Core system foundation with proper dependency order
 
-### Phase 2: Web Dashboard
-- **Primary**: frontend-ux-specialist
-- **Support**: ux-designer-engineer, performance-optimizer
-- **Design Focus**: User Stories US-001 through US-006
-
-### Phase 3: AI Integration
-- **Primary**: backend-reliability-engineer
+### Phase 2: Document Management Layer (M004, M003)
+- **Primary**: python-expert, backend-reliability-engineer
 - **Support**: security-engineer-devsecops, performance-optimizer
-- **Design Focus**: SDD Section 3.3 (AI Integration Architecture)
+- **Design Focus**: AI-powered document generation and processing
 
-### Phase 4: Template System
-- **Primary**: lead-software-engineer
-- **Support**: requirements-analyst, code-quality-refactorer
-- **Design Focus**: SDD Section 3.4 (Template Management)
+### Phase 3: Analysis & Enhancement Layer (M005, M006, M007, M009)
+- **Primary**: backend-reliability-engineer, performance-optimizer
+- **Support**: security-engineer-devsecops, code-quality-refactorer
+- **Design Focus**: Document analysis and quality enhancement
 
-### Phase 5: VS Code Extension
-- **Primary**: frontend-ux-specialist
-- **Support**: software-architect, qa-test-automation
-- **Design Focus**: SDD Section 4.3 (IDE Integration)
+### Phase 4: Compliance & Operations Layer (M010, M011, M012, M013)
+- **Primary**: frontend-ux-specialist, lead-software-engineer
+- **Support**: ux-designer-engineer, qa-test-automation
+- **Design Focus**: User interfaces and operational features
 
-### Phase 6: Performance Optimization
-- **Primary**: performance-optimizer
-- **Support**: code-quality-refactorer, security-engineer-devsecops
-- **Design Focus**: SDD Performance Requirements (All sections)
+### Phase 5: Integration & Polish
+- **Primary**: software-architect, code-quality-refactorer
+- **Support**: performance-optimizer, security-engineer-devsecops
+- **Design Focus**: System integration and production readiness
 
 ---
 
@@ -243,4 +240,4 @@ COMPLIANCE TEMPLATE:
 
 ---
 
-*Last Updated: September 6, 2025 - Clean Development Branch Created*
+*Last Updated: September 7, 2025 - Clean Slate Restart - Ready for Design-First Implementation*
