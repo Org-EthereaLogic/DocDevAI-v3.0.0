@@ -190,7 +190,7 @@ jobs:
           # Test performance targets: 19M ops/sec retrieval
           start = time.time()
           for i in range(100000):
-              config.get_setting('privacy_mode', 'LOCAL_ONLY')
+              config.get('privacy.local_only', True)
           duration = time.time() - start
           ops_per_sec = 100000 / duration
           print(f'Retrieval performance: {ops_per_sec:,.0f} ops/sec')

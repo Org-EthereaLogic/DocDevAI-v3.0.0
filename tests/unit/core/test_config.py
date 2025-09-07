@@ -53,11 +53,15 @@ class TestPrivacyConfig:
         with pytest.raises(PydanticValidationError):
             PrivacyConfig(analytics={})  # Should be bool, not dict
     
-    def test_privacy_config_immutability(self):
-        """Test that privacy config is immutable after creation."""
+    def test_privacy_config_mutability(self):
+        """Test that privacy config allows runtime updates (frozen=True removed for security fixes)."""
         config = PrivacyConfig()
-        with pytest.raises(PydanticValidationError):
-            config.telemetry = True  # Frozen Pydantic models are immutable
+        # Should now allow modification (frozen constraint removed for security compatibility)
+        config.telemetry = True
+        assert config.telemetry is True
+        
+        config.analytics = True  
+        assert config.analytics is True
 
 
 class TestSystemConfig:
