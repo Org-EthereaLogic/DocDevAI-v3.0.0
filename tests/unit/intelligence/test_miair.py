@@ -480,7 +480,8 @@ class TestMIAIREngine:
     
     def test_handles_invalid_document_type(self, engine):
         """Test handling of invalid document types."""
-        with pytest.raises(TypeError):
+        from devdocai.intelligence.miair import SecurityValidationError
+        with pytest.raises(SecurityValidationError):
             engine.calculate_entropy(123)
         
         with pytest.raises(ValueError):
