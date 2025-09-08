@@ -1,0 +1,14 @@
+name: README
+sections:
+- prompt: Describe the project purpose and goals
+  title: Project Overview
+- prompt: Provide installation instructions
+  title: Installation
+- prompt: Explain how to use the project
+  title: Usage
+- prompt: List key features
+  title: Features
+- prompt: Explain contribution guidelines
+  title: Contributing
+- prompt: Specify project license
+  title: License

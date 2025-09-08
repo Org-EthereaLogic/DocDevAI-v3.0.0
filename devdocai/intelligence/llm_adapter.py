@@ -394,6 +394,17 @@ class CostManager:
             self.last_reset = datetime.now()
             logger.info("Daily usage counter reset")
 
+    # Convenience accessor for integration tests and reporting
+    def get_current_costs(self) -> Dict[str, Any]:
+        """Return a summary of current cost usage."""
+        with self._lock:
+            return {
+                'total': float(self.current_usage),
+                'daily_limit': float(self.daily_limit),
+                'last_reset': self.last_reset.isoformat(),
+                'events': len(self.usage_history),
+            }
+
     # Optimization helper for tests and routing experiments
     def get_optimal_provider(self, providers: Dict[str, Dict[str, float]], *, priority: str = 'balanced') -> str:
         """Select optimal provider based on priority.
@@ -981,6 +992,17 @@ class LLMAdapter:
             self.default_provider = "openai"
             self.default_max_tokens = 4000
             self.default_temperature = 0.7
+
+    # Compatibility helper used by generator metadata
+    def get_model(self, provider: Optional[str] = None) -> str:
+        """Return the default model name for a provider (best-effort)."""
+        name = (provider or getattr(self, 'default_provider', None) or 'openai')
+        p = self.providers.get(name)
+        try:
+            # APIProvider subclasses expose default_model
+            return getattr(p, 'default_model', 'local') or 'local'
+        except Exception:
+            return 'local'
             
     def generate(
         self,

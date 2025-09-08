@@ -1,0 +1,12 @@
+name: Architecture Document
+sections:
+- prompt: Describe system architecture
+  title: System Overview
+- prompt: Detail system components
+  title: Components
+- prompt: Explain data flow patterns
+  title: Data Flow
+- prompt: Document security architecture
+  title: Security
+- prompt: Discuss scalability considerations
+  title: Scalability

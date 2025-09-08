@@ -14,6 +14,7 @@ Pass 4 Improvements:
 """
 
 import os
+import uuid
 import json
 import yaml
 import asyncio
@@ -303,8 +304,17 @@ class ResponseCache(BaseCache):
         self.l1_cache = OrderedDict()  # Memory - hot data
         self.l2_cache = OrderedDict()  # Memory - warm data
         
-        # Cache configuration
-        memory_mode = config.memory_mode
+        # Cache configuration (backward-compatible access to memory mode)
+        try:
+            memory_mode = getattr(config, 'system', None).memory_mode  # type: ignore[attr-defined]
+        except Exception:
+            memory_mode = None
+        if not memory_mode:
+            try:
+                memory_mode = config.get('system.memory_mode', 'standard')  # type: ignore[attr-defined]
+            except Exception:
+                memory_mode = 'standard'
+
         self.cache_sizes = {
             'baseline': (100, 500),      # L1=100, L2=500
             'standard': (500, 2000),     # L1=500, L2=2000
@@ -312,12 +322,16 @@ class ResponseCache(BaseCache):
             'performance': (10000, 50000) # L1=10000, L2=50000
         }
         
-        l1_size, l2_size = self.cache_sizes.get(memory_mode, (500, 2000))
+        l1_size, l2_size = self.cache_sizes.get(str(memory_mode), (500, 2000))
         self.max_l1_size = l1_size
         self.max_l2_size = l2_size
         
-        # L3 cache directory (disk)
-        self.cache_dir = Path(config.config_dir) / "response_cache"
+        # L3 cache directory (disk) with safe default when config_dir missing
+        try:
+            base_dir = Path(getattr(config, 'config_file')).parent  # type: ignore[attr-defined]
+        except Exception:
+            base_dir = Path.home() / '.devdocai'
+        self.cache_dir = Path(getattr(config, 'config_dir', base_dir)) / "response_cache"
         self.cache_dir.mkdir(parents=True, exist_ok=True)
     
     def _generate_fingerprint(self, prompt: str, context: Dict[str, Any]) -> str:
@@ -595,7 +609,15 @@ class TemplateManager:
     
     def __init__(self, config: ConfigurationManager):
         self.config = config
-        self.templates_dir = Path(config.project_root) / "templates"
+        # Resolve project root compatibly; default to current working directory
+        project_root = getattr(config, 'project_root', None)
+        if not project_root:
+            try:
+                # Allow env override if provided
+                project_root = os.environ.get('DEVDOCAI_PROJECT_ROOT') or os.getcwd()
+            except Exception:
+                project_root = os.getcwd()
+        self.templates_dir = Path(project_root) / "templates"
         self.templates_dir.mkdir(parents=True, exist_ok=True)
         self.templates_cache = {}
         self._create_default_templates()
@@ -1005,7 +1027,18 @@ class DocumentGenerator:
         # Configure based on memory mode
         self._configure_for_memory_mode()
         
-        logger.info(f"DocumentGenerator initialized in {config.memory_mode} mode")
+        # Log mode using safe access
+        mmode = None
+        try:
+            mmode = getattr(config, 'system', None).memory_mode  # type: ignore[attr-defined]
+        except Exception:
+            pass
+        if not mmode:
+            try:
+                mmode = config.get('system.memory_mode', 'standard')  # type: ignore[attr-defined]
+            except Exception:
+                mmode = 'standard'
+        logger.info(f"DocumentGenerator initialized in {mmode} mode")
     
     def _configure_for_memory_mode(self):
         """Configure generator based on memory mode."""
@@ -1016,7 +1049,18 @@ class DocumentGenerator:
             'performance': {'batch_size': 1000, 'workers': 16}
         }
         
-        config = memory_configs.get(self.config.memory_mode, memory_configs['standard'])
+        # Resolve memory mode from ConfigurationManager (backward-compatible)
+        try:
+            memory_mode = getattr(self.config, 'system', None).memory_mode  # type: ignore[attr-defined]
+        except Exception:
+            memory_mode = None
+        if not memory_mode:
+            try:
+                memory_mode = self.config.get('system.memory_mode', 'standard')  # type: ignore[attr-defined]
+            except Exception:
+                memory_mode = 'standard'
+
+        config = memory_configs.get(str(memory_mode), memory_configs['standard'])
         self.max_batch_size = config['batch_size']
         self.max_workers = config['workers']
     
@@ -1080,18 +1124,22 @@ class DocumentGenerator:
                 )
             
             # Store document
-            doc_metadata = DocumentMetadata(
-                template_name=template_name,
-                generation_time=time.time() - start_time,
-                model_used=self.llm.get_model(),
-                context_hash=hashlib.sha256(json.dumps(context, sort_keys=True).encode()).hexdigest()
-            )
-            
-            stored_doc = self.storage.store_document(
+            # Prepare metadata as dict so storage converts to DocumentMetadata
+            meta_dict = {
+                'template_name': template_name,
+                'generation_time': time.time() - start_time,
+                'model_used': self.llm.get_model(),
+                'context_hash': hashlib.sha256(json.dumps(context, sort_keys=True).encode()).hexdigest(),
+            }
+
+            # Persist document via StorageManager API
+            new_id = f"doc_{uuid.uuid4().hex}"
+            _ = self.storage.save_document(
                 Document(
+                    id=new_id,
                     content=document,
-                    metadata=doc_metadata,
-                    document_type=template_name
+                    type=template_name,
+                    metadata=meta_dict,
                 )
             )
             
@@ -1101,7 +1149,7 @@ class DocumentGenerator:
             return GenerationResult(
                 success=True,
                 document=document,
-                metadata={'id': stored_doc.id, 'template': template_name},
+                metadata={'id': new_id, 'template': template_name},
                 generation_time=generation_time,
                 model_used=self.llm.get_model()
             )
@@ -1126,11 +1174,11 @@ class DocumentGenerator:
             )
             system_prompt = self.prompt_engine.construct_system_prompt(template.get('name', 'document'))
             
-            response = await self.llm.generate(prompt, system_prompt=system_prompt)
-            
-            if not response.success:
+            response = await self._llm_generate(prompt, system_prompt=system_prompt)
+
+            if not (response and getattr(response, 'content', None)):
                 raise DocumentGenerationError(
-                    f"LLM generation failed: {response.error}",
+                    f"LLM generation failed",
                     error_type="llm_failure"
                 )
             
@@ -1152,9 +1200,9 @@ class DocumentGenerator:
             # Sequential generation for dependent sections
             for section in sections:
                 section_prompt = self.prompt_engine.create_section_prompt(section, context)
-                response = await self.llm.generate(section_prompt, system_prompt=system_prompt)
+                response = await self._llm_generate(section_prompt, system_prompt=system_prompt)
                 
-                if response.success:
+                if response and getattr(response, 'content', None):
                     section_content = f"## {section.get('title', 'Section')}\n\n{response.content}\n\n"
                     document_parts.append(section_content)
                     # Update context with generated content for dependent sections
@@ -1172,13 +1220,13 @@ class DocumentGenerator:
         tasks = []
         for section in sections:
             section_prompt = self.prompt_engine.create_section_prompt(section, context)
-            task = self.llm.generate(section_prompt, system_prompt=system_prompt)
+            task = self._llm_generate(section_prompt, system_prompt=system_prompt)
             tasks.append((section, task))
         
         results = []
         for section, task in tasks:
             response = await task
-            if response.success:
+            if response and getattr(response, 'content', None):
                 section_content = f"## {section.get('title', 'Section')}\n\n{response.content}\n\n"
                 results.append(section_content)
         
@@ -1236,14 +1284,22 @@ class DocumentGenerator:
             f"Provide an improved version that addresses all issues."
         )
         
-        response = await self.llm.generate(
+        response = await self._llm_generate(
             improvement_prompt,
             system_prompt="You are an expert editor improving documentation quality."
         )
         
-        if response.success:
+        if response and getattr(response, 'content', None):
             return response.content
         return document  # Return original if improvement fails
+
+    async def _llm_generate(self, prompt: str, **kwargs) -> 'LLMResponse':
+        """Async wrapper around synchronous LLMAdapter.generate."""
+        try:
+            return await asyncio.to_thread(self.llm.generate, prompt, **kwargs)
+        except Exception as e:
+            logger.error(f"LLM generation error: {e}")
+            return None
     
     async def generate_batch(
         self,
@@ -1311,7 +1367,9 @@ class DocumentGenerator:
             'cache_stats': self.cache.get_stats(),
             'context_cache_stats': self.context_cache.get_stats(),
             'performance_metrics': self.performance_monitor.get_stats(),
-            'memory_mode': self.config.memory_mode,
+            'memory_mode': (getattr(getattr(self.config, 'system', None), 'memory_mode', None)
+                            or getattr(self.config, 'get', lambda *_: None)('system.memory_mode', 'standard')
+                            or 'standard'),
             'configuration': {
                 'max_batch_size': self.max_batch_size,
                 'max_workers': self.max_workers

@@ -1,0 +1,12 @@
+name: API Documentation
+sections:
+- prompt: Describe the API purpose
+  title: Overview
+- prompt: Explain authentication methods
+  title: Authentication
+- prompt: Document all API endpoints
+  title: Endpoints
+- prompt: List error codes and meanings
+  title: Error Codes
+- prompt: Provide usage examples
+  title: Examples
