@@ -63,6 +63,7 @@ printf "1\n" | ./scripts/test_real_api.sh
 - **Test-friendly API**: `generate()` returns text when `REAL_API_TESTING=1`
 - **Cost helpers**: `get_total_cost()` and `reset_costs()`
 - **Rate limiting**: Configurable via `rate_limit_requests_per_minute=`
+- **M003 Integration**: MIAIR Engine uses M008 LLM Adapter for AI-powered document refinement
 
 ### Design Compliance Maintained
 - **SDD 5.4**: Multi-provider routing + cost tracking preserved

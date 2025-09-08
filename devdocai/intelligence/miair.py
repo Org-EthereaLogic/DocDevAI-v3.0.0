@@ -11,7 +11,10 @@ import re
 import time
 import math
 import logging
-from typing import Dict, List, Optional, Any, Tuple
+import asyncio
+from functools import lru_cache
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Dict, List, Optional, Any, Tuple, Union
 from dataclasses import dataclass, field, asdict
 from collections import Counter
 from datetime import datetime
@@ -140,13 +143,22 @@ class MIAIREngine:
         self.quality_gate = config.get('quality.quality_gate', 85)
         self.max_iterations = config.get('quality.max_iterations', 7)
         
+        # Performance optimizations
+        self.max_workers = config.get('performance.max_workers', 4)
+        self.cache_size = config.get('performance.cache_size', 1000)
+        self.batch_size = config.get('performance.batch_size', 100)
+        
+        # Initialize thread pool for parallel processing
+        self._executor = ThreadPoolExecutor(max_workers=self.max_workers)
+        
         # Performance tracking
         self._optimization_count = 0
         self._total_improvement = 0.0
         
         logger.info(
             f"MIAIR Engine initialized - Entropy: {self.entropy_threshold}→{self.target_entropy}, "
-            f"Quality Gate: {self.quality_gate}%, Max Iterations: {self.max_iterations}"
+            f"Quality Gate: {self.quality_gate}%, Max Iterations: {self.max_iterations}, "
+            f"Workers: {self.max_workers}, Cache: {self.cache_size}"
         )
     
     def calculate_entropy(self, document: str) -> float:
@@ -164,27 +176,56 @@ class MIAIREngine:
         if not document:
             return 0.0
         
-        # Tokenize document into words
-        words = self._tokenize(document)
+        # Use cached tokenization
+        words = self._tokenize_cached(document)
         
         if not words:
             return 0.0
         
-        # Count word frequencies
-        word_counts = Counter(words)
-        total_words = len(words)
+        # Vectorized entropy calculation using NumPy
+        return self._calculate_entropy_vectorized(words)
+    
+    def _calculate_entropy_vectorized(self, words: List[str]) -> float:
+        """
+        Vectorized entropy calculation using NumPy for performance.
         
-        if len(word_counts) == 1:
+        Args:
+            words: List of tokenized words
+            
+        Returns:
+            Shannon entropy value
+        """
+        if len(words) == 0:
+            return 0.0
+        
+        # Use NumPy for efficient counting
+        unique, counts = np.unique(words, return_counts=True)
+        
+        if len(unique) == 1:
             return 0.0  # Single unique word = no entropy
         
-        # Calculate Shannon entropy
-        entropy = 0.0
-        for count in word_counts.values():
-            probability = count / total_words
-            if probability > 0:
-                entropy -= probability * math.log2(probability)
+        # Vectorized probability calculation
+        probabilities = counts / len(words)
         
-        return entropy
+        # Vectorized entropy calculation
+        # Use np.log2 for vectorized logarithm
+        entropy = -np.sum(probabilities * np.log2(probabilities))
+        
+        return float(entropy)
+    
+    def calculate_entropy_batch(self, documents: List[str]) -> List[float]:
+        """
+        Calculate entropy for multiple documents in parallel.
+        
+        Args:
+            documents: List of documents to analyze
+            
+        Returns:
+            List of entropy values
+        """
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            futures = [executor.submit(self.calculate_entropy, doc) for doc in documents]
+            return [future.result() for future in as_completed(futures)]
     
     def measure_quality(self, document: str) -> DocumentMetrics:
         """
@@ -325,14 +366,19 @@ class MIAIREngine:
                 # Measure refined quality
                 refined_metrics = self.measure_quality(refined_content)
                 
-                # Only keep refinement if it improves quality
-                if refined_metrics.quality_score > current_metrics.quality_score:
+                # Keep refinement if it improves quality, entropy, or coherence
+                quality_improved = refined_metrics.quality_score > current_metrics.quality_score
+                entropy_improved = refined_metrics.entropy < current_metrics.entropy
+                coherence_improved = refined_metrics.coherence > current_metrics.coherence
+                
+                if quality_improved or entropy_improved or coherence_improved:
                     current_content = refined_content
                     current_metrics = refined_metrics
                     
                     logger.debug(
                         f"Iteration {iterations}: Quality {refined_metrics.quality_score:.1f}%, "
-                        f"Entropy: {refined_metrics.entropy:.2f}"
+                        f"Entropy: {refined_metrics.entropy:.2f}, "
+                        f"Coherence: {refined_metrics.coherence:.2f}"
                     )
                 else:
                     logger.debug(f"Iteration {iterations}: No improvement, keeping previous")
@@ -409,6 +455,19 @@ class MIAIREngine:
         words = re.findall(r'\b\w+\b', text.lower())
         
         return words
+    
+    @lru_cache(maxsize=1000)
+    def _tokenize_cached(self, text: str) -> tuple:
+        """
+        Cached tokenization for performance.
+        
+        Args:
+            text: Text to tokenize
+            
+        Returns:
+            Tuple of words (for hashability in cache)
+        """
+        return tuple(self._tokenize(text))
     
     def _calculate_coherence(self, document: str, words: List[str]) -> float:
         """
@@ -588,6 +647,139 @@ class MIAIREngine:
     # Public Statistics Methods
     # ========================================================================
     
+    def batch_optimize(
+        self,
+        documents: List[str],
+        max_iterations: Optional[int] = None,
+        save_to_storage: bool = False
+    ) -> List[OptimizationResult]:
+        """
+        Optimize multiple documents in parallel for high throughput.
+        
+        Args:
+            documents: List of documents to optimize
+            max_iterations: Override max iterations
+            save_to_storage: Save optimized documents to storage
+            
+        Returns:
+            List of optimization results
+        """
+        results = []
+        
+        # Process documents in batches for memory efficiency
+        for i in range(0, len(documents), self.batch_size):
+            batch = documents[i:i + self.batch_size]
+            
+            # Process batch in parallel
+            with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+                futures = [
+                    executor.submit(self.optimize, doc, max_iterations, save_to_storage)
+                    for doc in batch
+                ]
+                
+                for future in as_completed(futures):
+                    try:
+                        result = future.result(timeout=30)  # 30s timeout per document
+                        results.append(result)
+                    except Exception as e:
+                        logger.error(f"Batch optimization error: {e}")
+                        # Create failed result placeholder
+                        results.append(OptimizationResult(
+                            initial_content=batch[0][:100],  # First 100 chars
+                            final_content=batch[0][:100],
+                            iterations=0,
+                            initial_quality=0,
+                            final_quality=0,
+                            improvement_percentage=0,
+                            initial_metrics=None,
+                            final_metrics=DocumentMetrics(
+                                entropy=0, coherence=0, quality_score=0,
+                                word_count=0, unique_words=0
+                            ),
+                            optimization_time=0
+                        ))
+        
+        return results
+    
+    async def optimize_async(
+        self,
+        document: str,
+        max_iterations: Optional[int] = None,
+        save_to_storage: bool = False
+    ) -> OptimizationResult:
+        """
+        Asynchronously optimize document for concurrent processing.
+        
+        Args:
+            document: Document to optimize
+            max_iterations: Override max iterations
+            save_to_storage: Save optimized document to storage
+            
+        Returns:
+            OptimizationResult
+        """
+        loop = asyncio.get_event_loop()
+        
+        # Run optimization in thread pool to avoid blocking
+        result = await loop.run_in_executor(
+            self._executor,
+            self.optimize,
+            document,
+            max_iterations,
+            save_to_storage
+        )
+        
+        return result
+    
+    async def batch_optimize_async(
+        self,
+        documents: List[str],
+        max_iterations: Optional[int] = None,
+        save_to_storage: bool = False
+    ) -> List[OptimizationResult]:
+        """
+        Asynchronously optimize multiple documents for maximum throughput.
+        
+        Args:
+            documents: List of documents to optimize
+            max_iterations: Override max iterations
+            save_to_storage: Save optimized documents to storage
+            
+        Returns:
+            List of optimization results
+        """
+        tasks = [
+            self.optimize_async(doc, max_iterations, save_to_storage)
+            for doc in documents
+        ]
+        
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # Filter out exceptions and log them
+        clean_results = []
+        for i, result in enumerate(results):
+            if isinstance(result, Exception):
+                logger.error(f"Async optimization failed for document {i}: {result}")
+                # Add placeholder for failed optimization
+                clean_results.append(OptimizationResult(
+                    initial_content=documents[i][:100],
+                    final_content=documents[i][:100],
+                    iterations=0,
+                    initial_quality=0,
+                    final_quality=0,
+                    improvement_percentage=0,
+                    initial_metrics=None,
+                    final_metrics=DocumentMetrics(
+                        entropy=0, coherence=0, quality_score=0,
+                        word_count=0, unique_words=0
+                    ),
+                    optimization_time=0
+                ))
+            else:
+                clean_results.append(result)
+        
+        return clean_results
+    
     def get_statistics(self) -> Dict[str, Any]:
         """
         Get engine statistics.
@@ -601,17 +793,31 @@ class MIAIREngine:
             else 0
         )
         
+        # Get cache info
+        cache_info = self._tokenize_cached.cache_info()
+        
         return {
             'optimizations_performed': self._optimization_count,
             'average_improvement': avg_improvement,
             'entropy_threshold': self.entropy_threshold,
             'target_entropy': self.target_entropy,
             'quality_gate': self.quality_gate,
-            'coherence_target': self.coherence_target
+            'coherence_target': self.coherence_target,
+            'cache_hits': cache_info.hits,
+            'cache_misses': cache_info.misses,
+            'cache_size': cache_info.currsize,
+            'max_workers': self.max_workers,
+            'batch_size': self.batch_size
         }
     
     def reset_statistics(self):
         """Reset engine statistics."""
         self._optimization_count = 0
         self._total_improvement = 0.0
-        logger.info("MIAIR Engine statistics reset")
+        self._tokenize_cached.cache_clear()
+        logger.info("MIAIR Engine statistics and cache reset")
+    
+    def __del__(self):
+        """Cleanup resources on deletion."""
+        if hasattr(self, '_executor'):
+            self._executor.shutdown(wait=False)
