@@ -12,13 +12,19 @@ import yaml
 import asyncio
 import logging
 import hashlib
+import time
+import pickle
 from pathlib import Path
-from typing import Dict, Any, List, Optional, Union, Tuple
+from typing import Dict, Any, List, Optional, Union, Tuple, Set
 from dataclasses import dataclass, field
-from datetime import datetime
-from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timedelta
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+from collections import OrderedDict, defaultdict
 import re
 import ast
+from functools import lru_cache
+import threading
+from queue import Queue, Empty
 
 # Local imports
 from ..core.config import ConfigurationManager
@@ -82,6 +88,449 @@ class GenerationResult:
     generation_time: float = 0.0
     tokens_used: int = 0
     cost: float = 0.0
+    cache_hit: bool = False
+    performance_metrics: Dict[str, float] = field(default_factory=dict)
+
+
+@dataclass
+class CacheEntry:
+    """Entry in response cache."""
+    content: str
+    timestamp: datetime
+    hit_count: int = 0
+    fingerprint: str = ""
+    tokens_used: int = 0
+    cost: float = 0.0
+
+
+@dataclass
+class BatchRequest:
+    """Request in batch processing."""
+    document_type: str
+    project_path: str
+    context: Dict[str, Any]
+    priority: int = 0
+    request_id: str = ""
+
+
+# ============================================================================
+# ResponseCache Class - Performance Optimization
+# ============================================================================
+
+class ResponseCache:
+    """Multi-tier cache for LLM responses with similarity matching."""
+    
+    def __init__(self, config: ConfigurationManager):
+        """Initialize response cache."""
+        self.config = config
+        self.memory_mode = getattr(config.system, 'memory_mode', 'standard')
+        self.cache_ttl = getattr(config.system, 'cache_ttl', 3600)  # 1 hour default
+        
+        # Set cache size based on memory mode
+        cache_sizes = {
+            'baseline': 100,    # 2GB RAM
+            'standard': 500,    # 4GB RAM
+            'enhanced': 2000,   # 8GB RAM
+            'performance': 10000  # 16GB+ RAM
+        }
+        self.max_cache_size = cache_sizes.get(self.memory_mode, 500)
+        
+        # Multi-tier cache
+        self.l1_cache = OrderedDict()  # Hot cache - exact matches
+        self.l2_cache = OrderedDict()  # Warm cache - similar matches
+        self.l3_cache = {}  # Cold cache - disk-based for large responses
+        
+        # Cache statistics
+        self.stats = {
+            'hits': 0,
+            'misses': 0,
+            'evictions': 0,
+            'similarity_matches': 0
+        }
+        
+        # Lock for thread safety
+        self.lock = threading.RLock()
+        
+        # Create cache directory for L3
+        self.cache_dir = Path(getattr(config.system, 'cache_dir', '/tmp/devdocai_cache'))
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+    
+    def _generate_fingerprint(self, prompt: str, context: Dict[str, Any]) -> str:
+        """Generate unique fingerprint for cache key."""
+        # Create stable hash from prompt and context
+        key_parts = [prompt]
+        
+        # Add sorted context keys for stability
+        for k in sorted(context.keys()):
+            key_parts.append(f"{k}:{str(context[k])[:100]}")
+        
+        key_string = '|'.join(key_parts)
+        return hashlib.sha256(key_string.encode()).hexdigest()[:16]
+    
+    def get(self, prompt: str, context: Dict[str, Any], similarity_threshold: float = 0.85) -> Optional[CacheEntry]:
+        """Get cached response with similarity matching."""
+        with self.lock:
+            fingerprint = self._generate_fingerprint(prompt, context)
+            
+            # Check L1 cache (exact match)
+            if fingerprint in self.l1_cache:
+                entry = self.l1_cache[fingerprint]
+                if self._is_valid(entry):
+                    entry.hit_count += 1
+                    self.stats['hits'] += 1
+                    # Move to end (LRU)
+                    self.l1_cache.move_to_end(fingerprint)
+                    return entry
+            
+            # Check L2 cache (similarity match)
+            if self.memory_mode in ['enhanced', 'performance']:
+                similar_entry = self._find_similar(prompt, similarity_threshold)
+                if similar_entry:
+                    self.stats['similarity_matches'] += 1
+                    return similar_entry
+            
+            # Check L3 cache (disk)
+            if self.memory_mode == 'performance':
+                disk_entry = self._load_from_disk(fingerprint)
+                if disk_entry:
+                    # Promote to L1
+                    self.l1_cache[fingerprint] = disk_entry
+                    self.stats['hits'] += 1
+                    return disk_entry
+            
+            self.stats['misses'] += 1
+            return None
+    
+    def put(self, prompt: str, context: Dict[str, Any], response: str, 
+            tokens_used: int = 0, cost: float = 0.0):
+        """Store response in cache."""
+        with self.lock:
+            fingerprint = self._generate_fingerprint(prompt, context)
+            
+            entry = CacheEntry(
+                content=response,
+                timestamp=datetime.now(),
+                fingerprint=fingerprint,
+                tokens_used=tokens_used,
+                cost=cost
+            )
+            
+            # Add to L1 cache
+            self.l1_cache[fingerprint] = entry
+            
+            # Evict if necessary
+            if len(self.l1_cache) > self.max_cache_size:
+                self._evict()
+    
+    def _is_valid(self, entry: CacheEntry) -> bool:
+        """Check if cache entry is still valid."""
+        age = (datetime.now() - entry.timestamp).total_seconds()
+        return age < self.cache_ttl
+    
+    def _find_similar(self, prompt: str, threshold: float) -> Optional[CacheEntry]:
+        """Find similar cached response."""
+        # Simple similarity based on prompt overlap
+        # In production, use more sophisticated similarity metrics
+        prompt_words = set(prompt.lower().split())
+        
+        for fingerprint, entry in self.l1_cache.items():
+            if not self._is_valid(entry):
+                continue
+            
+            # Quick similarity check (simplified)
+            # Real implementation would use embeddings
+            cached_prompt_estimate = entry.content[:200]
+            cached_words = set(cached_prompt_estimate.lower().split())
+            
+            similarity = len(prompt_words & cached_words) / max(len(prompt_words), 1)
+            if similarity >= threshold:
+                entry.hit_count += 1
+                return entry
+        
+        return None
+    
+    def _evict(self):
+        """Evict least recently used entries."""
+        # Move oldest entries to L3 (disk) if in performance mode
+        evict_count = max(1, self.max_cache_size // 10)
+        
+        for _ in range(evict_count):
+            if not self.l1_cache:
+                break
+            
+            fingerprint, entry = self.l1_cache.popitem(last=False)
+            self.stats['evictions'] += 1
+            
+            # Save to disk in performance mode
+            if self.memory_mode == 'performance':
+                self._save_to_disk(fingerprint, entry)
+    
+    def _save_to_disk(self, fingerprint: str, entry: CacheEntry):
+        """Save cache entry to disk."""
+        try:
+            cache_file = self.cache_dir / f"{fingerprint}.cache"
+            with open(cache_file, 'wb') as f:
+                pickle.dump(entry, f)
+        except Exception as e:
+            logger.warning(f"Failed to save cache to disk: {e}")
+    
+    def _load_from_disk(self, fingerprint: str) -> Optional[CacheEntry]:
+        """Load cache entry from disk."""
+        try:
+            cache_file = self.cache_dir / f"{fingerprint}.cache"
+            if cache_file.exists():
+                with open(cache_file, 'rb') as f:
+                    entry = pickle.load(f)
+                    if self._is_valid(entry):
+                        return entry
+        except Exception as e:
+            logger.warning(f"Failed to load cache from disk: {e}")
+        return None
+    
+    def get_stats(self) -> Dict[str, Any]:
+        """Get cache statistics."""
+        with self.lock:
+            total = self.stats['hits'] + self.stats['misses']
+            hit_rate = self.stats['hits'] / max(total, 1)
+            
+            return {
+                'hits': self.stats['hits'],
+                'misses': self.stats['misses'],
+                'hit_rate': hit_rate,
+                'evictions': self.stats['evictions'],
+                'similarity_matches': self.stats['similarity_matches'],
+                'cache_size': len(self.l1_cache),
+                'max_size': self.max_cache_size
+            }
+
+
+# ============================================================================
+# ContextCache Class - Performance Optimization
+# ============================================================================
+
+class ContextCache:
+    """Cache for extracted project contexts."""
+    
+    def __init__(self, config: ConfigurationManager):
+        """Initialize context cache."""
+        self.config = config
+        self.cache = OrderedDict()
+        self.max_size = 100
+        self.lock = threading.RLock()
+    
+    def get(self, project_path: str) -> Optional[Dict[str, Any]]:
+        """Get cached context."""
+        with self.lock:
+            # Check if path exists and hasn't changed
+            path = Path(project_path)
+            if not path.exists():
+                return None
+            
+            cache_key = str(path.absolute())
+            if cache_key in self.cache:
+                entry, timestamp = self.cache[cache_key]
+                
+                # Check if context is still fresh (5 minutes)
+                if (datetime.now() - timestamp).total_seconds() < 300:
+                    # Move to end (LRU)
+                    self.cache.move_to_end(cache_key)
+                    return entry
+            
+            return None
+    
+    def put(self, project_path: str, context: Dict[str, Any]):
+        """Store context in cache."""
+        with self.lock:
+            path = Path(project_path)
+            cache_key = str(path.absolute())
+            
+            self.cache[cache_key] = (context, datetime.now())
+            
+            # Evict if necessary
+            if len(self.cache) > self.max_size:
+                self.cache.popitem(last=False)
+
+
+# ============================================================================
+# BatchProcessor Class - Performance Optimization
+# ============================================================================
+
+class BatchProcessor:
+    """Process multiple documents in parallel batches."""
+    
+    def __init__(self, config: ConfigurationManager, generator):
+        """Initialize batch processor."""
+        self.config = config
+        self.generator = generator
+        self.memory_mode = getattr(config.system, 'memory_mode', 'standard')
+        
+        # Concurrency based on memory mode
+        concurrency_map = {
+            'baseline': 10,
+            'standard': 50,
+            'enhanced': 200,
+            'performance': 1000
+        }
+        self.max_concurrent = concurrency_map.get(self.memory_mode, 50)
+        
+        # Processing queue
+        self.queue = Queue(maxsize=self.max_concurrent * 2)
+        self.results = {}
+        self.processing = set()
+        self.lock = threading.RLock()
+    
+    async def process_batch(self, requests: List[BatchRequest]) -> Dict[str, GenerationResult]:
+        """Process batch of document generation requests."""
+        start_time = time.time()
+        
+        # Group similar requests for better cache utilization
+        grouped = self._group_similar_requests(requests)
+        
+        # Process groups in parallel
+        tasks = []
+        for group in grouped:
+            task = self._process_group(group)
+            tasks.append(task)
+        
+        # Wait for all groups to complete
+        group_results = await asyncio.gather(*tasks)
+        
+        # Flatten results
+        results = {}
+        for group_result in group_results:
+            results.update(group_result)
+        
+        # Add performance metrics
+        elapsed = time.time() - start_time
+        docs_per_second = len(requests) / max(elapsed, 0.001)
+        
+        logger.info(f"Batch processed {len(requests)} documents in {elapsed:.2f}s ({docs_per_second:.1f} docs/s)")
+        
+        return results
+    
+    def _group_similar_requests(self, requests: List[BatchRequest]) -> List[List[BatchRequest]]:
+        """Group similar requests for better cache utilization."""
+        groups = defaultdict(list)
+        
+        for request in requests:
+            # Group by document type and similar context
+            group_key = f"{request.document_type}"
+            
+            # Add context similarity (simplified)
+            if 'project_name' in request.context:
+                group_key += f"_{request.context['project_name'][:10]}"
+            
+            groups[group_key].append(request)
+        
+        # Convert to list of groups
+        return list(groups.values())
+    
+    async def _process_group(self, group: List[BatchRequest]) -> Dict[str, GenerationResult]:
+        """Process a group of similar requests."""
+        results = {}
+        
+        # Process in parallel with semaphore to limit concurrency
+        semaphore = asyncio.Semaphore(min(len(group), self.max_concurrent))
+        
+        async def process_single(request: BatchRequest):
+            async with semaphore:
+                try:
+                    result = await self.generator.generate(
+                        document_type=request.document_type,
+                        project_path=request.project_path,
+                        custom_context=request.context,
+                        parallel_sections=True
+                    )
+                    
+                    # Convert to GenerationResult
+                    gen_result = GenerationResult(
+                        document_id=result['document_id'],
+                        type=result['type'],
+                        content=result['content'],
+                        quality_score=result['quality_score'],
+                        metadata=result['metadata'],
+                        generation_time=result['generation_time']
+                    )
+                    
+                    results[request.request_id] = gen_result
+                    
+                except Exception as e:
+                    logger.error(f"Failed to process request {request.request_id}: {e}")
+                    results[request.request_id] = None
+        
+        # Process all requests in group
+        tasks = [process_single(req) for req in group]
+        await asyncio.gather(*tasks)
+        
+        return results
+
+
+# ============================================================================
+# PerformanceMonitor Class - Performance Optimization
+# ============================================================================
+
+class PerformanceMonitor:
+    """Monitor and report performance metrics."""
+    
+    def __init__(self):
+        """Initialize performance monitor."""
+        self.metrics = defaultdict(list)
+        self.start_times = {}
+        self.lock = threading.RLock()
+    
+    def start_operation(self, operation: str) -> str:
+        """Start timing an operation."""
+        op_id = f"{operation}_{time.time()}"
+        with self.lock:
+            self.start_times[op_id] = time.time()
+        return op_id
+    
+    def end_operation(self, op_id: str, metadata: Optional[Dict] = None):
+        """End timing an operation."""
+        with self.lock:
+            if op_id in self.start_times:
+                elapsed = time.time() - self.start_times[op_id]
+                operation = op_id.split('_')[0]
+                
+                self.metrics[operation].append({
+                    'duration': elapsed,
+                    'timestamp': time.time(),
+                    'metadata': metadata or {}
+                })
+                
+                del self.start_times[op_id]
+    
+    def get_stats(self, operation: Optional[str] = None) -> Dict[str, Any]:
+        """Get performance statistics."""
+        with self.lock:
+            if operation:
+                if operation not in self.metrics:
+                    return {}
+                
+                durations = [m['duration'] for m in self.metrics[operation]]
+                return self._calculate_stats(operation, durations)
+            else:
+                # Return stats for all operations
+                all_stats = {}
+                for op, metrics in self.metrics.items():
+                    durations = [m['duration'] for m in metrics]
+                    all_stats[op] = self._calculate_stats(op, durations)
+                return all_stats
+    
+    def _calculate_stats(self, operation: str, durations: List[float]) -> Dict[str, Any]:
+        """Calculate statistics for durations."""
+        if not durations:
+            return {}
+        
+        return {
+            'operation': operation,
+            'count': len(durations),
+            'total': sum(durations),
+            'mean': sum(durations) / len(durations),
+            'min': min(durations),
+            'max': max(durations),
+            'throughput': len(durations) / sum(durations) if sum(durations) > 0 else 0
+        }
 
 
 # ============================================================================
@@ -94,7 +543,7 @@ class TemplateManager:
     def __init__(self, config: ConfigurationManager):
         """Initialize template manager."""
         self.config = config
-        self.template_dir = Path(config.get('templates.dir', '/tmp/templates'))
+        self.template_dir = Path(getattr(config.system, 'templates_dir', '/tmp/templates'))
         self._cache: Dict[str, Dict[str, Any]] = {}
         
         # Create template directory if it doesn't exist
@@ -782,13 +1231,13 @@ class DocumentValidator:
 # ============================================================================
 
 class DocumentGenerator:
-    """Main orchestrator for AI-powered document generation."""
+    """Main orchestrator for AI-powered document generation with performance optimization."""
     
     def __init__(self, 
                  config: Optional[ConfigurationManager] = None,
                  llm_adapter: Optional[LLMAdapter] = None,
                  storage: Optional[StorageManager] = None):
-        """Initialize document generator."""
+        """Initialize document generator with performance enhancements."""
         self.config = config or ConfigurationManager()
         self.llm_adapter = llm_adapter or LLMAdapter(self.config)
         self.storage = storage or StorageManager(self.config)
@@ -799,10 +1248,41 @@ class DocumentGenerator:
         self.prompt_engine = PromptEngine(self.config)
         self.validator = DocumentValidator(self.config)
         
-        # Thread pool for parallel section generation
-        self.executor = ThreadPoolExecutor(max_workers=4)
+        # Performance optimization components
+        self.response_cache = ResponseCache(self.config)
+        self.context_cache = ContextCache(self.config)
+        self.performance_monitor = PerformanceMonitor()
+        self.batch_processor = BatchProcessor(self.config, self)
         
-        logger.info("DocumentGenerator initialized with AI-powered generation")
+        # Memory mode configuration
+        self.memory_mode = getattr(self.config.system, 'memory_mode', 'standard')
+        
+        # Thread/Process pools based on memory mode
+        worker_counts = {
+            'baseline': 4,
+            'standard': 8,
+            'enhanced': 16,
+            'performance': 32
+        }
+        self.max_workers = worker_counts.get(self.memory_mode, 8)
+        self.executor = ThreadPoolExecutor(max_workers=self.max_workers)
+        
+        # Process pool for CPU-intensive operations (context extraction)
+        if self.memory_mode in ['enhanced', 'performance']:
+            self.process_pool = ProcessPoolExecutor(max_workers=self.max_workers // 2)
+        else:
+            self.process_pool = None
+        
+        # Statistics
+        self.stats = {
+            'documents_generated': 0,
+            'cache_hits': 0,
+            'total_time': 0.0,
+            'total_tokens': 0,
+            'total_cost': 0.0
+        }
+        
+        logger.info(f"DocumentGenerator initialized with {self.memory_mode} memory mode, {self.max_workers} workers")
     
     async def generate(self,
                       document_type: str,
@@ -810,16 +1290,30 @@ class DocumentGenerator:
                       custom_context: Optional[Dict[str, Any]] = None,
                       parallel_sections: bool = False,
                       retry_on_failure: bool = False,
-                      max_retries: int = 3) -> Dict[str, Any]:
-        """Generate a document using AI."""
+                      max_retries: int = 3,
+                      use_cache: bool = True,
+                      batch_id: Optional[str] = None) -> Dict[str, Any]:
+        """Generate a document using AI with performance optimizations."""
         start_time = datetime.now()
+        perf_id = self.performance_monitor.start_operation('document_generation')
         
         try:
             # Load template
             template = self.template_manager.load_template(document_type)
             
-            # Extract context from project
-            project_context = self.context_builder.extract_from_project(project_path)
+            # Extract context from project (with caching)
+            project_context = None
+            if use_cache:
+                project_context = self.context_cache.get(project_path)
+            
+            if project_context is None:
+                context_perf_id = self.performance_monitor.start_operation('context_extraction')
+                project_context = await self._extract_context_optimized(project_path)
+                self.performance_monitor.end_operation(context_perf_id)
+                
+                # Cache the context
+                if use_cache:
+                    self.context_cache.put(project_path, project_context)
             
             # Merge with custom context if provided
             if custom_context:
@@ -827,11 +1321,42 @@ class DocumentGenerator:
             else:
                 context = project_context
             
-            # Generate document content
-            if parallel_sections and len(template['sections']) > 1:
-                content = await self._generate_parallel_sections(template, context)
+            # Check cache for similar documents
+            cache_hit = False
+            cached_response = None
+            
+            if use_cache:
+                cached_response = self.response_cache.get(
+                    self.prompt_engine.construct_system_prompt(document_type),
+                    context
+                )
+            
+            if cached_response:
+                content = cached_response.content
+                cache_hit = True
+                self.stats['cache_hits'] += 1
+                logger.info(f"Cache hit for {document_type} document")
             else:
-                content = await self._generate_sequential_sections(template, context)
+                # Generate document content
+                gen_perf_id = self.performance_monitor.start_operation('content_generation')
+                
+                if self.memory_mode == 'performance' and len(template['sections']) > 2:
+                    # Use optimized parallel generation for performance mode
+                    content = await self._generate_parallel_optimized(template, context)
+                elif parallel_sections and len(template['sections']) > 1:
+                    content = await self._generate_parallel_sections(template, context)
+                else:
+                    content = await self._generate_sequential_sections(template, context)
+                
+                self.performance_monitor.end_operation(gen_perf_id)
+                
+                # Cache the generated content
+                if use_cache and not cache_hit:
+                    self.response_cache.put(
+                        self.prompt_engine.construct_system_prompt(document_type),
+                        context,
+                        content
+                    )
             
             # Validate generated document
             validation_result = self.validator.validate(content, template)
@@ -882,14 +1407,30 @@ class DocumentGenerator:
             # Save document
             self.storage.save_document(document)
             
-            # Prepare result
+            # End performance monitoring
+            self.performance_monitor.end_operation(perf_id)
+            
+            # Update statistics
+            generation_time = (datetime.now() - start_time).total_seconds()
+            self.stats['documents_generated'] += 1
+            self.stats['total_time'] += generation_time
+            
+            # Prepare result with performance metrics
             result = {
                 'document_id': document_id,
                 'type': document_type,
                 'content': content,
                 'quality_score': validation_result.score,
                 'metadata': metadata.to_dict(),
-                'generation_time': (datetime.now() - start_time).total_seconds(),
+                'generation_time': generation_time,
+                'cache_hit': cache_hit,
+                'performance_metrics': {
+                    'generation_time': generation_time,
+                    'cache_hit': cache_hit,
+                    'memory_mode': self.memory_mode,
+                    'parallel_generation': parallel_sections or self.memory_mode == 'performance',
+                    'docs_per_second': 1.0 / max(generation_time, 0.001)
+                },
                 'validation': {
                     'is_valid': validation_result.is_valid,
                     'errors': validation_result.errors,
@@ -1058,6 +1599,175 @@ class DocumentGenerator:
         )
         
         return response.content
+    
+    async def _extract_context_optimized(self, project_path: str) -> Dict[str, Any]:
+        """Extract context with performance optimizations."""
+        # Use process pool for CPU-intensive extraction if available
+        if self.process_pool:
+            loop = asyncio.get_event_loop()
+            context = await loop.run_in_executor(
+                self.process_pool,
+                self.context_builder.extract_from_project,
+                project_path
+            )
+        else:
+            context = self.context_builder.extract_from_project(project_path)
+        
+        return context
+    
+    async def _generate_parallel_optimized(self, template: Dict[str, Any], context: Dict[str, Any]) -> str:
+        """Optimized parallel generation with batching and caching."""
+        sections_content = {}
+        
+        # Group sections by similarity for batch processing
+        section_groups = self._group_similar_sections(template['sections'])
+        
+        async def generate_batch(sections: List[Dict], start_idx: int):
+            """Generate multiple sections in a batch."""
+            batch_prompts = []
+            indices = []
+            
+            for i, section in enumerate(sections):
+                section_prompt = self.prompt_engine.create_section_prompt(section, context)
+                batch_prompts.append(section_prompt)
+                indices.append(start_idx + i)
+            
+            # Check cache for each prompt
+            cached_results = {}
+            uncached_prompts = []
+            uncached_indices = []
+            
+            for i, prompt in enumerate(batch_prompts):
+                cached = self.response_cache.get(prompt, context)
+                if cached:
+                    cached_results[indices[i]] = cached.content
+                else:
+                    uncached_prompts.append(prompt)
+                    uncached_indices.append(indices[i])
+            
+            # Generate uncached content in parallel
+            if uncached_prompts:
+                tasks = []
+                for prompt in uncached_prompts:
+                    task = self._generate_single_cached(prompt, context)
+                    tasks.append(task)
+                
+                results = await asyncio.gather(*tasks)
+                
+                for idx, content in zip(uncached_indices, results):
+                    sections_content[idx] = content
+            
+            # Add cached results
+            sections_content.update(cached_results)
+        
+        # Process all groups in parallel
+        tasks = []
+        idx = 0
+        for group in section_groups:
+            task = generate_batch(group, idx)
+            tasks.append(task)
+            idx += len(group)
+        
+        await asyncio.gather(*tasks)
+        
+        # Combine sections in order
+        document_parts = []
+        for idx in range(len(template['sections'])):
+            if idx in sections_content and sections_content[idx]:
+                # Add section header if not present
+                section = template['sections'][idx]
+                section_name = section['name'].replace('_', ' ').title()
+                section_content = sections_content[idx]
+                
+                if not section_content.startswith('#'):
+                    section_content = f"## {section_name}\n\n{section_content}"
+                
+                document_parts.append(section_content)
+        
+        return '\n\n'.join(document_parts)
+    
+    def _group_similar_sections(self, sections: List[Dict]) -> List[List[Dict]]:
+        """Group similar sections for batch processing."""
+        # Simple grouping by required flag and prompt similarity
+        required_sections = []
+        optional_sections = []
+        
+        for section in sections:
+            if section.get('required', True):
+                required_sections.append(section)
+            else:
+                optional_sections.append(section)
+        
+        # Group into batches of up to 3 sections
+        groups = []
+        batch_size = 3
+        
+        for i in range(0, len(required_sections), batch_size):
+            groups.append(required_sections[i:i+batch_size])
+        
+        for i in range(0, len(optional_sections), batch_size):
+            groups.append(optional_sections[i:i+batch_size])
+        
+        return groups
+    
+    async def _generate_single_cached(self, prompt: str, context: Dict[str, Any]) -> str:
+        """Generate single section with caching."""
+        # Check cache first
+        cached = self.response_cache.get(prompt, context)
+        if cached:
+            return cached.content
+        
+        # Generate new content
+        loop = asyncio.get_event_loop()
+        response = await loop.run_in_executor(
+            self.executor,
+            self.llm_adapter.generate,
+            prompt,
+            None,  # provider
+            self.config.get('ai.max_tokens', 2000),
+            self.config.get('ai.temperature', 0.7)
+        )
+        
+        # Cache the response
+        self.response_cache.put(prompt, context, response.content, 
+                               response.tokens_used, response.cost)
+        
+        return response.content
+    
+    async def generate_batch(self, requests: List[BatchRequest]) -> Dict[str, GenerationResult]:
+        """Generate multiple documents in a batch for maximum performance."""
+        return await self.batch_processor.process_batch(requests)
+    
+    def get_performance_stats(self) -> Dict[str, Any]:
+        """Get performance statistics."""
+        cache_stats = self.response_cache.get_stats()
+        perf_stats = self.performance_monitor.get_stats()
+        
+        # Calculate overall performance
+        total_time = self.stats['total_time']
+        docs_generated = self.stats['documents_generated']
+        avg_time = total_time / max(docs_generated, 1)
+        docs_per_second = docs_generated / max(total_time, 0.001)
+        docs_per_minute = docs_per_second * 60
+        
+        return {
+            'documents_generated': docs_generated,
+            'average_generation_time': avg_time,
+            'documents_per_second': docs_per_second,
+            'documents_per_minute': docs_per_minute,
+            'cache_statistics': cache_stats,
+            'performance_metrics': perf_stats,
+            'memory_mode': self.memory_mode,
+            'max_workers': self.max_workers,
+            'total_cost': self.stats['total_cost'],
+            'total_tokens': self.stats['total_tokens']
+        }
+    
+    def clear_caches(self):
+        """Clear all caches."""
+        self.response_cache = ResponseCache(self.config)
+        self.context_cache = ContextCache(self.config)
+        logger.info("All caches cleared")
 
 
 # ============================================================================
