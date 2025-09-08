@@ -24,6 +24,13 @@ benchmark_validation_minimal.py
 test_optimization_comparison.py
 *_optimized.py
 
+# Environment and API keys
+.env
+.env.local
+.env.*.local
+*.key
+*.secret
+
 
 #Ignore vscode AI rules
 .github/instructions/codacy.instructions.md

@@ -1,0 +1,141 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.5, pytest-8.4.2, pluggy-1.6.0 -- /Users/etherealogic/Dev/DocDevAI-v3.0.0/.venv/bin/python
+cachedir: .pytest_cache
+benchmark: 5.1.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+hypothesis profile 'default'
+rootdir: /Users/etherealogic/Dev/DocDevAI-v3.0.0
+configfile: pytest.ini
+plugins: asyncio-1.1.0, mock-3.15.0, cov-6.3.0, anyio-4.10.0, benchmark-5.1.0, hypothesis-6.138.14
+asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 98 items
+
+tests/unit/core/test_config.py::TestPrivacyConfig::test_privacy_defaults_are_private PASSED [  1%]
+tests/unit/core/test_config.py::TestPrivacyConfig::test_privacy_config_validation PASSED [  2%]
+tests/unit/core/test_config.py::TestPrivacyConfig::test_privacy_config_mutability PASSED [  3%]
+tests/unit/core/test_config.py::TestSystemConfig::test_memory_mode_auto_detection_baseline PASSED [  4%]
+tests/unit/core/test_config.py::TestSystemConfig::test_memory_mode_auto_detection_standard PASSED [  5%]
+tests/unit/core/test_config.py::TestSystemConfig::test_memory_mode_auto_detection_enhanced PASSED [  6%]
+tests/unit/core/test_config.py::TestSystemConfig::test_memory_mode_auto_detection_performance PASSED [  7%]
+tests/unit/core/test_config.py::TestSystemConfig::test_memory_mode_manual_override PASSED [  8%]
+tests/unit/core/test_config.py::TestSystemConfig::test_invalid_memory_mode PASSED [  9%]
+tests/unit/core/test_config.py::TestSystemConfig::test_cache_size_parsing PASSED [ 10%]
+tests/unit/core/test_config.py::TestSecurityConfig::test_security_defaults PASSED [ 11%]
+tests/unit/core/test_config.py::TestSecurityConfig::test_security_config_validation PASSED [ 12%]
+tests/unit/core/test_config.py::TestLLMConfig::test_llm_defaults PASSED  [ 13%]
+tests/unit/core/test_config.py::TestLLMConfig::test_llm_provider_validation PASSED [ 14%]
+tests/unit/core/test_config.py::TestLLMConfig::test_llm_api_key_handling PASSED [ 15%]
+tests/unit/core/test_config.py::TestQualityConfig::test_quality_defaults PASSED [ 16%]
+tests/unit/core/test_config.py::TestQualityConfig::test_quality_score_validation PASSED [ 17%]
+tests/unit/core/test_config.py::TestConfigurationManager::test_initialization_with_defaults PASSED [ 18%]
+tests/unit/core/test_config.py::TestConfigurationManager::test_yaml_loading PASSED [ 19%]
+tests/unit/core/test_config.py::TestConfigurationManager::test_invalid_yaml_handling PASSED [ 20%]
+tests/unit/core/test_config.py::TestConfigurationManager::test_missing_config_file PASSED [ 21%]
+tests/unit/core/test_config.py::TestConfigurationManager::test_api_key_encryption_decryption PASSED [ 22%]
+tests/unit/core/test_config.py::TestConfigurationManager::test_api_key_encryption_different_keys PASSED [ 23%]
+tests/unit/core/test_config.py::TestConfigurationManager::test_configuration_get_method PASSED [ 24%]
+tests/unit/core/test_config.py::TestConfigurationManager::test_configuration_set_method PASSED [ 25%]
+tests/unit/core/test_config.py::TestConfigurationManager::test_configuration_data_handling PASSED [ 26%]
+tests/unit/core/test_config.py::TestConfigurationManager::test_configuration_save PASSED [ 27%]
+tests/unit/core/test_config.py::TestConfigurationManager::test_environment_variable_override PASSED [ 28%]
+tests/unit/core/test_config.py::TestConfigurationManager::test_configuration_performance_retrieval PASSED [ 29%]
+tests/unit/core/test_config.py::TestConfigurationManager::test_configuration_loading_performance PASSED [ 30%]
+tests/unit/core/test_config.py::TestConfigurationManager::test_thread_safety PASSED [ 31%]
+tests/unit/core/test_config.py::TestConfigurationIntegration::test_full_configuration_lifecycle PASSED [ 32%]
+tests/unit/core/test_config.py::TestConfigurationIntegration::test_encrypted_api_key_persistence PASSED [ 33%]
+tests/unit/core/test_config.py::TestErrorHandling::test_corrupt_encryption_handling PASSED [ 34%]
+tests/unit/core/test_config.py::TestErrorHandling::test_invalid_configuration_schema PASSED [ 35%]
+tests/unit/core/test_config.py::TestErrorHandling::test_permission_error_handling PASSED [ 36%]
+tests/unit/intelligence/test_llm_adapter.py::TestProvider::test_provider_calculate_cost PASSED [ 37%]
+tests/unit/intelligence/test_llm_adapter.py::TestProvider::test_provider_initialization PASSED [ 38%]
+tests/unit/intelligence/test_llm_adapter.py::TestProvider::test_provider_sanitize_data PASSED [ 39%]
+tests/unit/intelligence/test_llm_adapter.py::TestProvider::test_provider_timeout_handling PASSED [ 40%]
+tests/unit/intelligence/test_llm_adapter.py::TestCostManager::test_budget_enforcement PASSED [ 41%]
+tests/unit/intelligence/test_llm_adapter.py::TestCostManager::test_cost_quality_optimization PASSED [ 42%]
+tests/unit/intelligence/test_llm_adapter.py::TestCostManager::test_initialization PASSED [ 43%]
+tests/unit/intelligence/test_llm_adapter.py::TestCostManager::test_track_usage PASSED [ 44%]
+tests/unit/intelligence/test_llm_adapter.py::TestCostManager::test_usage_reset PASSED [ 45%]
+tests/unit/intelligence/test_llm_adapter.py::TestCostManager::test_warning_threshold PASSED [ 46%]
+tests/unit/intelligence/test_llm_adapter.py::TestResponseCache::test_cache_expiration PASSED [ 47%]
+tests/unit/intelligence/test_llm_adapter.py::TestResponseCache::test_cache_key_generation PASSED [ 48%]
+tests/unit/intelligence/test_llm_adapter.py::TestResponseCache::test_cache_operations PASSED [ 50%]
+tests/unit/intelligence/test_llm_adapter.py::TestResponseCache::test_cache_size_limit PASSED [ 51%]
+tests/unit/intelligence/test_llm_adapter.py::TestLLMAdapter::test_cache_integration PASSED [ 52%]
+tests/unit/intelligence/test_llm_adapter.py::TestLLMAdapter::test_data_sanitization PASSED [ 53%]
+tests/unit/intelligence/test_llm_adapter.py::TestLLMAdapter::test_fallback_mechanism PASSED [ 54%]
+tests/unit/intelligence/test_llm_adapter.py::TestLLMAdapter::test_generate_response PASSED [ 55%]
+tests/unit/intelligence/test_llm_adapter.py::TestLLMAdapter::test_initialization PASSED [ 56%]
+tests/unit/intelligence/test_llm_adapter.py::TestLLMAdapter::test_local_fallback PASSED [ 57%]
+tests/unit/intelligence/test_llm_adapter.py::TestLLMAdapter::test_m001_integration PASSED [ 58%]
+tests/unit/intelligence/test_llm_adapter.py::TestLLMAdapter::test_multi_provider_synthesis PASSED [ 59%]
+tests/unit/intelligence/test_llm_adapter.py::TestProviderImplementations::test_claude_provider SKIPPED [ 60%]
+tests/unit/intelligence/test_llm_adapter.py::TestProviderImplementations::test_gemini_provider SKIPPED [ 61%]
+tests/unit/intelligence/test_llm_adapter.py::TestProviderImplementations::test_local_provider PASSED [ 62%]
+tests/unit/intelligence/test_llm_adapter.py::TestProviderImplementations::test_openai_provider SKIPPED [ 63%]
+tests/unit/intelligence/test_llm_adapter.py::TestErrorHandling::test_all_providers_fail PASSED [ 64%]
+tests/unit/intelligence/test_llm_adapter.py::TestErrorHandling::test_budget_exceeded_handling PASSED [ 65%]
+tests/unit/intelligence/test_llm_adapter.py::TestErrorHandling::test_provider_error_recovery PASSED [ 66%]
+tests/unit/intelligence/test_llm_adapter.py::TestErrorHandling::test_timeout_recovery PASSED [ 67%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestRateLimiter::test_burst_capacity PASSED [ 68%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestRateLimiter::test_rate_limiter_initialization PASSED [ 69%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestRateLimiter::test_thread_safety PASSED [ 70%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestRateLimiter::test_token_acquisition PASSED [ 71%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestRateLimiter::test_token_refill PASSED [ 72%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestRateLimiter::test_wait_time_calculation PASSED [ 73%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestRequestSigner::test_nonce_cache_limit PASSED [ 74%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestRequestSigner::test_replay_attack_prevention PASSED [ 75%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestRequestSigner::test_request_signing PASSED [ 76%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestRequestSigner::test_signature_verification PASSED [ 77%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestRequestSigner::test_timestamp_validation PASSED [ 78%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestAuditLogger::test_event_logging PASSED [ 79%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestAuditLogger::test_event_severity_levels PASSED [ 80%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestAuditLogger::test_pii_sanitization_in_logs PASSED [ 81%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestAuditLogger::test_request_id_generation PASSED [ 82%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestLLMAdapterSecurity::test_audit_level_configuration PASSED [ 83%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestLLMAdapterSecurity::test_audit_logging_integration PASSED [ 84%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestLLMAdapterSecurity::test_concurrent_rate_limiting PASSED [ 85%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestLLMAdapterSecurity::test_enhanced_pii_detection PASSED [ 86%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestLLMAdapterSecurity::test_fallback_with_rate_limiting PASSED [ 87%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestLLMAdapterSecurity::test_pii_detection_without_sanitization PASSED [ 88%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestLLMAdapterSecurity::test_rate_limit_configuration PASSED [ 89%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestLLMAdapterSecurity::test_rate_limiting_integration PASSED [ 90%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestLLMAdapterSecurity::test_request_signing_integration PASSED [ 91%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestLLMAdapterSecurity::test_security_event_logging PASSED [ 92%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestLLMAdapterSecurity::test_security_metrics PASSED [ 93%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestPIIPatterns::test_api_key_patterns PASSED [ 94%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestPIIPatterns::test_credit_card_pattern PASSED [ 95%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestPIIPatterns::test_email_pattern PASSED [ 96%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestPIIPatterns::test_ip_address_pattern PASSED [ 97%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestPIIPatterns::test_phone_pattern PASSED [ 98%]
+tests/unit/intelligence/test_llm_adapter_security.py::TestPIIPatterns::test_ssn_pattern PASSED [100%]
+
+================================ tests coverage ================================
+_______________ coverage: platform darwin, python 3.13.5-final-0 _______________
+
+Name                                            Stmts   Miss Branch BrPart   Cover   Missing
+--------------------------------------------------------------------------------------------
+devdocai/__init__.py                               14      6      4      0  44.44%   23-28
+devdocai/cli.py                                    67     67      2      0   0.00%   14-140
+devdocai/core/config.py                           156     21     58     17  81.31%   68->74, 85->80, 91, 94->80, 97->80, 102-103, 108, 137, 150, 170, 178, 209-210, 217, 223, 240-245, 250, 254, 259-262
+devdocai/core/encryption.py                        62      8     14      6  78.95%   33->36, 47->52, 49, 61->66, 63, 88-91, 95-96
+devdocai/core/memory.py                            34     19     10      0  34.09%   22-31, 36, 41, 46-56
+devdocai/core/models.py                            63      2     16      2  94.94%   56->60, 68-69
+devdocai/intelligence/llm_adapter.py              674    118    152     21  80.51%   160, 263-264, 300->303, 391, 450-451, 481->exit, 488, 505-508, 514, 522-550, 555, 568, 572-580, 593, 597-605, 618-619, 623-633, 678-681, 691-692, 696, 712, 721, 730, 749-762, 808-813, 817-827, 860-864, 868-875, 879-880, 936-937, 1003, 1047->exit, 1058-1060, 1073-1074, 1077, 1097->1070, 1102, 1106->1070, 1109, 1161, 1188, 1204-1205, 1208, 1238-1255, 1261, 1339->1346, 1368-1369, 1373, 1384->exit
+devdocai/intelligence/llm_adapter_original.py     606    606    132      0   0.00%   6-1843
+devdocai/storage/__init__.py                        5      5      0      0   0.00%   12-23
+devdocai/storage/pii_detector.py                   50     50      6      0   0.00%   13-173
+devdocai/storage/secure_storage.py                 21     21      0      0   0.00%   13-120
+devdocai/storage/storage_manager.py                20     20      0      0   0.00%   13-111
+devdocai/utils/cache.py                            34      8     10      4  72.73%   28, 34, 39-40, 48-49, 54-55
+devdocai/utils/validation.py                       34      7      8      2  78.57%   24-25, 34, 41-42, 57-58
+--------------------------------------------------------------------------------------------
+TOTAL                                            1846    958    412     52  47.30%
+
+2 files skipped due to complete coverage.
+Coverage HTML written to dir htmlcov
+Coverage XML written to file coverage.xml
+Required test coverage of 20% reached. Total coverage: 47.30%
+=========================== short test summary info ============================
+SKIPPED [1] tests/unit/intelligence/test_llm_adapter.py:522: Requires anthropic library installation
+SKIPPED [1] tests/unit/intelligence/test_llm_adapter.py:568: Requires google-generativeai library installation
+SKIPPED [1] tests/unit/intelligence/test_llm_adapter.py:545: Requires openai library installation
+======================== 95 passed, 3 skipped in 3.97s =========================
