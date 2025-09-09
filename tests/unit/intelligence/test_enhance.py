@@ -374,7 +374,7 @@ class TestEnhancementPipeline:
         stats = enhancement_pipeline.get_enhancement_statistics()
 
         assert "pipeline_version" in stats
-        assert stats["pipeline_version"] == "M009 Pass 1"
+        assert stats["pipeline_version"] == "M009 Pass 2 - Performance Optimized"
         assert stats["strategy"] == "combined"  # Default strategy
         assert stats["miair_weight"] == 0.4
         assert stats["llm_weight"] == 0.6
