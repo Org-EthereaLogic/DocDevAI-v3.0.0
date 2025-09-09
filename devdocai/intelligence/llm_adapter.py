@@ -351,9 +351,15 @@ class AuditLogger:
         }
 
         # Log based on severity
-        if event_type in [SecurityEvent.ERROR, SecurityEvent.SIGNATURE_VALIDATION_FAILED]:
+        if event_type in [
+            SecurityEvent.ERROR,
+            SecurityEvent.SIGNATURE_VALIDATION_FAILED,
+        ]:
             self.logger.error(json.dumps(log_entry))
-        elif event_type in [SecurityEvent.RATE_LIMIT_EXCEEDED, SecurityEvent.BUDGET_EXCEEDED]:
+        elif event_type in [
+            SecurityEvent.RATE_LIMIT_EXCEEDED,
+            SecurityEvent.BUDGET_EXCEEDED,
+        ]:
             self.logger.warning(json.dumps(log_entry))
         else:
             self.logger.info(json.dumps(log_entry))
@@ -842,7 +848,8 @@ class BalancedStrategy(RoutingStrategy):
     def select_provider(self, providers: Dict[str, Provider], context: Dict[str, Any]) -> str:
         """Select provider with best quality/cost ratio."""
         return max(
-            providers.items(), key=lambda x: x[1].quality_score / (x[1].cost_per_1k + 0.001)
+            providers.items(),
+            key=lambda x: x[1].quality_score / (x[1].cost_per_1k + 0.001),
         )[0]
 
 
@@ -887,7 +894,12 @@ class ProviderHealthMonitor:
                 self.metrics[provider] = deque(maxlen=self.window_size)
 
             self.metrics[provider].append(
-                {"timestamp": datetime.now(), "success": True, "latency": latency, "tokens": tokens}
+                {
+                    "timestamp": datetime.now(),
+                    "success": True,
+                    "latency": latency,
+                    "tokens": tokens,
+                }
             )
 
     def record_failure(self, provider: str, error: str):
@@ -1188,7 +1200,10 @@ class LLMAdapter:
         if not limiter.acquire():
             wait_time = limiter.get_wait_time()
             self.audit_logger.log_event(
-                SecurityEvent.RATE_LIMIT_EXCEEDED, request_id, provider, {"wait_time": wait_time}
+                SecurityEvent.RATE_LIMIT_EXCEEDED,
+                request_id,
+                provider,
+                {"wait_time": wait_time},
             )
             # For non-local providers, allow fallback by marking skip flag
             if provider != "local":
@@ -1337,7 +1352,11 @@ class LLMAdapter:
             SecurityEvent.API_CALL,
             request_id,
             provider_name,
-            {"action": "success", "tokens": response.tokens_used, "cost": response.cost},
+            {
+                "action": "success",
+                "tokens": response.tokens_used,
+                "cost": response.cost,
+            },
         )
 
         return response
@@ -1538,7 +1557,10 @@ class LLMAdapter:
                 SecurityEvent.PII_DETECTED,
                 self.audit_logger.generate_request_id(),
                 "pii_scanner",
-                {"types": list(detected.keys()), "count": sum(len(v) for v in detected.values())},
+                {
+                    "types": list(detected.keys()),
+                    "count": sum(len(v) for v in detected.values()),
+                },
             )
         return detected
 

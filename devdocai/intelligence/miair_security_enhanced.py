@@ -106,7 +106,8 @@ class PIIDetector:
     PII_PATTERNS = {
         # Financial Information
         "ssn": re.compile(
-            r"\b(?!000|666|9\d{2})\d{3}[-\s]?(?!00)\d{2}[-\s]?(?!0000)\d{4}\b", re.IGNORECASE
+            r"\b(?!000|666|9\d{2})\d{3}[-\s]?(?!00)\d{2}[-\s]?(?!0000)\d{4}\b",
+            re.IGNORECASE,
         ),
         "credit_card": re.compile(
             r"\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|"
@@ -501,7 +502,10 @@ class AuditLogger:
         # Log based on severity
         log_message = entry.to_json()
 
-        if self.enable_encryption and severity in [SecurityLevel.CRITICAL, SecurityLevel.HIGH]:
+        if self.enable_encryption and severity in [
+            SecurityLevel.CRITICAL,
+            SecurityLevel.HIGH,
+        ]:
             # Encrypt sensitive audit logs
             log_message = self._cipher.encrypt(log_message.encode()).decode()
 
@@ -515,7 +519,10 @@ class AuditLogger:
             audit_logger.info(log_message)
 
     def log_pii_detection(
-        self, document_id: str, pii_summary: Dict[str, int], user_id: Optional[str] = None
+        self,
+        document_id: str,
+        pii_summary: Dict[str, int],
+        user_id: Optional[str] = None,
     ):
         """Log PII detection event."""
         self.log(
@@ -590,7 +597,10 @@ class CircuitBreaker:
         HALF_OPEN = "half_open"  # Testing recovery
 
     def __init__(
-        self, failure_threshold: int = 5, recovery_timeout: int = 60, success_threshold: int = 2
+        self,
+        failure_threshold: int = 5,
+        recovery_timeout: int = 60,
+        success_threshold: int = 2,
     ):
         """
         Initialize circuit breaker.
@@ -676,7 +686,12 @@ class EnhancedRateLimiter:
     Enhanced rate limiter with IP-based tracking and exponential backoff.
     """
 
-    def __init__(self, max_calls: int = 100, window_seconds: int = 60, enable_backoff: bool = True):
+    def __init__(
+        self,
+        max_calls: int = 100,
+        window_seconds: int = 60,
+        enable_backoff: bool = True,
+    ):
         """
         Initialize enhanced rate limiter.
 
@@ -754,7 +769,9 @@ class EnhancedRateLimiter:
 
 
 def enhanced_rate_limit(
-    max_calls: int = 100, window_seconds: int = 60, identifier_func: Optional[callable] = None
+    max_calls: int = 100,
+    window_seconds: int = 60,
+    identifier_func: Optional[callable] = None,
 ):
     """
     Enhanced rate limiting decorator with flexible identifier.
@@ -827,7 +844,10 @@ class AuthenticationManager:
         self.audit = AuditLogger()
 
     def generate_token(
-        self, user_id: str, ip_address: Optional[str] = None, metadata: Optional[Dict] = None
+        self,
+        user_id: str,
+        ip_address: Optional[str] = None,
+        metadata: Optional[Dict] = None,
     ) -> str:
         """
         Generate JWT token for user.
@@ -1139,7 +1159,10 @@ class InputValidator:
 
         # Replace dangerous patterns
         injection_patterns = [
-            (r"(ignore|disregard|forget).*?(previous|above|prior)", "[INSTRUCTION REMOVED]"),
+            (
+                r"(ignore|disregard|forget).*?(previous|above|prior)",
+                "[INSTRUCTION REMOVED]",
+            ),
             (r"(system|assistant|human):\s*", ""),
             (r"###\s*(instruction|command|directive)", "[DIRECTIVE REMOVED]"),
             (r"<\|.*?\|>", ""),  # Remove special tokens

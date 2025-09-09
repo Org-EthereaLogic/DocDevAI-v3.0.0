@@ -113,7 +113,10 @@ class CacheManager:
                 self._cache[cache_key] = {"data": data, "timestamp": timestamp}
             else:  # Larger results go to L2 (compressed)
                 compressed = self._compress(data)
-                self._compressed_cache[cache_key] = {"data": compressed, "timestamp": timestamp}
+                self._compressed_cache[cache_key] = {
+                    "data": compressed,
+                    "timestamp": timestamp,
+                }
 
             # Track in LRU queue
             if cache_key not in self._cache_queue:
@@ -190,7 +193,8 @@ class ParallelProcessor:
                     return name, None
 
         results = await asyncio.gather(
-            *[run_with_semaphore(name, task) for name, task in tasks], return_exceptions=False
+            *[run_with_semaphore(name, task) for name, task in tasks],
+            return_exceptions=False,
         )
 
         return results

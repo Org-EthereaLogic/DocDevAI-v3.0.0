@@ -239,7 +239,11 @@ class SecurityReviewer(SecurityReviewerBase):
             matches = self.pattern_matcher.find_patterns(content, patterns)
             for match in matches:
                 issues.append(
-                    {"category": category, "match": match["match"], "line": match["line"]}
+                    {
+                        "category": category,
+                        "match": match["match"],
+                        "line": match["line"],
+                    }
                 )
 
         return issues
@@ -418,7 +422,8 @@ class CoverageReviewer(PatternBaseReviewer):
         if avg_coverage < 0.8 and avg_coverage > 0:
             issues.append(
                 self.create_issue(
-                    f"Test coverage below 80%: {avg_coverage*100:.1f}%", SeverityLevel.LOW
+                    f"Test coverage below 80%: {avg_coverage*100:.1f}%",
+                    SeverityLevel.LOW,
                 )
             )
 
@@ -465,7 +470,13 @@ class ComplianceReviewer(PatternBaseReviewer):
                 standards_mentioned.append(standard)
 
         # Check for compliance keywords
-        compliance_keywords = ["compliance", "regulation", "standard", "requirement", "audit"]
+        compliance_keywords = [
+            "compliance",
+            "regulation",
+            "standard",
+            "requirement",
+            "audit",
+        ]
         compliance_mentions = self.pattern_matcher.count_occurrences(
             content, set(compliance_keywords)
         )
@@ -570,7 +581,10 @@ class PIIDetector:
         """Initialize PII detector."""
         self.pii_patterns = {
             PIIType.EMAIL: [
-                (r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b", "Email Address")
+                (
+                    r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",
+                    "Email Address",
+                )
             ],
             PIIType.PHONE: [
                 (r"\b\d{3}[-.]?\d{3}[-.]?\d{4}\b", "US Phone Number"),

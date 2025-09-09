@@ -155,7 +155,7 @@ class BaseReviewer(ABC):
             ),
             "comment_lines": sum(1 for line in lines if line.strip().startswith("#")),
             "sections": self._identify_sections(content),
-            "avg_line_length": sum(len(line) for line in lines) / len(lines) if lines else 0,
+            "avg_line_length": (sum(len(line) for line in lines) / len(lines) if lines else 0),
         }
 
     def _identify_sections(self, content: str) -> List[str]:

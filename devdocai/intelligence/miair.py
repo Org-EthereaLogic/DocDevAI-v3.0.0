@@ -543,7 +543,11 @@ class MIAIREngine:
 
             # Save if requested
             storage_id = self._save_if_requested(
-                save_to_storage, current_content, current_metrics, improvement, iterations
+                save_to_storage,
+                current_content,
+                current_metrics,
+                improvement,
+                iterations,
             )
 
             # Update statistics
@@ -686,7 +690,9 @@ class MIAIREngine:
             "coherence_target": self.coherence_target,
             "strategy": self.strategy.__class__.__name__,
             "cache_stats": self.security.get_cache_stats(),
-            "circuit_breaker_state": self.circuit_breaker.state if self.circuit_breaker else "N/A",
+            "circuit_breaker_state": (
+                self.circuit_breaker.state if self.circuit_breaker else "N/A"
+            ),
         }
 
     def reset_statistics(self):

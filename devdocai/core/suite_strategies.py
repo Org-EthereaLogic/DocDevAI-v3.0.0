@@ -86,7 +86,11 @@ class BasicConsistencyStrategy(ConsistencyStrategy):
             coverage_percentage=coverage,
             reference_integrity=ref_integrity,
             summary=summary[:500],
-            details={"dependencies": dep_issues, "gaps": gaps, "references": broken_refs},
+            details={
+                "dependencies": dep_issues,
+                "gaps": gaps,
+                "references": broken_refs,
+            },
             recommendations=recommendations,
             strategy_type="basic",
         )
@@ -167,7 +171,10 @@ class BasicConsistencyStrategy(ConsistencyStrategy):
         return max(0.0, 1.0 - (len(broken_refs) / total_refs))
 
     def _generate_recommendations(
-        self, gaps: List[DocumentGap], broken_refs: List[str], dep_issues: List[DependencyIssue]
+        self,
+        gaps: List[DocumentGap],
+        broken_refs: List[str],
+        dep_issues: List[DependencyIssue],
     ) -> List[str]:
         """Generate recommendations."""
         recommendations = []
@@ -284,7 +291,9 @@ class BFSImpactStrategy(ImpactStrategy):
             estimated_effort_hours=effort_hours,
             effort_confidence=0.85,
             effort_range=EffortRange(
-                min_hours=effort_hours * 0.8, max_hours=effort_hours * 1.2, confidence=0.85
+                min_hours=effort_hours * 0.8,
+                max_hours=effort_hours * 1.2,
+                confidence=0.85,
             ),
             circular_dependencies=circular_deps,
             has_circular_dependencies=len(circular_deps) > 0,

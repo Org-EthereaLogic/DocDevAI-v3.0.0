@@ -924,7 +924,14 @@ class StorageManager:
                     INSERT INTO document_versions (document_id, version, encrypted_content, iv, hmac, created_at)
                     VALUES (?, ?, ?, ?, ?, ?)
                     """,
-                    (document_id, next_version, encrypted, iv, hmac_str, datetime.now()),
+                    (
+                        document_id,
+                        next_version,
+                        encrypted,
+                        iv,
+                        hmac_str,
+                        datetime.now(),
+                    ),
                 )
 
             if "metadata" in updates:
@@ -1154,7 +1161,8 @@ class StorageManager:
                     for doc_id in created:
                         try:
                             cursor.execute(
-                                "DELETE FROM document_metadata WHERE document_id = ?", (doc_id,)
+                                "DELETE FROM document_metadata WHERE document_id = ?",
+                                (doc_id,),
                             )
                             cursor.execute("DELETE FROM documents WHERE id = ?", (doc_id,))
                         except Exception:

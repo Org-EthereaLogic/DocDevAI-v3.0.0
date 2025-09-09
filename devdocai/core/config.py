@@ -73,7 +73,10 @@ class ConfigurationManager:
                 lambda: self.privacy,
                 lambda d: setattr(self, "privacy", PrivacyConfig(**d)),
             ),
-            "system": (lambda: self.system, lambda d: setattr(self, "system", SystemConfig(**d))),
+            "system": (
+                lambda: self.system,
+                lambda d: setattr(self, "system", SystemConfig(**d)),
+            ),
             "security": (
                 lambda: self.security,
                 lambda d: setattr(self, "security", SecurityConfig(**d)),

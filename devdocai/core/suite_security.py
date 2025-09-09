@@ -35,7 +35,9 @@ class RateLimiter:
     """Rate limiter for API protection (OWASP A04)."""
 
     def __init__(
-        self, max_requests: int = MAX_REQUESTS_PER_WINDOW, window_seconds: int = RATE_LIMIT_WINDOW
+        self,
+        max_requests: int = MAX_REQUESTS_PER_WINDOW,
+        window_seconds: int = RATE_LIMIT_WINDOW,
     ):
         """Initialize rate limiter."""
         self.max_requests = max_requests

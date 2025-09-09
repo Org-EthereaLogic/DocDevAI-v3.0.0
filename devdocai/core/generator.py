@@ -629,10 +629,16 @@ class TemplateManager:
                         "title": "Project Overview",
                         "prompt": "Describe the project purpose and goals",
                     },
-                    {"title": "Installation", "prompt": "Provide installation instructions"},
+                    {
+                        "title": "Installation",
+                        "prompt": "Provide installation instructions",
+                    },
                     {"title": "Usage", "prompt": "Explain how to use the project"},
                     {"title": "Features", "prompt": "List key features"},
-                    {"title": "Contributing", "prompt": "Explain contribution guidelines"},
+                    {
+                        "title": "Contributing",
+                        "prompt": "Explain contribution guidelines",
+                    },
                     {"title": "License", "prompt": "Specify project license"},
                 ],
             },
@@ -640,7 +646,10 @@ class TemplateManager:
                 "name": "API Documentation",
                 "sections": [
                     {"title": "Overview", "prompt": "Describe the API purpose"},
-                    {"title": "Authentication", "prompt": "Explain authentication methods"},
+                    {
+                        "title": "Authentication",
+                        "prompt": "Explain authentication methods",
+                    },
                     {"title": "Endpoints", "prompt": "Document all API endpoints"},
                     {"title": "Error Codes", "prompt": "List error codes and meanings"},
                     {"title": "Examples", "prompt": "Provide usage examples"},
@@ -649,11 +658,17 @@ class TemplateManager:
             "architecture": {
                 "name": "Architecture Document",
                 "sections": [
-                    {"title": "System Overview", "prompt": "Describe system architecture"},
+                    {
+                        "title": "System Overview",
+                        "prompt": "Describe system architecture",
+                    },
                     {"title": "Components", "prompt": "Detail system components"},
                     {"title": "Data Flow", "prompt": "Explain data flow patterns"},
                     {"title": "Security", "prompt": "Document security architecture"},
-                    {"title": "Scalability", "prompt": "Discuss scalability considerations"},
+                    {
+                        "title": "Scalability",
+                        "prompt": "Discuss scalability considerations",
+                    },
                 ],
             },
         }
@@ -702,7 +717,8 @@ class ContextBuilder:
         project_dir = Path(project_path)
         if not project_dir.exists():
             raise DocumentGenerationError(
-                f"Project path does not exist: {project_path}", error_type="path_not_found"
+                f"Project path does not exist: {project_path}",
+                error_type="path_not_found",
             )
 
         context = {
@@ -940,7 +956,11 @@ class PerformanceMonitor:
         """Record operation performance."""
         with self.lock:
             self.operations[operation].append(
-                {"duration": duration, "timestamp": time.time(), "metadata": metadata or {}}
+                {
+                    "duration": duration,
+                    "timestamp": time.time(),
+                    "metadata": metadata or {},
+                }
             )
 
     def get_stats(self, operation: str = None) -> Dict[str, Any]:
@@ -983,7 +1003,10 @@ class DocumentGenerator:
     """
 
     def __init__(
-        self, config: ConfigurationManager, storage_manager: StorageManager, llm_adapter: LLMAdapter
+        self,
+        config: ConfigurationManager,
+        storage_manager: StorageManager,
+        llm_adapter: LLMAdapter,
     ):
         """Initialize with dependency injection."""
         self.config = config
@@ -1293,7 +1316,9 @@ class DocumentGenerator:
         async def generate_with_limit(request: BatchRequest):
             async with semaphore:
                 return await self.generate_document(
-                    template_name=request.template_name, context=request.context, **request.options
+                    template_name=request.template_name,
+                    context=request.context,
+                    **request.options,
                 )
 
         # Group similar requests for cache efficiency

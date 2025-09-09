@@ -39,7 +39,7 @@ keywords = [
 ]
 
 [[rules]]
-# Custom rule for Anthropic API keys  
+# Custom rule for Anthropic API keys
 id = "anthropic-api-key"
 description = "Anthropic API Key"
 regex = '''sk-ant-api03-[a-zA-Z0-9\-_]{95}'''
@@ -50,7 +50,7 @@ keywords = [
 
 [[rules]]
 # Custom rule for Google API keys
-id = "google-api-key" 
+id = "google-api-key"
 description = "Google API Key"
 regex = '''AIza[0-9A-Za-z\-_]{35}'''
 keywords = [
@@ -76,14 +76,14 @@ regex = [
     '''node_modules/''',
     '''__pycache__/''',
     '''\.pyc$''',
-    
+
     # Test and example content
     '''example.*''',
     '''test.*''',
     '''sample.*''',
     '''placeholder''',
     '''your.*key.*here''',
-    
+
     # Documentation placeholders
     '''<your.*>''',
     '''INSERT.*HERE''',

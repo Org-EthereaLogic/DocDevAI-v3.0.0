@@ -216,9 +216,12 @@ class SuiteManager:
             if self.config
             else "balanced"
         )
-        return {"minimal": 100, "balanced": 500, "performance": 1000, "maximum": 5000}.get(
-            mode, 500
-        )
+        return {
+            "minimal": 100,
+            "balanced": 500,
+            "performance": 1000,
+            "maximum": 5000,
+        }.get(mode, 500)
 
     # Private methods
     async def _gen_doc(self, cfg: Dict[str, Any]) -> Document:

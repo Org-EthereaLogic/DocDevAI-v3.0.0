@@ -407,7 +407,10 @@ class NetworkXAnalysis(AnalysisStrategy):
         for source in graph.edges:
             for target, rel in graph.edges[source].items():
                 self.nx_graph.add_edge(
-                    source, target, weight=rel.strength, type=rel.relationship_type.value
+                    source,
+                    target,
+                    weight=rel.strength,
+                    type=rel.relationship_type.value,
                 )
 
     def find_cycles(self, graph: "DependencyGraph") -> List[List[str]]:

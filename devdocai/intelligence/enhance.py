@@ -212,9 +212,7 @@ class EnhancementPipeline:
             strategy_val = strategy.value  # type: ignore[attr-defined]
         except Exception:
             strategy_val = str(strategy)
-        key_data = (
-            f"{content}:{document_type}:{strategy_val}:{self.enhancement_config.miair_weight}:{self.enhancement_config.llm_weight}"
-        )
+        key_data = f"{content}:{document_type}:{strategy_val}:{self.enhancement_config.miair_weight}:{self.enhancement_config.llm_weight}"
         return hashlib.sha256(key_data.encode()).hexdigest()[:16]
 
     def _get_cached_result(self, cache_key: str) -> Optional[EnhancementResult]:
@@ -410,7 +408,10 @@ class EnhancementPipeline:
             )
 
     def _create_enhancement_prompt(
-        self, content: str, document_type: str, enhancement_type: str = "quality_improvement"
+        self,
+        content: str,
+        document_type: str,
+        enhancement_type: str = "quality_improvement",
     ) -> str:
         """Create optimized enhancement prompt for LLM."""
         # Use cached template for performance
@@ -617,7 +618,9 @@ class EnhancementPipeline:
 
             try:
                 llm_response = self.llm_adapter.generate(
-                    prompt=prompt, max_tokens=min(len(content) * 2, 2000), temperature=0.3
+                    prompt=prompt,
+                    max_tokens=min(len(content) * 2, 2000),
+                    temperature=0.3,
                 )
                 llm_result = self._llm_response_to_enhancement_response(llm_response, content)
             except Exception as llm_error:
@@ -748,9 +751,7 @@ class EnhancementPipeline:
 
         # Collect results as they complete
         results = []
-        for future in as_completed(
-            futures, timeout=self.enhancement_config.timeout_seconds * 2
-        ):
+        for future in as_completed(futures, timeout=self.enhancement_config.timeout_seconds * 2):
             try:
                 result = future.result()
                 result.concurrent_processing = True

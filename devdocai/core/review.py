@@ -154,7 +154,12 @@ class ReviewEngine:
     """
 
     def __init__(
-        self, config=None, storage=None, generator=None, tracking=None, review_strategy="standard"
+        self,
+        config=None,
+        storage=None,
+        generator=None,
+        tracking=None,
+        review_strategy="standard",
     ):
         """Initialize review engine with dependencies."""
         # Core dependencies
@@ -290,7 +295,9 @@ class ReviewEngine:
 
             # Update metrics
             self.performance_monitor.update_metrics(
-                report.execution_time, from_cache=False, cache_stats=self.cache_manager.get_stats()
+                report.execution_time,
+                from_cache=False,
+                cache_stats=self.cache_manager.get_stats(),
             )
 
             # Save results if requested
@@ -313,7 +320,7 @@ class ReviewEngine:
                     "document_id": document.id,
                     "client_id": client_id,
                     "execution_time": time.time() - start_time,
-                    "quality_gate": report.quality_gate_status if "report" in locals() else "N/A",
+                    "quality_gate": (report.quality_gate_status if "report" in locals() else "N/A"),
                 },
             )
 

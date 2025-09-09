@@ -59,13 +59,21 @@ def show() -> None:
         memory_mode = MemoryDetector.detect_memory_mode()
 
         settings = [
-            ("privacy_mode", config_manager.get("privacy.mode", "LOCAL_ONLY"), "default"),
+            (
+                "privacy_mode",
+                config_manager.get("privacy.mode", "LOCAL_ONLY"),
+                "default",
+            ),
             (
                 "telemetry_enabled",
                 str(config_manager.get("privacy.telemetry_enabled", False)),
                 "default",
             ),
-            ("api_provider", config_manager.get("llm.default_provider", "openai"), "default"),
+            (
+                "api_provider",
+                config_manager.get("llm.default_provider", "openai"),
+                "default",
+            ),
             ("available_memory", f"{memory_gb:.1f} GB", "system"),
             ("memory_mode", memory_mode, "detected"),
             ("config_file", str(config_manager.config_file), "path"),
