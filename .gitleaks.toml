@@ -1,0 +1,91 @@
+# Gitleaks configuration for DevDocAI v3.0.0
+# Prevents secret exposure in git commits
+
+[extend]
+# Use default gitleaks rules
+useDefault = true
+
+[allowlist]
+# Allowlist for legitimate test patterns and documentation examples
+commits = [
+    # Add specific commit SHAs if needed
+]
+
+paths = [
+    # Allow test files to contain test secrets
+    '''tests/.*test.*\.py''',
+    '''docs/.*\.md''',
+    '''.env.example''',
+]
+
+regexes = [
+    # Allow common test patterns
+    '''password123''',
+    '''test.*key''',
+    '''example.*secret''',
+    '''your.*api.*key''',
+    '''sk-ant-...''',
+    '''sk-proj-...''',
+]
+
+[[rules]]
+# Custom rule for OpenAI API keys
+id = "openai-api-key"
+description = "OpenAI API Key"
+regex = '''sk-proj-[a-zA-Z0-9]{20}T3BlbkFJ[a-zA-Z0-9]{20}'''
+keywords = [
+    "openai",
+    "sk-proj",
+]
+
+[[rules]]
+# Custom rule for Anthropic API keys  
+id = "anthropic-api-key"
+description = "Anthropic API Key"
+regex = '''sk-ant-api03-[a-zA-Z0-9\-_]{95}'''
+keywords = [
+    "anthropic",
+    "sk-ant",
+]
+
+[[rules]]
+# Custom rule for Google API keys
+id = "google-api-key" 
+description = "Google API Key"
+regex = '''AIza[0-9A-Za-z\-_]{35}'''
+keywords = [
+    "google",
+    "AIza",
+]
+
+[[rules]]
+# Generic high-entropy strings
+id = "high-entropy-base64"
+description = "High Entropy Base64"
+regex = '''[A-Za-z0-9+/]{40,}={0,2}'''
+entropy = 4.5
+secretGroup = 1
+
+# Ignore common patterns that aren't secrets
+[allowlist.regexTarget]
+regex = [
+    # Version control and build artifacts
+    '''package-lock\.json''',
+    '''yarn\.lock''',
+    '''.git/''',
+    '''node_modules/''',
+    '''__pycache__/''',
+    '''\.pyc$''',
+    
+    # Test and example content
+    '''example.*''',
+    '''test.*''',
+    '''sample.*''',
+    '''placeholder''',
+    '''your.*key.*here''',
+    
+    # Documentation placeholders
+    '''<your.*>''',
+    '''INSERT.*HERE''',
+    '''REPLACE.*WITH''',
+]

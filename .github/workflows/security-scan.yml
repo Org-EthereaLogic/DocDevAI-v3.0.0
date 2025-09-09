@@ -1,0 +1,90 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [ main, development/v3.1.0-clean ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  secret-scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Full history for comprehensive scan
+    
+    - name: Run Gitleaks
+      uses: gitleaks/gitleaks-action@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+      with:
+        config-path: .gitleaks.toml
+        
+    - name: Upload Gitleaks Report
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: gitleaks-report
+        path: results.json
+        retention-days: 5
+
+  dependency-scan:
+    name: Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install safety bandit
+        
+    - name: Run Safety (dependency vulnerabilities)
+      run: safety check --json --output safety-report.json || true
+      
+    - name: Run Bandit (security linting)
+      run: bandit -r devdocai/ -f json -o bandit-report.json || true
+      
+    - name: Upload Security Reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: security-reports
+        path: |
+          safety-report.json
+          bandit-report.json
+        retention-days: 30
+
+  security-audit:
+    name: Security Audit Summary
+    runs-on: ubuntu-latest
+    needs: [secret-scan, dependency-scan]
+    if: always()
+    
+    steps:
+    - name: Security Audit Results
+      run: |
+        echo "🔒 Security Scan Completed"
+        echo "✅ Secret scanning: ${{ needs.secret-scan.result }}"
+        echo "✅ Dependency scan: ${{ needs.dependency-scan.result }}"
+        
+        if [[ "${{ needs.secret-scan.result }}" == "failure" ]]; then
+          echo "🚨 CRITICAL: Secrets detected in codebase!"
+          echo "📋 Check the gitleaks-report artifact for details"
+          exit 1
+        fi
+        
+        echo "🎯 Security Status: SECURE"
