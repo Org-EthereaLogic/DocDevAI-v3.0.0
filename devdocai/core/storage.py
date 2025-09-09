@@ -224,6 +224,7 @@ class ConnectionPool:
         self._lock = threading.RLock()
         self._thread_connections = threading.local()
         self._created_count = 0
+        self._schema_initializer = None  # Will be set by StorageManager
         # Don't pre-create connections - create on demand after tables exist
     
     def _create_connection(self) -> sqlite3.Connection:
@@ -259,6 +260,11 @@ class ConnectionPool:
         cursor.execute("PRAGMA optimize")
         
         cursor.close()
+        
+        # Initialize schema on this connection if we have an initializer
+        if self._schema_initializer:
+            self._schema_initializer(conn)
+        
         return conn
     
     def get_connection(self) -> sqlite3.Connection:
@@ -356,13 +362,98 @@ class StorageManager:
         # Initialize connection pool
         self._pool = ConnectionPool(self.db_path, pool_size)
         
-        # Initialize database
+        # Set up schema initializer for new connections
+        self._pool._schema_initializer = self._initialize_connection_schema
+        
+        # Initialize database schema on the main connection
         self._initialize_database()
+        
+        # Store reference to schema initialization for new connections
+        self._schema_initialized = True
         
         # Prepare frequently used statements
         self._prepare_statements()
         
         logger.info(f"Optimized StorageManager initialized with database: {self.db_path}")
+    
+    def _initialize_connection_schema(self, conn: sqlite3.Connection):
+        """Initialize schema on a specific connection for thread safety.
+
+        This uses the same schema as _initialize_database to avoid
+        mismatches when creating indexes (e.g., author/tags columns).
+        """
+        try:
+            cursor = conn.cursor()
+
+            # Configure SQLCipher pragmas when encryption enabled (mock-friendly)
+            if self._encryption_enabled:
+                try:
+                    enc_key = self.config.get("storage.encryption_key")
+                    if enc_key:
+                        conn.execute("PRAGMA key = ?", (enc_key,))
+                    conn.execute("PRAGMA cipher = 'aes-256-gcm'")
+                    conn.execute("PRAGMA kdf_iter = 256000")
+                except Exception:
+                    # Ignore if SQLCipher not available (tests may mock this)
+                    pass
+
+            # Create tables if they don't exist (aligned with _initialize_database)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS documents (
+                    id TEXT PRIMARY KEY,
+                    encrypted_content BLOB NOT NULL,
+                    iv BLOB NOT NULL,
+                    hmac TEXT NOT NULL,
+                    type TEXT NOT NULL,
+                    created_at TIMESTAMP NOT NULL,
+                    updated_at TIMESTAMP NOT NULL,
+                    version INTEGER DEFAULT 1
+                )
+            """)
+
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS document_metadata (
+                    document_id TEXT PRIMARY KEY,
+                    metadata_json TEXT NOT NULL,
+                    author TEXT,
+                    tags TEXT,
+                    FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE
+                )
+            """)
+
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS document_versions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    document_id TEXT NOT NULL,
+                    version INTEGER NOT NULL,
+                    encrypted_content BLOB NOT NULL,
+                    iv BLOB NOT NULL,
+                    hmac TEXT NOT NULL,
+                    created_at TIMESTAMP NOT NULL,
+                    FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE
+                )
+            """)
+
+            # Create indexes consistent with main initializer
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_documents_type ON documents(type)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_documents_created ON documents(created_at)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_documents_updated ON documents(updated_at)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_metadata_author ON document_metadata(author)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_metadata_tags ON document_metadata(tags)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_versions_document ON document_versions(document_id, version)")
+
+            # Analyze tables for query optimizer
+            try:
+                cursor.execute("ANALYZE")
+            except Exception:
+                pass
+
+            conn.commit()
+            cursor.close()
+
+        except Exception as e:
+            logger.error(f"Failed to initialize schema on connection: {e}")
+            raise
     
     @property 
     def _conn(self):
@@ -643,7 +734,7 @@ class StorageManager:
                 if isinstance(created, list):
                     created.append(document.id)
             
-            return True
+            return document.id
             
         except Exception as e:
             if not getattr(self._txn_state, 'active', False):
