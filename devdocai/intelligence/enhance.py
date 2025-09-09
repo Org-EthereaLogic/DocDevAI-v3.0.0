@@ -382,7 +382,7 @@ class EnhancementPipeline:
         """Enhance using only MIAIR mathematical optimization (FR-011)."""
         try:
             # Use MIAIR engine for entropy optimization
-            miair_result = self.miair_engine.optimize(content)
+            miair_result = self._miair_optimize(content)
 
             # MIAIR engine always returns a result; success is determined by improvement
             success = miair_result.improvement_percentage > 0
@@ -507,7 +507,7 @@ class EnhancementPipeline:
         """Enhance using combined MIAIR + LLM approach (FR-011 + FR-012)."""
         try:
             # Step 1: Apply MIAIR optimization first
-            miair_result = self.miair_engine.optimize(content)
+            miair_result = self._miair_optimize(content)
             intermediate_content = miair_result.final_content
 
             # Step 2: Apply LLM enhancement to MIAIR-optimized content
@@ -592,6 +592,19 @@ class EnhancementPipeline:
                 strategy_used=EnhancementStrategy.COMBINED,
                 error_message=f"Combined enhancement error: {str(e)}",
             )
+
+    def _miair_optimize(self, content: str) -> OptimizationResult:
+        """Call the appropriate optimization method on the MIAIR engine.
+
+        Supports both optimize() and optimize_document() to be robust against
+        differing test doubles and future refactors.
+        """
+        engine = self.miair_engine
+        if hasattr(engine, "optimize"):
+            return engine.optimize(content)  # type: ignore[no-any-return]
+        if hasattr(engine, "optimize_document"):
+            return engine.optimize_document(content)  # type: ignore[no-any-return]
+        raise AttributeError("MIAIR engine does not implement optimize methods")
 
     def _enhance_with_consensus(self, content: str, document_type: str) -> EnhancementResult:
         """Enhance using multi-LLM weighted consensus (FR-012)."""
