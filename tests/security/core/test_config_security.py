@@ -3,15 +3,14 @@ M001 Configuration Manager - Security Tests (Pass 3)
 Testing enterprise-grade security features and compliance.
 """
 
-import os
 import json
-import pytest
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import patch
+
+import pytest
 
 from devdocai.core.config import ConfigurationManager
-from devdocai.core.config import PrivacyConfig, SecurityConfig, LLMConfig
 
 
 class TestAPIKeyEncryption:

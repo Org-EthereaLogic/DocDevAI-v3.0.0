@@ -6,14 +6,14 @@ Tests that security features don't significantly impact performance.
 Target: 248K documents/minute (4133 docs/second)
 """
 
-import time
 import statistics
+import time
 from unittest.mock import Mock
 
-from devdocai.intelligence.miair import MIAIREngine
 from devdocai.core.config import ConfigurationManager
-from devdocai.intelligence.llm_adapter import LLMAdapter, LLMResponse
 from devdocai.core.storage import StorageManager
+from devdocai.intelligence.llm_adapter import LLMAdapter, LLMResponse
+from devdocai.intelligence.miair import MIAIREngine
 
 
 def test_entropy_performance_with_security():
@@ -61,12 +61,12 @@ def test_entropy_performance_with_security():
     docs_per_second = 1 / avg_time
     docs_per_minute = docs_per_second * 60
 
-    print(f"\n=== Entropy Calculation Performance ===")
+    print("\n=== Entropy Calculation Performance ===")
     print(f"Average time per document: {avg_time*1000:.2f}ms")
     print(f"Maximum time: {max_time*1000:.2f}ms")
     print(f"Documents per second: {docs_per_second:.0f}")
     print(f"Documents per minute: {docs_per_minute:.0f}")
-    print(f"Target: 248,000 docs/min")
+    print("Target: 248,000 docs/min")
     print(f"Performance ratio: {(docs_per_minute/248000)*100:.1f}%")
 
     # Assert reasonable performance (allow 10x slower than target for single-threaded)
@@ -111,7 +111,7 @@ def test_optimization_performance_with_security():
     of the MIAIR optimization engine with security features enabled. The document
     contains multiple paragraphs and varied vocabulary to provide a realistic
     test scenario for entropy calculation and iterative refinement.
-    
+
     The security features include input validation, content sanitization,
     prompt injection prevention, and secure caching with encryption. All these
     features should work together without significantly impacting performance.
@@ -122,7 +122,7 @@ def test_optimization_performance_with_security():
     result = engine.optimize(document, max_iterations=3)
     duration = time.time() - start
 
-    print(f"\n=== Optimization Performance ===")
+    print("\n=== Optimization Performance ===")
     print(f"Iterations completed: {result.iterations}")
     print(f"Quality improvement: {result.improvement_percentage:.1f}%")
     print(f"Total time: {duration:.2f}s")
@@ -151,7 +151,7 @@ def test_secure_cache_performance():
 
     # Read performance (all hits)
     start = time.time()
-    for key in test_data.keys():
+    for key in test_data:
         value = cache.get(key)
         assert value is not None
     read_duration = time.time() - start
@@ -160,7 +160,7 @@ def test_secure_cache_performance():
     writes_per_second = len(test_data) / write_duration
     reads_per_second = len(test_data) / read_duration
 
-    print(f"\n=== Secure Cache Performance ===")
+    print("\n=== Secure Cache Performance ===")
     print(f"Write time for 100 entries: {write_duration:.3f}s")
     print(f"Read time for 100 entries: {read_duration:.3f}s")
     print(f"Writes per second: {writes_per_second:.0f}")
@@ -206,7 +206,7 @@ def test_batch_processing_performance():
 
     docs_per_second = len(documents) / duration
 
-    print(f"\n=== Batch Processing Performance ===")
+    print("\n=== Batch Processing Performance ===")
     print(f"Documents processed: {len(documents)}")
     print(f"Total time: {duration:.3f}s")
     print(f"Documents per second: {docs_per_second:.0f}")

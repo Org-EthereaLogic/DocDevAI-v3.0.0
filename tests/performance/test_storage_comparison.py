@@ -3,21 +3,21 @@ Performance Comparison Test - Original vs Optimized Storage
 Measures improvement between Pass 1 and Pass 2 implementations
 """
 
-import sys
-import time
-import tempfile
 import os
-from pathlib import Path
 import statistics
-from typing import Dict, Any, List
+import sys
+import tempfile
+import time
+from pathlib import Path
+from typing import Dict, List
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
+from devdocai.core.config import ConfigurationManager
+from devdocai.core.storage import Document
 from devdocai.core.storage import StorageManager as OriginalStorage
 from devdocai.core.storage_optimized import StorageManager as OptimizedStorage
-from devdocai.core.storage import Document
-from devdocai.core.config import ConfigurationManager
 
 
 class PerformanceComparison:

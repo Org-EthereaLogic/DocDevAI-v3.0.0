@@ -54,11 +54,11 @@ case $choice in
     2)
         echo "Available provider tests:"
         echo "  - test_real_openai_api_call"
-        echo "  - test_real_anthropic_api_call" 
+        echo "  - test_real_anthropic_api_call"
         echo "  - test_real_google_api_call"
         echo ""
         read -p "Enter test name (or press Enter for all): " test_name
-        
+
         if [ -z "$test_name" ]; then
             REAL_API_TESTING=1 python -m pytest tests/integration/test_real_api.py::TestRealAPIIntegration -v
         else

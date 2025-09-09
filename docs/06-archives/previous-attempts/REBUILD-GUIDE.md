@@ -477,36 +477,36 @@ jobs:
   test:
     name: Test and Build
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
         node-version: [18.x, 20.x]
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-          
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Run linting
         run: npm run lint
-        
+
       - name: Run type checking
         run: npm run typecheck
-        
+
       - name: Run tests with coverage
         run: npm run test:ci
-        
+
       - name: Build project
         run: npm run build
-        
+
       - name: Upload coverage to Codacy
         if: matrix.node-version == '20.x'
         uses: codacy/codacy-coverage-reporter-action@v1
@@ -532,7 +532,7 @@ jobs:
   codacy-analysis:
     name: Codacy Security Scan
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

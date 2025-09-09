@@ -15,7 +15,7 @@ coverage.xml
 htmlcov/
 .pytest_cache/
 
-# Development files  
+# Development files
 .DS_Store
 *.log
 .devdocai.key

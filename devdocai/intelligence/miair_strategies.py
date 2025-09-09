@@ -6,9 +6,9 @@ Provides pluggable optimization strategies for the MIAIR Engine.
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any, Dict, Optional
 
 
 @dataclass
@@ -46,9 +46,7 @@ class OptimizationStrategy(ABC):
     """Abstract base class for optimization strategies."""
 
     @abstractmethod
-    def build_refinement_prompt(
-        self, document: str, metrics: Optional[DocumentMetrics]
-    ) -> str:
+    def build_refinement_prompt(self, document: str, metrics: Optional[DocumentMetrics]) -> str:
         """Build refinement prompt for LLM."""
         pass
 
@@ -60,9 +58,7 @@ class OptimizationStrategy(ABC):
         pass
 
     @abstractmethod
-    def is_improvement(
-        self, current: DocumentMetrics, refined: DocumentMetrics
-    ) -> bool:
+    def is_improvement(self, current: DocumentMetrics, refined: DocumentMetrics) -> bool:
         """Check if refinement is an improvement."""
         pass
 
@@ -70,9 +66,7 @@ class OptimizationStrategy(ABC):
 class EntropyOptimizationStrategy(OptimizationStrategy):
     """Strategy focused on entropy reduction."""
 
-    def build_refinement_prompt(
-        self, document: str, metrics: Optional[DocumentMetrics]
-    ) -> str:
+    def build_refinement_prompt(self, document: str, metrics: Optional[DocumentMetrics]) -> str:
         """Build entropy-focused refinement prompt."""
         prompt_parts = [
             "Improve this document by reducing information entropy while maintaining meaning.",
@@ -91,9 +85,7 @@ class EntropyOptimizationStrategy(OptimizationStrategy):
         target_entropy = config.get("target_entropy", 0.15)
         return iteration < max_iterations and metrics.entropy > target_entropy
 
-    def is_improvement(
-        self, current: DocumentMetrics, refined: DocumentMetrics
-    ) -> bool:
+    def is_improvement(self, current: DocumentMetrics, refined: DocumentMetrics) -> bool:
         """Improvement if entropy decreases."""
         return refined.entropy < current.entropy
 
@@ -101,9 +93,7 @@ class EntropyOptimizationStrategy(OptimizationStrategy):
 class QualityOptimizationStrategy(OptimizationStrategy):
     """Strategy focused on overall quality improvement."""
 
-    def build_refinement_prompt(
-        self, document: str, metrics: Optional[DocumentMetrics]
-    ) -> str:
+    def build_refinement_prompt(self, document: str, metrics: Optional[DocumentMetrics]) -> str:
         """Build quality-focused refinement prompt."""
         prompt_parts = [
             "Enhance this document for professional quality and clarity.",
@@ -122,9 +112,7 @@ class QualityOptimizationStrategy(OptimizationStrategy):
         quality_gate = config.get("quality_gate", 85)
         return iteration < max_iterations and metrics.quality_score < quality_gate
 
-    def is_improvement(
-        self, current: DocumentMetrics, refined: DocumentMetrics
-    ) -> bool:
+    def is_improvement(self, current: DocumentMetrics, refined: DocumentMetrics) -> bool:
         """Improvement if quality increases."""
         return refined.quality_score > current.quality_score
 
@@ -132,9 +120,7 @@ class QualityOptimizationStrategy(OptimizationStrategy):
 class PerformanceOptimizationStrategy(OptimizationStrategy):
     """Strategy optimized for speed with acceptable quality."""
 
-    def build_refinement_prompt(
-        self, document: str, metrics: Optional[DocumentMetrics]
-    ) -> str:
+    def build_refinement_prompt(self, document: str, metrics: Optional[DocumentMetrics]) -> str:
         """Build minimal refinement prompt for speed."""
         # Truncate document for faster processing
         truncated = document[:2000] if len(document) > 2000 else document
@@ -147,9 +133,7 @@ class PerformanceOptimizationStrategy(OptimizationStrategy):
         max_iterations = min(3, config.get("max_iterations", 7))
         return iteration < max_iterations
 
-    def is_improvement(
-        self, current: DocumentMetrics, refined: DocumentMetrics
-    ) -> bool:
+    def is_improvement(self, current: DocumentMetrics, refined: DocumentMetrics) -> bool:
         """Any positive change is improvement."""
         return (
             refined.quality_score > current.quality_score
@@ -167,9 +151,7 @@ class AdaptiveStrategy(OptimizationStrategy):
         self.quality_strategy = QualityOptimizationStrategy()
         self.performance_strategy = PerformanceOptimizationStrategy()
 
-    def _select_strategy(
-        self, metrics: Optional[DocumentMetrics]
-    ) -> OptimizationStrategy:
+    def _select_strategy(self, metrics: Optional[DocumentMetrics]) -> OptimizationStrategy:
         """Select appropriate strategy based on metrics."""
         if not metrics:
             return self.quality_strategy
@@ -185,9 +167,7 @@ class AdaptiveStrategy(OptimizationStrategy):
         # Default to performance for good documents
         return self.performance_strategy
 
-    def build_refinement_prompt(
-        self, document: str, metrics: Optional[DocumentMetrics]
-    ) -> str:
+    def build_refinement_prompt(self, document: str, metrics: Optional[DocumentMetrics]) -> str:
         """Build prompt using selected strategy."""
         strategy = self._select_strategy(metrics)
         return strategy.build_refinement_prompt(document, metrics)
@@ -199,9 +179,7 @@ class AdaptiveStrategy(OptimizationStrategy):
         strategy = self._select_strategy(metrics)
         return strategy.should_continue(metrics, iteration, config)
 
-    def is_improvement(
-        self, current: DocumentMetrics, refined: DocumentMetrics
-    ) -> bool:
+    def is_improvement(self, current: DocumentMetrics, refined: DocumentMetrics) -> bool:
         """Check improvement using selected strategy."""
         strategy = self._select_strategy(current)
         return strategy.is_improvement(current, refined)
@@ -231,7 +209,5 @@ def get_strategy(name: str = "quality") -> OptimizationStrategy:
     """
     strategy_class = STRATEGY_REGISTRY.get(name)
     if not strategy_class:
-        raise ValueError(
-            f"Unknown strategy: {name}. Available: {list(STRATEGY_REGISTRY.keys())}"
-        )
+        raise ValueError(f"Unknown strategy: {name}. Available: {list(STRATEGY_REGISTRY.keys())}")
     return strategy_class()

@@ -3,33 +3,27 @@ Unit Tests for M008 LLM Adapter
 DevDocAI v3.0.0 - Pass 1: Enhanced TDD with 85% coverage target
 """
 
-import unittest
-from unittest.mock import Mock, patch, MagicMock, call
-from datetime import datetime, timedelta
-import json
-import os
-import tempfile
-from pathlib import Path
 import time
+import unittest
+from unittest.mock import Mock, patch
 
 import pytest
 
-from devdocai.intelligence.llm_adapter import (
-    LLMAdapter,
-    CostManager,
-    ResponseCache,
-    Provider,
-    ClaudeProvider,
-    OpenAIProvider,
-    GeminiProvider,
-    LocalProvider,
-    LLMResponse,
-    ProviderError,
-    BudgetExceededError,
-    APITimeoutError,
-)
 from devdocai.core.config import ConfigurationManager
 from devdocai.core.models import LLMConfig
+from devdocai.intelligence.llm_adapter import (
+    APITimeoutError,
+    BudgetExceededError,
+    ClaudeProvider,
+    CostManager,
+    GeminiProvider,
+    LLMAdapter,
+    LLMResponse,
+    LocalProvider,
+    OpenAIProvider,
+    ProviderError,
+    ResponseCache,
+)
 
 
 class TestProvider(unittest.TestCase):

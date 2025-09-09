@@ -5,14 +5,14 @@ DevDocAI v3.0.0
 Type definitions for the Review Engine module.
 """
 
-from enum import Enum, auto
 from dataclasses import dataclass, field
-from typing import Dict, Any, List, Optional, Set
-from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 
 class ReviewType(Enum):
     """Types of document reviews available."""
+
     REQUIREMENTS = "requirements"
     DESIGN = "design"
     SECURITY = "security"
@@ -25,6 +25,7 @@ class ReviewType(Enum):
 
 class SeverityLevel(Enum):
     """Severity levels for issues found during review."""
+
     CRITICAL = "critical"
     HIGH = "high"
     MEDIUM = "medium"
@@ -34,6 +35,7 @@ class SeverityLevel(Enum):
 
 class ComplianceStandard(Enum):
     """Compliance standards for checking."""
+
     GDPR = "gdpr"
     HIPAA = "hipaa"
     PCI_DSS = "pci_dss"
@@ -44,6 +46,7 @@ class ComplianceStandard(Enum):
 
 class PIIType(Enum):
     """Types of PII that can be detected."""
+
     EMAIL = "email"
     PHONE = "phone"
     SSN = "ssn"
@@ -58,6 +61,7 @@ class PIIType(Enum):
 
 class SecurityVulnerability(Enum):
     """Types of security vulnerabilities."""
+
     EXPOSED_CREDENTIAL = "exposed_credential"
     WEAK_PASSWORD = "weak_password"
     HARDCODED_SECRET = "hardcoded_secret"
@@ -80,6 +84,7 @@ class SecurityVulnerability(Enum):
 @dataclass
 class ReviewConfig:
     """Configuration for document review."""
+
     review_types: List[ReviewType] = field(default_factory=lambda: list(ReviewType))
     quality_threshold: float = 0.85
     pii_detection_enabled: bool = True
@@ -94,6 +99,7 @@ class ReviewConfig:
 @dataclass
 class PIIPattern:
     """Pattern definition for PII detection."""
+
     pii_type: PIIType
     pattern: str
     description: str
@@ -103,6 +109,7 @@ class PIIPattern:
 @dataclass
 class PIIMatch:
     """A matched PII item in document."""
+
     pii_type: PIIType
     value: str
     # Use string location for flexibility (e.g., "Position 10-20" or "Line 12")
@@ -116,6 +123,7 @@ class PIIMatch:
 @dataclass
 class SecurityIssue:
     """Security issue found during review."""
+
     vulnerability_type: SecurityVulnerability
     severity: SeverityLevel
     description: str
@@ -128,6 +136,7 @@ class SecurityIssue:
 @dataclass
 class RequirementIssue:
     """Issue found in requirements review."""
+
     issue_type: str  # "ambiguous", "incomplete", "conflicting", etc.
     description: str
     location: str
@@ -138,6 +147,7 @@ class RequirementIssue:
 @dataclass
 class PerformanceMetric:
     """Performance metric found in document."""
+
     metric_name: str
     value: Any
     unit: str
@@ -148,22 +158,23 @@ class PerformanceMetric:
 @dataclass
 class QualityMetrics:
     """Quality metrics for document analysis."""
+
     efficiency_score: float = 0.0
     completeness_score: float = 0.0
     readability_score: float = 0.0
     overall_score: float = 0.0
-    
+
     # Weights for quality formula
     efficiency_weight: float = 0.35
     completeness_weight: float = 0.35
     readability_weight: float = 0.30
-    
+
     def calculate_overall(self) -> float:
         """Calculate overall score using formula Q = 0.35×E + 0.35×C + 0.30×R."""
         self.overall_score = (
-            self.efficiency_weight * self.efficiency_score +
-            self.completeness_weight * self.completeness_score +
-            self.readability_weight * self.readability_score
+            self.efficiency_weight * self.efficiency_score
+            + self.completeness_weight * self.completeness_score
+            + self.readability_weight * self.readability_score
         )
         return self.overall_score
 
@@ -171,6 +182,7 @@ class QualityMetrics:
 @dataclass
 class ReviewResult:
     """Result from a specific reviewer."""
+
     review_type: ReviewType
     score: float
     issues: List[Any] = field(default_factory=list)

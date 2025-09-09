@@ -7,7 +7,7 @@ This document explains DevDocAI's intelligent quality gates system that adapts v
 The quality gates system provides three tiers of validation:
 
 1. **Documentation-Only**: Fast validation for documentation changes
-2. **Work-in-Progress**: Relaxed validation for development modules  
+2. **Work-in-Progress**: Relaxed validation for development modules
 3. **Production Code**: Full validation for completed modules
 
 ## Smart Pre-Commit Hooks
@@ -56,7 +56,7 @@ git commit -m "feat(M002): add database connection service"
 # Allows TypeScript errors during development
 ```
 
-#### 🔧 Production Code Commits  
+#### 🔧 Production Code Commits
 
 **Triggers**: Changes to M001 (completed modules) or non-WIP source code
 **Validation**:
@@ -111,7 +111,7 @@ npm run quality:check:docs     # Fast validation for docs
 npm run prettier:check         # Check all file formatting
 ```
 
-### Work-in-Progress Validation  
+### Work-in-Progress Validation
 
 ```bash
 npm run quality:check:wip      # Relaxed validation for WIP modules
@@ -258,7 +258,7 @@ git push --no-verify     # Emergency only - bypasses pre-push
 - Expected for WIP modules in feature branches
 - Fix errors before merging to develop/main
 
-**"Pre-commit hooks taking too long"**  
+**"Pre-commit hooks taking too long"**
 
 - Check if you're committing large source changes
 - Use `./scripts/validation-helper.sh` to verify detection

@@ -40,7 +40,7 @@ Regulatory compliance documentation and audit trails.
          /\
         /E2E\        5% - End-to-end tests
        /------\
-      /  Integ  \    15% - Integration tests  
+      /  Integ  \    15% - Integration tests
      /----------\
     /    Unit     \  80% - Unit tests
    /--------------\

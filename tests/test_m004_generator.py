@@ -6,34 +6,31 @@ Test Coverage Target: 80%
 Test Strategy: Unit tests for each component, integration tests with M001/M002/M008
 """
 
-import pytest
 import asyncio
-import json
-import yaml
-from pathlib import Path
-from typing import Dict, Any, Optional
-from unittest.mock import Mock, AsyncMock, patch, MagicMock
-from datetime import datetime
 
 # Import modules to test (will be implemented after tests)
 import sys
+from datetime import datetime
+from pathlib import Path
+from unittest.mock import Mock
+
+import pytest
+import yaml
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from devdocai.core.generator import (
-    DocumentGenerator,
-    TemplateManager,
-    ContextBuilder,
-    PromptEngine,
-    DocumentValidator,
-    DocumentGenerationError,
-    TemplateNotFoundError,
-    QualityValidationError,
-)
 from devdocai.core.config import ConfigurationManager
-from devdocai.core.storage import StorageManager, Document
+from devdocai.core.generator import (
+    ContextBuilder,
+    DocumentGenerationError,
+    DocumentGenerator,
+    DocumentValidator,
+    PromptEngine,
+    TemplateManager,
+    TemplateNotFoundError,
+)
+from devdocai.core.storage import Document, StorageManager
 from devdocai.intelligence.llm_adapter import LLMAdapter, LLMResponse
-
 
 # ============================================================================
 # Fixtures
@@ -429,14 +426,14 @@ class TestDocumentValidator:
 
         document = """
         # DevDocAI Documentation
-        
+
         ## Description
         This is a comprehensive documentation for the DevDocAI project.
         It includes all necessary sections and information.
-        
+
         ## Installation
         pip install devdocai
-        
+
         ## Usage
         devdocai generate --type readme
         """
@@ -484,16 +481,16 @@ class TestDocumentValidator:
 
         document = """
         # Complete Documentation
-        
+
         ## Overview
         Detailed overview with proper grammar and structure.
-        
+
         ## Installation
         Step-by-step installation guide.
-        
+
         ## Usage
         Clear usage examples with code snippets.
-        
+
         ## API Reference
         Comprehensive API documentation.
         """

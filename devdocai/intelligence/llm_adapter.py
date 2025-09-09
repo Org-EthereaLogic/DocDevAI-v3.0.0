@@ -3,24 +3,23 @@ M008 LLM Adapter - Multi-Provider AI Intelligence Layer
 DevDocAI v3.0.0 - Pass 4: Refactoring & Integration
 """
 
-import re
-import os
-import time
+import concurrent.futures
 import hashlib
 import hmac
 import json
 import logging
-import asyncio
-import concurrent.futures
+import os
+import re
 import secrets
+import threading
+import time
 import uuid
 from abc import ABC, abstractmethod
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple, Union, Protocol
-from dataclasses import dataclass, field
 from collections import OrderedDict, deque
-import threading
+from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
 
 # Third-party imports (will be mocked in tests)
 try:
@@ -1208,7 +1207,7 @@ class LLMAdapter:
 
         # Budget check
         if provider in self.providers:
-            estimated_tokens = kwargs.get("estimated_tokens", None)
+            estimated_tokens = kwargs.get("estimated_tokens")
             if estimated_tokens is None:
                 estimated_tokens = len(prompt.split()) * 2 + kwargs.get("max_tokens", 1000)
             provider_obj = self.providers[provider]
@@ -1241,7 +1240,7 @@ class LLMAdapter:
         for provider_name in providers_to_try:
             # Check timeout
             if time.time() - start_time > timeout:
-                logger.warning(f"Timeout reached, using local provider")
+                logger.warning("Timeout reached, using local provider")
                 provider_name = "local"
 
             if provider_name not in self.providers:

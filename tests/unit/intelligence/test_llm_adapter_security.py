@@ -4,42 +4,36 @@ DevDocAI v3.0.0 - Security Hardening Tests for 95% coverage
 Tests rate limiting, request signing, audit logging, and enhanced PII detection
 """
 
-import unittest
-from unittest.mock import Mock, patch, MagicMock, call
-from datetime import datetime, timedelta
 import json
-import time
-import hmac
-import hashlib
-import secrets
-import threading
 import logging
+import threading
+import time
+import unittest
+from datetime import datetime, timedelta
 from io import StringIO
+from unittest.mock import Mock, patch
 
 import pytest
 
-from devdocai.intelligence.llm_adapter import (
-    LLMAdapter,
-    RateLimiter,
-    RequestSigner,
-    AuditLogger,
-    SecurityEvent,
-    RateLimitExceededError,
-    RequestSignatureError,
-    LLMResponse,
-    ProviderError,
-    # Import PII patterns for testing
+from devdocai.core.config import ConfigurationManager
+from devdocai.intelligence.llm_adapter import (  # Import PII patterns for testing
+    _API_KEY_PATTERN,
+    _AWS_KEY_PATTERN,
+    _CREDIT_CARD_PATTERN,
     _EMAIL_PATTERN,
+    _GITHUB_TOKEN_PATTERN,
+    _IP_ADDRESS_PATTERN,
     _PHONE_PATTERN,
     _SSN_PATTERN,
-    _API_KEY_PATTERN,
-    _CREDIT_CARD_PATTERN,
-    _IP_ADDRESS_PATTERN,
-    _PASSPORT_PATTERN,
-    _AWS_KEY_PATTERN,
-    _GITHUB_TOKEN_PATTERN,
+    AuditLogger,
+    LLMAdapter,
+    LLMResponse,
+    RateLimiter,
+    RateLimitExceededError,
+    RequestSignatureError,
+    RequestSigner,
+    SecurityEvent,
 )
-from devdocai.core.config import ConfigurationManager
 
 
 class TestRateLimiter(unittest.TestCase):

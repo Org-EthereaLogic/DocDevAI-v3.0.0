@@ -5,18 +5,19 @@ DevDocAI v3.0.0 - Pass 2: Performance Optimization Validation
 Target: 248K documents/minute (4,133 docs/sec)
 """
 
-import time
-import pytest
-import numpy as np
 import asyncio
-import psutil
 import gc
-from unittest.mock import Mock, MagicMock
+import time
+from unittest.mock import Mock
 
-from devdocai.intelligence.miair import MIAIREngine, DocumentMetrics, OptimizationResult
+import numpy as np
+import psutil
+import pytest
+
 from devdocai.core.config import ConfigurationManager
-from devdocai.intelligence.llm_adapter import LLMAdapter, LLMResponse
 from devdocai.core.storage import StorageManager
+from devdocai.intelligence.llm_adapter import LLMAdapter, LLMResponse
+from devdocai.intelligence.miair import MIAIREngine, OptimizationResult
 
 
 class TestOptimizedPerformance:
@@ -72,7 +73,7 @@ class TestOptimizedPerformance:
         docs = []
         for i in range(1000):  # Generate 1000 documents
             doc = f"""
-            Document {i}: This is a comprehensive technical document that covers various aspects 
+            Document {i}: This is a comprehensive technical document that covers various aspects
             of software engineering and system architecture. The content includes detailed analysis
             of performance optimization techniques, security considerations, and best practices.
             Each section provides coverage of topics with examples and guidelines.
@@ -102,7 +103,7 @@ class TestOptimizedPerformance:
         entropy2 = engine.calculate_entropy(doc)
         cached_time = time.perf_counter() - start
 
-        print(f"\n=== Vectorized Entropy with Caching ===")
+        print("\n=== Vectorized Entropy with Caching ===")
         print(f"First call: {first_time*1000:.3f}ms")
         print(f"Cached call: {cached_time*1000:.3f}ms")
         print(f"Cache speedup: {first_time/cached_time:.1f}x")
@@ -118,7 +119,7 @@ class TestOptimizedPerformance:
         docs_per_second = len(documents) / batch_time
         docs_per_minute = docs_per_second * 60
 
-        print(f"\n=== Batch Entropy Calculation ===")
+        print("\n=== Batch Entropy Calculation ===")
         print(f"Documents: {len(documents)}")
         print(f"Total time: {batch_time:.3f}s")
         print(f"Throughput: {docs_per_second:.0f} docs/sec")
@@ -149,7 +150,7 @@ class TestOptimizedPerformance:
             cache_hits / (cache_hits + cache_misses) if (cache_hits + cache_misses) > 0 else 0
         )
 
-        print(f"\n=== Cache Effectiveness ===")
+        print("\n=== Cache Effectiveness ===")
         print(f"Documents processed: {len(documents)}")
         print(f"Unique documents: {len(unique_docs)}")
         print(f"Cache hits: {cache_hits}")
@@ -174,11 +175,11 @@ class TestOptimizedPerformance:
 
         docs_per_minute = (len(documents) / batch_time) * 60
 
-        print(f"\n=== Batch Optimization Performance ===")
+        print("\n=== Batch Optimization Performance ===")
         print(f"Documents: {len(documents)}")
         print(f"Total time: {batch_time:.2f}s")
         print(f"Throughput: {docs_per_minute:.0f} docs/minute")
-        print(f"Target: 248,000 docs/minute")
+        print("Target: 248,000 docs/minute")
         print(f"Achievement: {(docs_per_minute / 248000) * 100:.2f}%")
 
         assert len(results) == len(documents)
@@ -207,7 +208,7 @@ class TestOptimizedPerformance:
 
         speedup = sequential_time / batch_time if batch_time > 0 else 0
 
-        print(f"\n=== Parallel vs Sequential Speedup ===")
+        print("\n=== Parallel vs Sequential Speedup ===")
         print(f"Documents: {len(documents)}")
         print(f"Sequential time: {sequential_time:.2f}s")
         print(f"Batch time: {batch_time:.2f}s")
@@ -222,7 +223,7 @@ class TestOptimizedPerformance:
         # Log performance characteristics for information
         if speedup < 1.0:
             print(
-                f"Note: Parallel overhead exceeded benefit for fast operations (expected with mock LLM)"
+                "Note: Parallel overhead exceeded benefit for fast operations (expected with mock LLM)"
             )
 
     # ========================================================================
@@ -240,7 +241,7 @@ class TestOptimizedPerformance:
 
         docs_per_minute = (len(documents) / async_time) * 60
 
-        print(f"\n=== Async Optimization Performance ===")
+        print("\n=== Async Optimization Performance ===")
         print(f"Documents: {len(documents)}")
         print(f"Total time: {async_time:.2f}s")
         print(f"Throughput: {docs_per_minute:.0f} docs/minute")
@@ -259,7 +260,7 @@ class TestOptimizedPerformance:
         results = await asyncio.gather(*tasks)
         concurrent_time = time.perf_counter() - start
 
-        print(f"\n=== Async Concurrency Test ===")
+        print("\n=== Async Concurrency Test ===")
         print(f"Documents: {len(documents)}")
         print(f"Concurrent time: {concurrent_time:.2f}s")
         print(f"Avg time per doc: {concurrent_time/len(documents):.3f}s")
@@ -290,7 +291,7 @@ class TestOptimizedPerformance:
         memory_increase = peak_memory - initial_memory
         memory_per_doc = memory_increase / len(documents)
 
-        print(f"\n=== Memory Efficiency Test ===")
+        print("\n=== Memory Efficiency Test ===")
         print(f"Documents: {len(documents)}")
         print(f"Initial memory: {initial_memory:.1f} MB")
         print(f"Peak memory: {peak_memory:.1f} MB")
@@ -322,9 +323,9 @@ class TestOptimizedPerformance:
         # Check final memory
         final_memory = process.memory_info().rss / 1024 / 1024
 
-        print(f"\n=== Memory Cleanup Test ===")
+        print("\n=== Memory Cleanup Test ===")
         print(f"Final memory after 3 iterations: {final_memory:.1f} MB")
-        print(f"Cache cleared between iterations")
+        print("Cache cleared between iterations")
 
         # Memory should not grow indefinitely
         assert final_memory < 500  # Reasonable upper bound
@@ -353,12 +354,12 @@ class TestOptimizedPerformance:
         docs_per_minute = docs_per_second * 60
         target_percentage = (docs_per_minute / 248000) * 100
 
-        print(f"\n=== TARGET ACHIEVEMENT TEST ===")
+        print("\n=== TARGET ACHIEVEMENT TEST ===")
         print(f"Documents processed: {len(documents)}")
         print(f"Time elapsed: {elapsed:.3f}s")
         print(f"Throughput: {docs_per_second:.0f} docs/sec")
         print(f"Throughput: {docs_per_minute:.0f} docs/minute")
-        print(f"Target: 248,000 docs/minute")
+        print("Target: 248,000 docs/minute")
         print(f"Achievement: {target_percentage:.1f}%")
 
         # With mock LLM, we should achieve high throughput
@@ -383,11 +384,11 @@ class TestOptimizedPerformance:
         elapsed = time.perf_counter() - start
         docs_per_minute = (documents_processed / elapsed) * 60
 
-        print(f"\n=== Sustained Performance Test ===")
+        print("\n=== Sustained Performance Test ===")
         print(f"Duration: {elapsed:.1f}s")
         print(f"Documents processed: {documents_processed}")
         print(f"Sustained throughput: {docs_per_minute:.0f} docs/minute")
-        print(f"Target: 248,000 docs/minute")
+        print("Target: 248,000 docs/minute")
         print(f"Achievement: {(docs_per_minute / 248000) * 100:.1f}%")
 
         # Should maintain consistent performance

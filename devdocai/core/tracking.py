@@ -16,34 +16,26 @@ Pass 4 Refactoring Achievement:
 """
 
 # Re-export everything from the refactored module for backward compatibility
-from .tracking_refactored import (
-    # Core classes
-    TrackingMatrix,
+from .tracking_refactored import (  # Module-level flags; Factory; Analysis strategies; Impact strategies; Enums; Exceptions; Core classes; Validation strategies
+    HAS_NETWORKX,
+    AnalysisFactory,
+    AnalysisStrategy,
+    BasicAnalysis,
+    BasicValidation,
+    BFSImpactAnalysis,
+    CircularReferenceError,
+    ConsistencyReport,
     DependencyGraph,
     DocumentRelationship,
     ImpactResult,
-    ConsistencyReport,
-    # Enums
-    RelationshipType,
-    # Exceptions
-    TrackingError,
-    CircularReferenceError,
-    # Factory
-    AnalysisFactory,
-    # Validation strategies
-    ValidationStrategy,
-    BasicValidation,
-    SecureValidation,
-    RateLimiter,
-    # Analysis strategies
-    AnalysisStrategy,
-    BasicAnalysis,
-    NetworkXAnalysis,
-    # Impact strategies
     ImpactStrategy,
-    BFSImpactAnalysis,
-    # Module-level flags
-    HAS_NETWORKX,
+    NetworkXAnalysis,
+    RateLimiter,
+    RelationshipType,
+    SecureValidation,
+    TrackingError,
+    TrackingMatrix,
+    ValidationStrategy,
 )
 
 __all__ = [

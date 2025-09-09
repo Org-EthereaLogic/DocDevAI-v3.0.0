@@ -24,7 +24,7 @@
 - **Key Optimization**: Vectorized NumPy operations
 
 #### Quality Measurement
-- **Performance**: 2,071,376 docs/minute  
+- **Performance**: 2,071,376 docs/minute
 - **Status**: Far exceeds requirements (8.4x target)
 - **Key Optimization**: Batch processing with compiled regex
 

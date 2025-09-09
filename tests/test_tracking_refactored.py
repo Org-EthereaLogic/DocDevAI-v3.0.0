@@ -2,28 +2,25 @@
 Ensures all functionality from Pass 1-3 is preserved.
 """
 
-import pytest
 import json
 import time
-from unittest.mock import Mock, MagicMock, patch
-from datetime import datetime
+from unittest.mock import Mock
+
+import pytest
 
 # Import both versions for compatibility testing
 from devdocai.core.tracking_refactored import (
-    TrackingMatrix,
-    RelationshipType,
-    DocumentRelationship,
+    AnalysisFactory,
+    BasicAnalysis,
+    BasicValidation,
+    BFSImpactAnalysis,
     CircularReferenceError,
-    TrackingError,
-    ImpactResult,
     ConsistencyReport,
     DependencyGraph,
-    AnalysisFactory,
-    BasicValidation,
+    ImpactResult,
+    RelationshipType,
     SecureValidation,
-    BasicAnalysis,
-    NetworkXAnalysis,
-    BFSImpactAnalysis,
+    TrackingMatrix,
 )
 
 

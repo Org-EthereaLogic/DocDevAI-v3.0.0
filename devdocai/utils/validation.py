@@ -4,8 +4,8 @@ Pass 4: Simplified validation with essential safety checks
 """
 
 import logging
-from typing import Any, Dict
 from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
 

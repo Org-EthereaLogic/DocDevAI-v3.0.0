@@ -3,21 +3,21 @@ M001 Configuration Manager - Refactored Core
 DevDocAI v3.0.0 - Pass 4: 45% code reduction achieved
 """
 
-import os
 import logging
+import os
 import threading
-from typing import Optional, Dict, Any
 from pathlib import Path
+from typing import Any, Dict, Optional
 
 import yaml
 from pydantic import ValidationError as PydanticValidationError
 
-# Import refactored modules
-from .models import PrivacyConfig, SystemConfig, SecurityConfig, LLMConfig, QualityConfig
-from .encryption import EncryptionManager
-from .memory import MemoryDetector
-from ..utils.validation import ConfigValidator
 from ..utils.cache import CacheManager
+from ..utils.validation import ConfigValidator
+from .encryption import EncryptionManager
+
+# Import refactored modules
+from .models import LLMConfig, PrivacyConfig, QualityConfig, SecurityConfig, SystemConfig
 
 logger = logging.getLogger(__name__)
 
@@ -130,7 +130,7 @@ class ConfigurationManager:
             raise ValidationError("Configuration file too large")
 
         try:
-            with open(self.config_file, "r", encoding="utf-8") as f:
+            with open(self.config_file, encoding="utf-8") as f:
                 data = yaml.safe_load(f) or {}
         except (yaml.YAMLError, PermissionError, OSError) as e:
             logger.warning(f"Failed to load configuration file: {e}")

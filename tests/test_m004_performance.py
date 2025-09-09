@@ -6,28 +6,15 @@ Validates performance improvements and benchmarks against design targets.
 Target: 248,000 documents per minute (4,133 docs/second)
 """
 
-import asyncio
-import time
-import tempfile
 import shutil
+import tempfile
+import time
 from pathlib import Path
-from typing import Dict, Any, List
+
 import pytest
-import json
-import yaml
 
 from devdocai.core.config import ConfigurationManager
-from devdocai.core.generator import (
-    DocumentGenerator,
-    ResponseCache,
-    ContextCache,
-    BatchProcessor,
-    BatchRequest,
-    PerformanceMonitor,
-)
-from devdocai.core.storage import StorageManager
-from devdocai.intelligence.llm_adapter import LLMAdapter
-
+from devdocai.core.generator import BatchRequest, ContextCache, DocumentGenerator, ResponseCache
 
 # ============================================================================
 # Performance Test Fixtures
@@ -153,7 +140,7 @@ class TestCachePerformance:
         assert hit_rate > 0.95, f"Cache hit rate too low: {hit_rate:.2%}"
 
         # Print performance metrics
-        print(f"\\nCache Performance:")
+        print("\\nCache Performance:")
         print(f"  Writes: {writes_per_second:.1f}/s")
         print(f"  Reads: {reads_per_second:.1f}/s")
         print(f"  Hit Rate: {hit_rate:.2%}")
@@ -233,7 +220,7 @@ class TestParallelProcessing:
 
         assert success_rate > 0.95, f"Success rate too low: {success_rate:.2%}"
 
-        print(f"\\nBatch Processing Performance:")
+        print("\\nBatch Processing Performance:")
         print(f"  Documents: {batch_size}")
         print(f"  Time: {batch_time:.2f}s")
         print(f"  Throughput: {docs_per_second:.1f} docs/s")
@@ -270,7 +257,7 @@ class TestParallelProcessing:
 
         speedup = seq_time / par_time
 
-        print(f"\\nParallel Section Generation:")
+        print("\\nParallel Section Generation:")
         print(f"  Sequential: {seq_time:.2f}s")
         print(f"  Parallel: {par_time:.2f}s")
         print(f"  Speedup: {speedup:.1f}x")
@@ -490,7 +477,7 @@ async def test_performance_report(generator_performance, sample_project):
     actual_per_minute = final_stats["documents_per_minute"]
     percentage = (actual_per_minute / target_per_minute) * 100
 
-    print(f"\\nPerformance vs Target:")
+    print("\\nPerformance vs Target:")
     print(f"  Target: {target_per_minute:,} docs/min")
     print(f"  Actual: {actual_per_minute:.0f} docs/min")
     print(f"  Achievement: {percentage:.2f}%")

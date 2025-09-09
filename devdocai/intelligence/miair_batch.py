@@ -8,8 +8,8 @@ Provides efficient batch processing capabilities for the MIAIR Engine.
 import asyncio
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import List, Optional, Callable, Any
 from dataclasses import dataclass
+from typing import Any, Callable, List, Optional
 
 from .miair_strategies import DocumentMetrics
 
@@ -40,9 +40,7 @@ class OptimizationResult:
             "improvement_percentage": self.improvement_percentage,
             "optimization_time": self.optimization_time,
             "storage_id": self.storage_id,
-            "initial_metrics": (
-                self.initial_metrics.to_dict() if self.initial_metrics else None
-            ),
+            "initial_metrics": (self.initial_metrics.to_dict() if self.initial_metrics else None),
             "final_metrics": self.final_metrics.to_dict(),
         }
 
@@ -94,13 +92,10 @@ class BatchOptimizer:
             batch = documents[batch_start:batch_end]
 
             logger.info(
-                f"Processing batch {batch_start//self.batch_size + 1} "
-                f"({len(batch)} documents)"
+                f"Processing batch {batch_start//self.batch_size + 1} " f"({len(batch)} documents)"
             )
 
-            batch_results = self._process_single_batch(
-                batch, max_iterations, save_to_storage
-            )
+            batch_results = self._process_single_batch(batch, max_iterations, save_to_storage)
             results.extend(batch_results)
 
         return results
@@ -115,9 +110,7 @@ class BatchOptimizer:
         futures = []
 
         for doc in batch:
-            future = self._executor.submit(
-                self.optimize_func, doc, max_iterations, save_to_storage
-            )
+            future = self._executor.submit(self.optimize_func, doc, max_iterations, save_to_storage)
             futures.append(future)
 
         results = []
@@ -167,17 +160,13 @@ class BatchOptimizer:
         for i, result in enumerate(results):
             if isinstance(result, Exception):
                 logger.error(f"Async optimization failed: {result}")
-                clean_results.append(
-                    self._create_error_result(str(result), documents[i])
-                )
+                clean_results.append(self._create_error_result(str(result), documents[i]))
             else:
                 clean_results.append(result)
 
         return clean_results
 
-    def _create_error_result(
-        self, error_msg: str, document: str = ""
-    ) -> OptimizationResult:
+    def _create_error_result(self, error_msg: str, document: str = "") -> OptimizationResult:
         """Create placeholder result for failed optimization."""
         return OptimizationResult(
             initial_content=document[:100] if document else "",

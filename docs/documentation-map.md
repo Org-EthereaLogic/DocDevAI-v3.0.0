@@ -13,31 +13,31 @@ graph TD
     A --> F[04-reference]
     A --> G[05-quality]
     A --> H[06-archives]
-    
+
     C --> C1[PRD]
     C --> C2[Architecture]
     C --> C3[SRS]
     C --> C4[API Spec]
-    
+
     C1 --> C3
     C2 --> C4
     C3 --> D1[Planning]
-    
+
     D --> D1[Planning]
     D --> D2[Decisions]
     D1 --> D3[Roadmap]
-    
+
     E --> E1[User Guides]
     E --> E2[Dev Guides]
     E --> E3[Deploy Guides]
-    
+
     C3 --> E1
     C2 --> E2
     D2 --> E2
-    
+
     G --> G1[Test Plan]
     C3 --> G1
-    
+
     style A fill:#f9f,stroke:#333,stroke-width:4px
     style C fill:#bbf,stroke:#333,stroke-width:2px
     style D fill:#bfb,stroke:#333,stroke-width:2px

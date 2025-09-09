@@ -40,16 +40,16 @@ core:
   project_name: string
   version: semver
   output_dir: path
-  
+
 ai:
   provider: openai|anthropic|local
   model: string
   temperature: 0.0-1.0
-  
+
 storage:
   encryption: boolean
   path: path
-  
+
 quality:
   min_score: 0-100
   auto_enhance: boolean

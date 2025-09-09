@@ -13,24 +13,21 @@ Performance Optimizations:
 7. Memory-mapped I/O for large documents
 """
 
-import sqlite3
-import json
 import hashlib
 import hmac
-import secrets
-import base64
+import json
 import logging
+import secrets
+import sqlite3
 import threading
-import time
-from typing import Optional, Dict, Any, List, Union, Tuple
-from pathlib import Path
-from datetime import datetime
-from contextlib import contextmanager
-from dataclasses import dataclass, field, asdict
-from queue import Queue, Empty
-from functools import lru_cache
 from collections import OrderedDict
-import pickle
+from contextlib import contextmanager
+from dataclasses import asdict, dataclass, field
+from datetime import datetime
+from functools import lru_cache
+from pathlib import Path
+from queue import Empty, Queue
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
@@ -673,7 +670,7 @@ class StorageManager:
                 DELETE FROM documents WHERE id = ?
             """,
             "update_document": """
-                UPDATE documents 
+                UPDATE documents
                 SET encrypted_content = ?, iv = ?, hmac = ?, updated_at = ?, version = version + 1
                 WHERE id = ?
             """,
@@ -1135,16 +1132,16 @@ class StorageManager:
         # Transaction nesting via SAVEPOINTs
         try:
             level = getattr(self._txn_state, "level", 0)
-            setattr(self._txn_state, "active", True)
-            setattr(self._txn_state, "level", level + 1)
+            self._txn_state.active = True
+            self._txn_state.level = level + 1
             # Pin connection for this thread
             self._pool._thread_connections.conn = conn
 
             if level == 0:
                 # Outermost transaction: switch to explicit transaction mode
                 old_iso = conn.isolation_level
-                setattr(self._txn_state, "old_iso", old_iso)
-                setattr(self._txn_state, "created", [])
+                self._txn_state.old_iso = old_iso
+                self._txn_state.created = []
                 conn.isolation_level = "IMMEDIATE"
                 cursor.execute("BEGIN IMMEDIATE")
                 try:
@@ -1192,9 +1189,9 @@ class StorageManager:
             # Decrement/clear txn state and return connection
             level = getattr(self._txn_state, "level", 1)
             level = max(0, level - 1)
-            setattr(self._txn_state, "level", level)
+            self._txn_state.level = level
             if level == 0:
-                setattr(self._txn_state, "active", False)
+                self._txn_state.active = False
             self._pool.return_connection(conn)
 
     def get_statistics(self) -> Dict[str, Any]:
@@ -1482,7 +1479,7 @@ class StorageManager:
                     # Update document
                     cursor.execute(
                         """
-                        UPDATE documents 
+                        UPDATE documents
                         SET encrypted_content = ?, iv = ?, hmac = ?
                         WHERE id = ?
                     """,

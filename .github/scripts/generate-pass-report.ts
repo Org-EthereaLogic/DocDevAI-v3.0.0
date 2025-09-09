@@ -18,34 +18,34 @@ interface PassReportData {
   startDate: string;
   endDate: string;
   duration: string;
-  
+
   // Metrics
   linesOfCode: number;
   filesChanged: number;
   testsAdded: number;
   coverage: number;
-  
+
   // Performance
   baselinePerformance?: number;
   achievedPerformance?: number;
   performanceImprovement?: number;
-  
+
   // Security
   vulnerabilitiesFixed?: number;
   securityTestsAdded?: number;
   securityOverhead?: number;
-  
+
   // Refactoring
   codeReduction?: number;
   duplicatesRemoved?: number;
   complexityReduction?: number;
-  
+
   // Tasks completed
   tasksCompleted: string[];
-  
+
   // Deliverables
   deliverables: string[];
-  
+
   // Quality gates
   qualityGates: {
     name: string;
@@ -53,31 +53,31 @@ interface PassReportData {
     achieved: string;
     status: 'pass' | 'fail' | 'warning';
   }[];
-  
+
   // Key achievements
   achievements: string[];
-  
+
   // Lessons learned
   lessonsLearned: string[];
-  
+
   // Next steps
   nextSteps: string[];
 }
 
 class PassReportGenerator {
   private projectRoot = path.join(__dirname, '../..');
-  
+
   constructor(private data: PassReportData) {}
-  
+
   generate(): string {
     const report = `# MODULE ${this.data.module}: ${this.data.moduleName} - Pass ${this.data.pass} Report
 
 ## 📊 Executive Summary
 
-**Module:** ${this.data.module} - ${this.data.moduleName}  
-**Pass:** ${this.data.pass} - ${this.data.passName}  
-**Duration:** ${this.data.startDate} to ${this.data.endDate} (${this.data.duration})  
-**Status:** ✅ COMPLETE  
+**Module:** ${this.data.module} - ${this.data.moduleName}
+**Pass:** ${this.data.pass} - ${this.data.passName}
+**Duration:** ${this.data.startDate} to ${this.data.endDate} (${this.data.duration})
+**Status:** ✅ COMPLETE
 
 ### Key Metrics
 - **Lines of Code:** ${this.data.linesOfCode.toLocaleString()}
@@ -102,7 +102,7 @@ ${this.data.deliverables.map(d => `- 📦 ${d}`).join('\n')}
 
 | Gate | Target | Achieved | Status |
 |------|--------|----------|--------|
-${this.data.qualityGates.map(gate => 
+${this.data.qualityGates.map(gate =>
   `| ${gate.name} | ${gate.target} | ${gate.achieved} | ${this.getStatusIcon(gate.status)} |`
 ).join('\n')}
 
@@ -163,13 +163,13 @@ Pass ${this.data.pass} for ${this.data.module} has been successfully completed, 
 
 ---
 
-*Generated: ${new Date().toISOString()}*  
+*Generated: ${new Date().toISOString()}*
 *DevDocAI v3.0.0 - Enhanced 5-Pass Methodology*
 `;
 
     return report;
   }
-  
+
   private generatePassSpecificMetrics(): string {
     switch (this.data.pass) {
       case 2: // Performance
@@ -178,26 +178,26 @@ Pass ${this.data.pass} for ${this.data.module} has been successfully completed, 
 - **Baseline Performance:** ${this.data.baselinePerformance?.toLocaleString()} ops/sec
 - **Achieved Performance:** ${this.data.achievedPerformance?.toLocaleString()} ops/sec
 - **Improvement:** ${this.data.performanceImprovement}% 🚀`;
-        
+
       case 3: // Security
         return `
 ### Security Metrics
 - **Vulnerabilities Fixed:** ${this.data.vulnerabilitiesFixed}
 - **Security Tests Added:** ${this.data.securityTestsAdded}
 - **Security Overhead:** ${this.data.securityOverhead}% ✅`;
-        
+
       case 4: // Refactoring
         return `
 ### Refactoring Metrics
 - **Code Reduction:** ${this.data.codeReduction}% 📉
 - **Duplicates Removed:** ${this.data.duplicatesRemoved} blocks
 - **Complexity Reduction:** ${this.data.complexityReduction}%`;
-        
+
       default:
         return '';
     }
   }
-  
+
   private getPassObjectives(): string {
     const objectives: Record<number, string[]> = {
       0: [
@@ -237,10 +237,10 @@ Pass ${this.data.pass} for ${this.data.module} has been successfully completed, 
         'Prepare deployment artifacts'
       ]
     };
-    
+
     return objectives[this.data.pass]?.map(o => `- ${o}`).join('\n') || '';
   }
-  
+
   private getStatusIcon(status: 'pass' | 'fail' | 'warning'): string {
     switch (status) {
       case 'pass': return '✅';
@@ -248,10 +248,10 @@ Pass ${this.data.pass} for ${this.data.module} has been successfully completed, 
       case 'warning': return '⚠️';
     }
   }
-  
+
   private generateCodeComparison(): string {
     if (this.data.pass !== 4) return ''; // Only for refactoring pass
-    
+
     return `
 ## 📊 Code Comparison
 
@@ -275,7 +275,7 @@ class ${this.data.moduleName}Unified {
 // Total: ${this.data.linesOfCode} lines (${this.data.codeReduction}% reduction)
 \`\`\``;
   }
-  
+
   private generateDetailedMetrics(): string {
     return `
 ### Performance Benchmarks
@@ -294,7 +294,7 @@ class ${this.data.moduleName}Unified {
 - **Disk I/O:** ${Math.floor(Math.random() * 100 + 50)} ops/sec
 - **Network I/O:** ${Math.floor(Math.random() * 50 + 10)} req/sec`;
   }
-  
+
   private generateTechnicalDetails(): string {
     return `
 ### Architecture Changes
@@ -334,7 +334,7 @@ src/modules/${this.data.module}/
 ${this.data.pass === 3 ? `- Security libraries: Latest versions` : ''}
 ${this.data.pass === 2 ? `- Performance monitoring: Added` : ''}`;
   }
-  
+
   private getPassConclusion(): string {
     const conclusions: Record<number, string> = {
       0: 'The design has been validated and approved, providing a solid foundation for implementation.',
@@ -344,15 +344,15 @@ ${this.data.pass === 2 ? `- Performance monitoring: Added` : ''}`;
       4: 'The unified architecture has dramatically reduced complexity while maintaining all functionality.',
       5: 'The module is now production-ready with comprehensive testing and documentation.'
     };
-    
+
     return conclusions[this.data.pass] || 'The pass has been completed successfully.';
   }
-  
+
   save(filename?: string): void {
     const report = this.generate();
-    const reportPath = filename || 
+    const reportPath = filename ||
       path.join(this.projectRoot, `MODULE_${this.data.module}_PASS_${this.data.pass}_REPORT.md`);
-    
+
     fs.writeFileSync(reportPath, report);
     console.log(`✅ Report generated: ${reportPath}`);
   }
@@ -361,17 +361,17 @@ ${this.data.pass === 2 ? `- Performance monitoring: Added` : ''}`;
 // CLI Interface
 async function main() {
   const args = process.argv.slice(2);
-  
+
   if (args.length < 3) {
     console.error('Usage: generate-pass-report.ts <MODULE> <MODULE_NAME> <PASS>');
     console.error('Example: generate-pass-report.ts M002 LocalStorage 1');
     process.exit(1);
   }
-  
+
   const module = args[0];
   const moduleName = args[1];
   const pass = parseInt(args[2]);
-  
+
   // Collect metrics (would be gathered from actual tools in production)
   const data: PassReportData = {
     module,
@@ -381,31 +381,31 @@ async function main() {
     startDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0],
     duration: '3 days',
-    
+
     linesOfCode: Math.floor(Math.random() * 2000 + 1000),
     filesChanged: Math.floor(Math.random() * 20 + 10),
     testsAdded: Math.floor(Math.random() * 50 + 30),
     coverage: Math.floor(Math.random() * 15 + 80),
-    
+
     // Pass-specific metrics
     ...(pass === 2 && {
       baselinePerformance: Math.floor(Math.random() * 1000 + 500),
       achievedPerformance: Math.floor(Math.random() * 5000 + 2000),
       performanceImprovement: Math.floor(Math.random() * 200 + 50),
     }),
-    
+
     ...(pass === 3 && {
       vulnerabilitiesFixed: Math.floor(Math.random() * 10 + 5),
       securityTestsAdded: Math.floor(Math.random() * 30 + 20),
       securityOverhead: Math.floor(Math.random() * 5 + 3),
     }),
-    
+
     ...(pass === 4 && {
       codeReduction: Math.floor(Math.random() * 30 + 30),
       duplicatesRemoved: Math.floor(Math.random() * 20 + 10),
       complexityReduction: Math.floor(Math.random() * 40 + 20),
     }),
-    
+
     tasksCompleted: [
       'Core implementation complete',
       'Tests written and passing',
@@ -413,14 +413,14 @@ async function main() {
       'Integration verified',
       'Performance benchmarks met'
     ],
-    
+
     deliverables: [
       `src/modules/${module}/unified/`,
       `tests/unit/${module}/`,
       `docs/api/${module}.md`,
       `MODULE_${module}_PASS_${pass}_REPORT.md`
     ],
-    
+
     qualityGates: [
       {
         name: 'Test Coverage',
@@ -447,23 +447,23 @@ async function main() {
         status: 'pass'
       }
     ],
-    
+
     achievements: [
       `Completed Pass ${pass} ahead of schedule`,
       'All quality gates passed on first attempt',
       'Zero critical issues identified',
-      pass === 2 ? 'Exceeded performance targets by 5x' : 
+      pass === 2 ? 'Exceeded performance targets by 5x' :
       pass === 4 ? 'Achieved 60% code reduction' :
       'Maintained backward compatibility'
     ],
-    
+
     lessonsLearned: [
       'Early profiling identifies optimization opportunities',
       'Unified architecture pattern scales well',
       'Comprehensive testing prevents regression',
       'Mode-based design provides flexibility'
     ],
-    
+
     nextSteps: [
       `Begin Pass ${pass + 1} planning`,
       'Review and incorporate feedback',
@@ -471,7 +471,7 @@ async function main() {
       'Prepare for next quality gate review'
     ]
   };
-  
+
   const generator = new PassReportGenerator(data);
   generator.save();
 }

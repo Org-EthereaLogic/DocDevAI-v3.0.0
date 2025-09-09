@@ -29,7 +29,7 @@
 **Implementation**: Pre-compiled regex patterns at module level
 - **Patterns Optimized**:
   - `_EMAIL_PATTERN`: Email address detection
-  - `_PHONE_PATTERN`: Phone number detection  
+  - `_PHONE_PATTERN`: Phone number detection
   - `_SSN_PATTERN`: Social Security Number detection
   - `_API_KEY_PATTERN`: API key detection
   - `_CREDIT_CARD_PATTERN`: Credit card detection

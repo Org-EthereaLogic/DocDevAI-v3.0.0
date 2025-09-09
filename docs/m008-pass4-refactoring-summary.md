@@ -8,7 +8,7 @@
 
 ### Code Reduction
 - **Original Lines**: 1,843 lines (Pass 3 security-hardened version)
-- **Refactored Lines**: 1,106 lines  
+- **Refactored Lines**: 1,106 lines
 - **Reduction Achieved**: 737 lines (40% reduction)
 - **Target Met**: ✅ Achieved the 40-50% reduction target
 
@@ -25,14 +25,14 @@
 ```python
 class ProviderFactory:
     """Factory for creating and managing providers."""
-    
+
     PROVIDER_CLASSES = {
         'claude': ClaudeProvider,
         'openai': OpenAIProvider,
         'gemini': GeminiProvider,
         'local': LocalProvider
     }
-    
+
     @classmethod
     def create(cls, provider_name: str, config: ConfigurationManager) -> Provider
     @classmethod
@@ -49,7 +49,7 @@ class ProviderFactory:
 ```python
 class RoutingStrategy(ABC):
     """Abstract base for routing strategies."""
-    
+
 class QualityFirstStrategy(RoutingStrategy)
 class CostOptimizedStrategy(RoutingStrategy)
 class BalancedStrategy(RoutingStrategy)
@@ -66,7 +66,7 @@ class LatencyOptimizedStrategy(RoutingStrategy)
 ```python
 class ProviderHealthMonitor:
     """Monitor provider health and performance."""
-    
+
     def record_success(self, provider: str, latency: float, tokens: int)
     def record_failure(self, provider: str, error: str)
     def get_health_score(self, provider: str) -> float
@@ -84,13 +84,13 @@ class ProviderHealthMonitor:
 ```python
 class PIIDetector:
     """Centralized PII detection and sanitization."""
-    
+
     PATTERNS = {
         'email': re.compile(...),
         'phone': re.compile(...),
         # ... all patterns centralized
     }
-    
+
     @classmethod
     def sanitize(cls, text: str) -> str
     @classmethod
@@ -107,10 +107,10 @@ class PIIDetector:
 ```python
 class APIProvider(Provider):
     """Generic API provider with common implementation."""
-    
+
     def generate(self, prompt: str, ...) -> LLMResponse:
         # Common implementation for all API providers
-    
+
     @abstractmethod
     def _call_api(self, client, prompt, ...) -> Tuple[str, int]:
         # Provider-specific API call

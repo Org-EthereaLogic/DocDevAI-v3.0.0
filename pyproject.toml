@@ -37,16 +37,16 @@ dependencies = [
     "rich>=13.0.0",               # Beautiful terminal output
     "python-dotenv>=1.0.0",       # Environment variable management
     "psutil>=5.8.0",              # System memory detection
-    
+
     # Security dependencies
     "cryptography>=41.0.0",       # AES-256-GCM encryption
     "argon2-cffi>=23.0.0",        # Argon2id key derivation
     "pyotp>=2.9.0",               # TOTP for 2FA (future)
-    
+
     # Storage dependencies
     "sqlalchemy>=2.0.0",          # ORM for database
     "alembic>=1.12.0",            # Database migrations
-    
+
     # Development quality
     "typing-extensions>=4.8.0",   # Enhanced type hints for Python 3.8+
 ]
@@ -60,19 +60,19 @@ dev = [
     "pytest-asyncio>=0.21.0",
     "pytest-benchmark>=4.0.0",
     "hypothesis>=6.90.0",        # Property-based testing
-    
+
     # Code quality
     "black>=24.0.0",              # Code formatting
     "ruff>=0.1.0",                # Fast linter (replaces flake8, isort, etc.)
     "mypy>=1.7.0",                # Type checking
     "bandit[toml]>=1.7.5",        # Security linting
     "safety>=3.0.0",              # Dependency vulnerability scanning
-    
+
     # Documentation
     "mkdocs>=1.5.0",
     "mkdocs-material>=9.5.0",
     "mkdocstrings[python]>=0.24.0",
-    
+
     # Development tools
     "pre-commit>=3.5.0",
     "commitizen>=3.12.0",         # Conventional commits

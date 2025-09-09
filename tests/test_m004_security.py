@@ -6,39 +6,33 @@ Comprehensive security tests for high-throughput document generation.
 Tests cache security, input validation, DOS protection, and OWASP compliance.
 """
 
-import pytest
-import asyncio
-import tempfile
-import time
-import secrets
-import hashlib
-import hmac
-import pickle
-from pathlib import Path
-from unittest.mock import Mock, MagicMock, patch, AsyncMock
-from datetime import datetime, timedelta
 import ast
+import asyncio
 
 # Add parent directory to path for imports
 import sys
+import time
+from datetime import datetime
+from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from devdocai.core.generator import (
-    DocumentGenerator,
-    SecurityManager,
-    ResponseCache,
-    BatchProcessor,
-    PerformanceMonitor,
-    CacheEntry,
-    BatchRequest,
-    DocumentGenerationError,
-    ContextExtractionError,
-)
 from devdocai.core.config import ConfigurationManager
-from devdocai.intelligence.llm_adapter import LLMAdapter, LLMResponse
+from devdocai.core.generator import (
+    BatchProcessor,
+    BatchRequest,
+    CacheEntry,
+    DocumentGenerationError,
+    DocumentGenerator,
+    PerformanceMonitor,
+    ResponseCache,
+    SecurityManager,
+)
 from devdocai.core.storage import StorageManager
-
+from devdocai.intelligence.llm_adapter import LLMAdapter, LLMResponse
 
 # ============================================================================
 # Fixtures

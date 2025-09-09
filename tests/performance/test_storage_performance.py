@@ -11,25 +11,23 @@ Tests measure performance under various conditions:
 - Cache performance
 """
 
-import pytest
+import os
+import statistics
+import sys
 import tempfile
 import time
-import statistics
-import threading
-import multiprocessing
-import os
-import json
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
-from typing import List, Dict, Any, Tuple
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from typing import Any, Dict
+
 import psutil
-import sys
+import pytest
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from devdocai.core.storage import StorageManager, Document, DocumentMetadata
 from devdocai.core.config import ConfigurationManager
+from devdocai.core.storage import Document, StorageManager
 
 
 class PerformanceMetrics:
@@ -500,7 +498,7 @@ class TestStoragePerformance:
         stats_no_tx = metrics_no_tx.get_stats()
         stats_tx = metrics_tx.get_stats()
 
-        print(f"\n📊 Transaction Performance Comparison:")
+        print("\n📊 Transaction Performance Comparison:")
         print(f"   Without Transaction: {stats_no_tx['ops_per_second']:,.0f} ops/sec")
         print(f"   With Transaction: {stats_tx['ops_per_second']:,.0f} ops/sec")
         print(f"   Speedup: {stats_tx['ops_per_second'] / stats_no_tx['ops_per_second']:.2f}x")

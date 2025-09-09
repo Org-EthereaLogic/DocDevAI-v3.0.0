@@ -3,10 +3,11 @@ Configuration Models - DevDocAI v3.0.0
 Pass 4: Simplified Pydantic models with reduced complexity
 """
 
-from typing import Optional, Literal, Union
-from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
-import psutil
 import logging
+from typing import Literal, Optional, Union
+
+import psutil
+from pydantic import BaseModel, ConfigDict, Field
 
 logger = logging.getLogger(__name__)
 

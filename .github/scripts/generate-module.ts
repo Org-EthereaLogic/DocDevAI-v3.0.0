@@ -68,7 +68,7 @@ class ModuleGenerator {
       .replace(/{{MODULE_NAME}}/g, this.config.name)
       .replace(/{{MODULE_DESCRIPTION}}/g, this.config.description)
       .replace(/{{CREATED_DATE}}/g, new Date().toISOString())
-      .replace(/{{ADDITIONAL_DEPENDENCIES}}/g, 
+      .replace(/{{ADDITIONAL_DEPENDENCIES}}/g,
         this.config.dependencies?.map(d => `    - ${d}`).join('\n') || '')
       .replace(/{{PRIMARY_METRIC}}/g, this.config.primaryMetric || 'operations_per_second')
       .replace(/{{BASELINE_VALUE}}/g, String(this.config.baselineValue || 1000))
@@ -202,7 +202,7 @@ export class ${className} extends BaseUnified implements I${this.config.name} {
   }
 
   // Module-specific methods to be implemented
-  
+
   public async process(input: any): Promise<any> {
     // Implement core functionality
     throw new Error('Not implemented');
@@ -252,17 +252,17 @@ export interface ${this.config.name}Config {
   enableCaching: boolean;
   enableSecurity: boolean;
   enableMonitoring: boolean;
-  
+
   // Performance settings
   maxConcurrency?: number;
   timeout?: number;
   retryAttempts?: number;
-  
+
   // Security settings
   encryptionEnabled?: boolean;
   auditLogging?: boolean;
   rateLimiting?: boolean;
-  
+
   // Module-specific settings
   // Add as needed
 }
@@ -421,29 +421,29 @@ class ${this.config.name}Benchmark {
 
   async run(): Promise<void> {
     console.log('🏃 Running ${this.config.name} Benchmarks...');
-    
+
     await this.benchmarkMode(OperationMode.BASIC);
     await this.benchmarkMode(OperationMode.PERFORMANCE);
     await this.benchmarkMode(OperationMode.SECURE);
     await this.benchmarkMode(OperationMode.ENTERPRISE);
-    
+
     this.printResults();
   }
 
   private async benchmarkMode(mode: OperationMode): Promise<void> {
     const instance = create${this.config.name}(mode);
     const operations = 10000;
-    
+
     const start = performance.now();
-    
+
     for (let i = 0; i < operations; i++) {
       // await instance.process(testData);
     }
-    
+
     const duration = performance.now() - start;
     const opsPerSecond = (operations / duration) * 1000;
     const avgLatency = duration / operations;
-    
+
     this.results.push({
       mode,
       operations,
@@ -456,11 +456,11 @@ class ${this.config.name}Benchmark {
   private printResults(): void {
     console.log('\\n📊 Benchmark Results:');
     console.log('═'.repeat(80));
-    
+
     const headers = ['Mode', 'Operations', 'Duration (ms)', 'Ops/Sec', 'Avg Latency (ms)'];
     console.log(headers.map(h => h.padEnd(15)).join(' | '));
     console.log('-'.repeat(80));
-    
+
     for (const result of this.results) {
       const row = [
         result.mode,
@@ -471,13 +471,13 @@ class ${this.config.name}Benchmark {
       ];
       console.log(row.map(r => r.padEnd(15)).join(' | '));
     }
-    
+
     console.log('═'.repeat(80));
-    
+
     // Check against targets
     const performanceResult = this.results.find(r => r.mode === OperationMode.PERFORMANCE);
     const target = ${this.config.targetValue || 10000};
-    
+
     if (performanceResult && performanceResult.opsPerSecond >= target) {
       console.log(\`✅ Performance target met: \${performanceResult.opsPerSecond.toFixed(0)} ops/sec >= \${target} ops/sec\`);
     } else {
@@ -579,7 +579,7 @@ ${this.config.description}
 ## 5-Pass Development Methodology
 
 ### Pass 0: Design & Architecture (Current)
-**Status:** 🟡 In Progress  
+**Status:** 🟡 In Progress
 **Timeline:** 2-3 days
 
 #### Tasks:
@@ -602,7 +602,7 @@ ${this.config.description}
 - All interfaces defined
 
 ### Pass 1: Core Implementation
-**Status:** ⏳ Pending  
+**Status:** ⏳ Pending
 **Timeline:** 3-4 days
 
 #### Tasks:
@@ -625,7 +625,7 @@ ${this.config.description}
 - Basic functionality working
 
 ### Pass 2: Performance Optimization
-**Status:** ⏳ Pending  
+**Status:** ⏳ Pending
 **Timeline:** 2-3 days
 
 #### Tasks:
@@ -647,7 +647,7 @@ ${this.config.description}
 - No performance regressions
 
 ### Pass 3: Security Hardening
-**Status:** ⏳ Pending  
+**Status:** ⏳ Pending
 **Timeline:** 2-3 days
 
 #### Tasks:
@@ -671,7 +671,7 @@ ${this.config.description}
 - All OWASP Top 10 addressed
 
 ### Pass 4: Refactoring & Unification
-**Status:** ⏳ Pending  
+**Status:** ⏳ Pending
 **Timeline:** 2 days
 
 #### Tasks:
@@ -693,7 +693,7 @@ ${this.config.description}
 - All tests still passing
 
 ### Pass 5: Production Readiness
-**Status:** ⏳ Pending  
+**Status:** ⏳ Pending
 **Timeline:** 1-2 days
 
 #### Tasks:
@@ -820,7 +820,7 @@ jobs:
 // CLI Interface
 async function main() {
   const args = process.argv.slice(2);
-  
+
   if (args.length < 3) {
     console.error('Usage: generate-module.ts <MODULE_ID> <MODULE_NAME> <DESCRIPTION> [DEPENDENCIES]');
     console.error('Example: generate-module.ts M002 LocalStorage "Local storage system" M001');

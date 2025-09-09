@@ -6,19 +6,19 @@ module:
   name: "{{MODULE_NAME}}"
   description: "{{MODULE_DESCRIPTION}}"
   version: "1.0.0"
-  
+
   # Module metadata
   metadata:
     created: "{{CREATED_DATE}}"
     author: "DevDocAI Team"
     status: "development"
     pass: 0
-    
+
   # Dependencies on other modules
   dependencies:
     - M001  # Configuration Manager (always required)
     {{ADDITIONAL_DEPENDENCIES}}
-  
+
   # 5-Pass Development Cycle
   passes:
     # Pass 0: Design & Architecture
@@ -38,7 +38,7 @@ module:
       quality_gates:
         - complexity_score: "< 10"
         - design_review: approved
-        
+
     # Pass 1: Core Implementation
     pass_1:
       status: pending
@@ -56,7 +56,7 @@ module:
         - test_coverage: ">= 80%"
         - linting: pass
         - type_checking: pass
-        
+
     # Pass 2: Performance Optimization
     pass_2:
       status: pending
@@ -74,7 +74,7 @@ module:
         - performance_improvement: ">= 10%"
         - benchmark_targets: met
         - memory_usage: optimized
-        
+
     # Pass 3: Security Hardening
     pass_3:
       status: pending
@@ -93,7 +93,7 @@ module:
         - security_coverage: ">= 95%"
         - vulnerabilities: "0 critical/high"
         - security_overhead: "< 10%"
-        
+
     # Pass 4: Refactoring & Unification
     pass_4:
       status: pending
@@ -110,7 +110,7 @@ module:
         - code_reduction: ">= 30%"
         - duplication: "< 5%"
         - complexity: "< 8"
-        
+
     # Pass 5: Production Readiness
     pass_5:
       status: pending
@@ -135,32 +135,32 @@ module:
     unified:
       main_class: "{{MODULE_NAME}}Unified"
       file: "src/modules/{{MODULE_ID}}/unified/{{MODULE_NAME}}_unified.ts"
-      
+
     # Operation modes
     modes:
       - BASIC       # Minimal functionality
       - PERFORMANCE # Optimized for speed
       - SECURE      # Security-hardened
       - ENTERPRISE  # Full features
-      
+
     # Configuration
     config:
       file: "src/modules/{{MODULE_ID}}/unified/config_unified.ts"
       schema: "src/modules/{{MODULE_ID}}/types/config.ts"
-      
+
     # Interfaces
     interfaces:
       - "I{{MODULE_NAME}}"
       - "I{{MODULE_NAME}}Config"
       - "I{{MODULE_NAME}}Options"
-      
+
     # Design patterns
     patterns:
       - strategy    # For mode switching
       - factory     # For instance creation
       - singleton   # For shared instances
       - observer    # For event handling
-      
+
   # Performance Benchmarks
   benchmarks:
     baseline:
@@ -175,7 +175,7 @@ module:
       metric: "{{PRIMARY_METRIC}}"
       value: null
       unit: "{{METRIC_UNIT}}"
-      
+
   # Testing Strategy
   testing:
     unit:
@@ -200,7 +200,7 @@ module:
       framework: playwright
       files:
         - "tests/e2e/{{MODULE_ID}}/*.spec.ts"
-        
+
   # Documentation
   documentation:
     api:
@@ -211,7 +211,7 @@ module:
       format: markdown
     examples:
       directory: "examples/{{MODULE_ID}}/"
-      
+
   # Monitoring & Observability
   monitoring:
     metrics:
@@ -230,7 +230,7 @@ module:
     tracing:
       enabled: true
       sampling_rate: 0.1
-      
+
   # CI/CD Configuration
   ci_cd:
     triggers:

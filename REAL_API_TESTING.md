@@ -12,7 +12,7 @@ pip install -U pip && pip install -e . && pip install openai anthropic google-ge
 
 # 3. Add keys to .env in project root:
 OPENAI_API_KEY=sk-your-key-here
-ANTHROPIC_API_KEY=your-key-here  
+ANTHROPIC_API_KEY=your-key-here
 GOOGLE_API_KEY=your-key-here
 # (or GEMINI_API_KEY=... - both work)
 
@@ -27,7 +27,7 @@ python -c "import devdocai.core.config, devdocai.intelligence.llm_adapter"
 ./scripts/test_real_api.sh
 # Options: 1=all, 2=specific, 3=perf, 4=verbose
 
-# Direct pytest  
+# Direct pytest
 REAL_API_TESTING=1 python -m pytest tests/integration/test_real_api.py -v -s
 
 # Non-interactive "run all"
@@ -38,7 +38,7 @@ printf "1\n" | ./scripts/test_real_api.sh
 
 ```
 ✅ OpenAI Response: 4
-✅ Claude Response: 4  
+✅ Claude Response: 4
 ✅ Gemini Response: 4
 ✅ Cost tracked: $0.000234
 ✅ Rate limiting working correctly
@@ -54,7 +54,7 @@ printf "1\n" | ./scripts/test_real_api.sh
 
 ### Configuration Improvements
 - **Auto .env loading**: `python-dotenv` automatically loads `.env` file
-- **Flexible key names**: Supports `GEMINI_API_KEY` or `GOOGLE_API_KEY`  
+- **Flexible key names**: Supports `GEMINI_API_KEY` or `GOOGLE_API_KEY`
 - **Provider aliases**: `anthropic`/`claude`, `gemini`/`google`
 - **No manual exports**: Keys loaded automatically from `.env`
 
@@ -67,7 +67,7 @@ printf "1\n" | ./scripts/test_real_api.sh
 
 ### Design Compliance Maintained
 - **SDD 5.4**: Multi-provider routing + cost tracking preserved
-- **SDD 6**: Cost management exposed without changing core accounting  
+- **SDD 6**: Cost management exposed without changing core accounting
 - **SDD 7.1**: Security (rate limiting, request signing, audit logging) intact
 
 ## Cost & Usage Notes
@@ -88,7 +88,7 @@ pip install openai anthropic google-generativeai
 pip install -e .
 ```
 
-### Authentication Errors  
+### Authentication Errors
 ```bash
 # Check .env file exists and has keys
 cat .env

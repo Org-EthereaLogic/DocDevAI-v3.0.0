@@ -132,7 +132,7 @@ pip-audit              # Check for known vulnerabilities
 safety check          # Alternative vulnerability scanner
 bandit -r devdocai    # Static security analysis
 
-# Node.js security audit  
+# Node.js security audit
 npm audit            # Built-in npm security audit
 npm audit fix        # Auto-fix vulnerabilities
 better-npm-audit audit  # Enhanced audit with fewer false positives
@@ -252,7 +252,7 @@ npm test
 # Python
 pip list --outdated
 
-# Node.js  
+# Node.js
 npm outdated
 ```
 

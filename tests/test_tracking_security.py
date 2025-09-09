@@ -6,35 +6,30 @@ Comprehensive security test suite targeting 95% coverage for security features.
 Tests OWASP compliance, input validation, attack prevention, and audit logging.
 """
 
-import pytest
 import json
-import time
 import secrets
-import tempfile
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
-from typing import Dict, List, Any
-import threading
-from concurrent.futures import ThreadPoolExecutor
 
 # Import module to test
 import sys
+import time
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+from unittest.mock import Mock
+
+import pytest
 
 sys.path.append(str(Path(__file__).parent.parent))
 from devdocai.core.tracking import (
-    TrackingMatrix,
+    AuditLogger,
     DocumentRelationship,
     OptimizedDependencyGraph,
-    ParallelImpactAnalysis,
-    CircularReferenceError,
-    TrackingError,
-    RelationshipType,
-    SecurityValidator,
     RateLimiter,
-    AuditLogger,
-    SecurityConfig,
+    RelationshipType,
     ResourceLimitError,
+    SecurityConfig,
     SecurityError,
+    SecurityValidator,
+    TrackingMatrix,
 )
 
 

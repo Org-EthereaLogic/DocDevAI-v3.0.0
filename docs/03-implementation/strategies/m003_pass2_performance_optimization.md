@@ -58,7 +58,7 @@ words = re.findall(r"\b\w+\b", text.lower())
 # Optimized (compile once, reuse)
 class MetricsCalculator:
     WORD_PATTERN = re.compile(r"\b\w+\b")
-    
+
     def tokenize(self, text: str) -> List[str]:
         return self.WORD_PATTERN.findall(text.lower())
 ```
@@ -80,14 +80,14 @@ async def refine_content_async(self, document: str, metrics: Optional[DocumentMe
     """Async version of content refinement."""
     # Prepare prompt
     prompt = self.strategy.build_refinement_prompt(document, metrics)
-    
+
     # Async LLM call
     response = await self.llm_adapter.query_async(
         prompt,
         max_tokens=2000,
         temperature=0.7
     )
-    
+
     return response.content
 
 async def batch_optimize_async_parallel(self, documents: List[str]) -> List[OptimizationResult]:
@@ -97,17 +97,17 @@ async def batch_optimize_async_parallel(self, documents: List[str]) -> List[Opti
     for doc in documents:
         task = self.optimize_async(doc, max_iterations=1)
         tasks.append(task)
-    
+
     # Process in parallel with concurrency limit
     semaphore = asyncio.Semaphore(self.max_workers * 2)
-    
+
     async def limited_task(task):
         async with semaphore:
             return await task
-    
+
     limited_tasks = [limited_task(task) for task in tasks]
     results = await asyncio.gather(*limited_tasks, return_exceptions=True)
-    
+
     return results
 ```
 
@@ -118,14 +118,14 @@ async def stream_optimize(self, document_stream: AsyncIterator[str]) -> AsyncIte
     buffer = []
     async for doc in document_stream:
         buffer.append(doc)
-        
+
         # Process when buffer is full
         if len(buffer) >= self.batch_size:
             results = await self.batch_optimize_async_parallel(buffer)
             for result in results:
                 yield result
             buffer.clear()
-    
+
     # Process remaining
     if buffer:
         results = await self.batch_optimize_async_parallel(buffer)
@@ -139,33 +139,33 @@ async def stream_optimize(self, document_stream: AsyncIterator[str]) -> AsyncIte
 ```python
 class MultiTierCache:
     """Three-tier caching system."""
-    
+
     def __init__(self):
         # L1: In-memory LRU cache (fastest)
         self.l1_cache = LRUCache(maxsize=10000)
-        
+
         # L2: Shared memory cache (fast, persistent)
         self.l2_cache = SharedMemoryCache(size_mb=100)
-        
+
         # L3: Disk cache (large capacity)
         self.l3_cache = DiskCache(path="cache/", size_gb=1)
-    
+
     async def get(self, key: str) -> Optional[Any]:
         # Check L1
         if value := self.l1_cache.get(key):
             return value
-        
+
         # Check L2
         if value := await self.l2_cache.get(key):
             self.l1_cache.set(key, value)  # Promote to L1
             return value
-        
+
         # Check L3
         if value := await self.l3_cache.get(key):
             await self.l2_cache.set(key, value)  # Promote to L2
             self.l1_cache.set(key, value)  # Promote to L1
             return value
-        
+
         return None
 ```
 
@@ -175,19 +175,19 @@ def calculate_entropy_batch_vectorized(self, documents: List[str]) -> np.ndarray
     """Fully vectorized entropy calculation."""
     # Tokenize all documents
     all_words = [self.tokenize(doc) for doc in documents]
-    
+
     # Vectorized probability calculation
     entropies = np.zeros(len(documents))
-    
+
     for i, words in enumerate(all_words):
         if not words:
             continue
-        
+
         # Use NumPy for fast computation
         unique, counts = np.unique(words, return_counts=True)
         probabilities = counts / len(words)
         entropies[i] = -np.sum(probabilities * np.log2(probabilities))
-    
+
     return entropies
 ```
 
@@ -195,28 +195,28 @@ def calculate_entropy_batch_vectorized(self, documents: List[str]) -> np.ndarray
 ```python
 class ProcessPoolOptimizer:
     """Use process pool for CPU-intensive operations."""
-    
+
     def __init__(self, num_processes: int = None):
         self.pool = ProcessPoolExecutor(max_workers=num_processes or cpu_count())
-    
+
     async def optimize_batch_multiprocess(self, documents: List[str]) -> List[OptimizationResult]:
         """Distribute work across processes."""
         # Split documents into chunks
         chunk_size = len(documents) // self.pool._max_workers
         chunks = [documents[i:i+chunk_size] for i in range(0, len(documents), chunk_size)]
-        
+
         # Process chunks in parallel processes
         futures = []
         for chunk in chunks:
             future = self.pool.submit(self._process_chunk, chunk)
             futures.append(future)
-        
+
         # Gather results
         results = []
         for future in as_completed(futures):
             chunk_results = future.result()
             results.extend(chunk_results)
-        
+
         return results
 ```
 
@@ -226,35 +226,35 @@ class ProcessPoolOptimizer:
 ```python
 class OptimizationPipeline:
     """High-performance document processing pipeline."""
-    
+
     def __init__(self):
         # Stage 1: Input queue
         self.input_queue = asyncio.Queue(maxsize=10000)
-        
+
         # Stage 2: Preprocessing workers
         self.preprocessors = [PreprocessWorker() for _ in range(4)]
-        
+
         # Stage 3: Optimization workers
         self.optimizers = [OptimizationWorker() for _ in range(16)]
-        
+
         # Stage 4: Output queue
         self.output_queue = asyncio.Queue(maxsize=10000)
-    
+
     async def process(self):
         """Run the pipeline."""
         # Start all workers
         tasks = []
-        
+
         # Preprocessing stage
         for worker in self.preprocessors:
             task = asyncio.create_task(worker.run(self.input_queue, self.optimization_queue))
             tasks.append(task)
-        
+
         # Optimization stage
         for worker in self.optimizers:
             task = asyncio.create_task(worker.run(self.optimization_queue, self.output_queue))
             tasks.append(task)
-        
+
         # Run until cancelled
         await asyncio.gather(*tasks)
 ```
@@ -263,13 +263,13 @@ class OptimizationPipeline:
 ```python
 class AdaptiveBatcher:
     """Dynamically adjust batch size based on system load."""
-    
+
     def __init__(self):
         self.min_batch = 100
         self.max_batch = 2000
         self.current_batch = 500
         self.target_latency = 100  # ms
-    
+
     def adjust_batch_size(self, last_latency: float, throughput: float):
         """Adjust batch size based on performance."""
         if last_latency > self.target_latency * 1.2:
@@ -278,7 +278,7 @@ class AdaptiveBatcher:
         elif last_latency < self.target_latency * 0.8 and throughput < 4000:
             # Increase batch size if latency low and throughput not at target
             self.current_batch = min(self.max_batch, int(self.current_batch * 1.2))
-        
+
         return self.current_batch
 ```
 
@@ -347,9 +347,9 @@ class AdaptiveBatcher:
 
 ### Potential Risks
 
-1. **LLM Rate Limits**: 
+1. **LLM Rate Limits**:
    - Mitigation: Implement exponential backoff and request queuing
-   
+
 2. **Memory Overflow**:
    - Mitigation: Implement memory monitoring and automatic batch size reduction
 

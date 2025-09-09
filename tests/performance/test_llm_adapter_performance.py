@@ -3,21 +3,20 @@ Performance Tests for M008 LLM Adapter
 DevDocAI v3.0.0 - Pass 2: Performance Optimization Validation
 """
 
+import statistics
 import time
 import unittest
 from unittest.mock import Mock, patch
-from datetime import datetime
-import statistics
 
-from devdocai.intelligence.llm_adapter import (
-    LLMAdapter,
-    CostManager,
-    ResponseCache,
-    LocalProvider,
-    LLMResponse,
-    APITimeoutError,
-)
 from devdocai.core.config import ConfigurationManager
+from devdocai.intelligence.llm_adapter import (
+    APITimeoutError,
+    CostManager,
+    LLMAdapter,
+    LLMResponse,
+    LocalProvider,
+    ResponseCache,
+)
 
 
 class TestLLMAdapterPerformance(unittest.TestCase):

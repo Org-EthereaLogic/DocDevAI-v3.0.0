@@ -12,7 +12,7 @@ This stub provides:
 """
 
 import sys
-from typing import Optional
+
 import click
 from rich.console import Console
 from rich.table import Table
@@ -51,8 +51,9 @@ def show() -> None:
 
         # Show some basic settings
         # Import MemoryDetector to show system memory
-        from devdocai.core.memory import MemoryDetector
         import psutil
+
+        from devdocai.core.memory import MemoryDetector
 
         memory_gb = psutil.virtual_memory().total / (1024**3)
         memory_mode = MemoryDetector.detect_memory_mode()

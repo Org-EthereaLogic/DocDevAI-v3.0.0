@@ -3,9 +3,9 @@ Caching Utilities - DevDocAI v3.0.0
 Pass 4: Simplified thread-safe cache
 """
 
-import time
 import threading
-from typing import Any, Optional, Tuple, Dict
+import time
+from typing import Any, Dict, Optional, Tuple
 
 
 class CacheManager:

@@ -13,7 +13,7 @@ Based on comprehensive review of design documents:
 - **Memory Mode Detection**: Automatic detection of system RAM for adaptive performance
 - **Configuration Schema**: YAML-based with Pydantic v2 validation
 - **Security**: AES-256-GCM encryption for API keys using Argon2id key derivation
-- **Performance Targets**: 
+- **Performance Targets**:
   - Configuration loading: <100ms
   - Validation: 4M operations/second
   - Retrieval: 19M operations/second
@@ -33,23 +33,23 @@ system:
   memory_mode: auto  # auto|baseline|standard|enhanced|performance
   max_workers: 4
   cache_size: 100MB
-  
+
 privacy:
   telemetry: false  # Opt-in only
   analytics: false
   local_only: true
-  
+
 security:
   encryption_enabled: true
   api_keys_encrypted: true
-  
+
 llm:
   provider: openai  # openai|anthropic|gemini|local
   api_key: ${ENCRYPTED}
   model: gpt-4
   max_tokens: 4000
   temperature: 0.7
-  
+
 quality:
   min_score: 85
   auto_enhance: true
@@ -69,28 +69,28 @@ from devdocai.core.config import ConfigurationManager
 
 class TestConfigurationManager:
     """TDD tests for M001 - write these FIRST."""
-    
+
     def test_initialization_with_defaults(self):
         """Test privacy-first defaults on initialization."""
         config = ConfigurationManager()
         assert config.privacy.telemetry is False
         assert config.privacy.local_only is True
-        
+
     def test_memory_mode_detection(self):
         """Test automatic memory mode detection."""
         config = ConfigurationManager()
         assert config.system.memory_mode in ['baseline', 'standard', 'enhanced', 'performance']
-        
+
     def test_yaml_loading(self):
         """Test configuration loading from YAML."""
         config = ConfigurationManager(config_file=".devdocai.yml")
         assert config is not None
-        
+
     def test_schema_validation(self):
         """Test Pydantic v2 schema validation."""
         with pytest.raises(ValidationError):
             config = ConfigurationManager(invalid_data={'bad': 'schema'})
-            
+
     def test_api_key_encryption(self):
         """Test AES-256-GCM encryption of API keys."""
         config = ConfigurationManager()
@@ -121,14 +121,14 @@ class PrivacyConfig(BaseModel):
     telemetry: bool = False
     analytics: bool = False
     local_only: bool = True
-    
+
 class SystemConfig(BaseModel):
     """System configuration with memory mode detection."""
     memory_mode: MemoryMode = "auto"
     detected_ram: Optional[int] = None
     max_workers: int = 4
     cache_size: str = "100MB"
-    
+
     @validator('memory_mode', pre=True, always=True)
     def detect_memory_mode(cls, v):
         if v == "auto":
@@ -148,10 +148,10 @@ class SecurityConfig(BaseModel):
     encryption_enabled: bool = True
     api_keys_encrypted: bool = True
     key_derivation: str = "argon2id"
-    
+
 class ConfigurationManager:
     """M001: Centralized configuration management with privacy-first defaults."""
-    
+
     def __init__(self, config_file: Optional[Path] = None):
         self.config_file = config_file or Path.home() / ".devdocai.yml"
         self.privacy = PrivacyConfig()
@@ -159,14 +159,14 @@ class ConfigurationManager:
         self.security = SecurityConfig()
         self._load_configuration()
         self._setup_encryption()
-        
+
     def _load_configuration(self):
         """Load configuration from YAML with validation."""
         if self.config_file.exists():
             with open(self.config_file) as f:
                 data = yaml.safe_load(f)
                 self._validate_and_apply(data)
-                
+
     def _validate_and_apply(self, data: Dict[str, Any]):
         """Validate configuration with Pydantic v2."""
         if 'privacy' in data:
@@ -199,7 +199,7 @@ def test_config_retrieval_performance(benchmark):
     result = benchmark(lambda: config.get('system.memory_mode'))
     assert benchmark.stats['ops'] > 19_000_000
 
-@pytest.mark.benchmark  
+@pytest.mark.benchmark
 def test_validation_performance(benchmark):
     """Test validation meets 4M ops/sec target."""
     config = ConfigurationManager()
@@ -224,12 +224,12 @@ def test_api_key_encryption():
     """Verify API keys are never stored in plaintext."""
     config = ConfigurationManager()
     config.set_api_key('openai', 'sk-test123')
-    
+
     # Check raw file doesn't contain plaintext
     with open(config.config_file) as f:
         content = f.read()
         assert 'sk-test123' not in content
-        
+
 def test_argon2id_key_derivation():
     """Verify Argon2id is used for key derivation."""
     config = ConfigurationManager()
@@ -256,7 +256,7 @@ def test_argon2id_key_derivation():
 ### Required Metrics
 - **Test Coverage**: ≥95% (branch and line)
 - **Cyclomatic Complexity**: <10
-- **Performance**: 
+- **Performance**:
   - Retrieval: ≥19M ops/sec
   - Validation: ≥4M ops/sec
   - Load time: <100ms
@@ -347,7 +347,7 @@ M001 is considered complete when:
 ## Timeline
 
 - **Day 1-2**: Pass 1 - Core Implementation (TDD)
-- **Day 3**: Pass 2 - Performance Optimization  
+- **Day 3**: Pass 2 - Performance Optimization
 - **Day 4**: Pass 3 - Security Hardening
 - **Day 5**: Pass 4 - Refactoring & Integration
 - **Day 6**: Final validation and documentation

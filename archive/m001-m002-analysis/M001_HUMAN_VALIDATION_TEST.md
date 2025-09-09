@@ -1,7 +1,7 @@
 # M001 Configuration Manager - Human Validation Test
 
-**Purpose**: Real-world validation that M001 Configuration Manager works exactly as designed  
-**Duration**: ~5-10 minutes  
+**Purpose**: Real-world validation that M001 Configuration Manager works exactly as designed
+**Duration**: ~5-10 minutes
 **Requirements**: Terminal access to the project directory
 
 ## Test Overview
@@ -27,7 +27,7 @@ python -m devdocai.cli config show
 ```
 
 **✅ What You Should See**:
-- Privacy Mode: `local_only` 
+- Privacy Mode: `local_only`
 - Telemetry Enabled: `False`
 - Cloud Features: `False`
 - DSR Enabled: `True`
@@ -203,7 +203,7 @@ python -m devdocai.cli config invalid-command
 After running all tests, verify:
 
 - [ ] **Privacy-First**: All defaults respect maximum privacy
-- [ ] **Memory Detection**: Correctly identifies your system capabilities  
+- [ ] **Memory Detection**: Correctly identifies your system capabilities
 - [ ] **Persistence**: Configuration saves and loads properly
 - [ ] **Security**: API keys are encrypted, never stored in plain text
 - [ ] **Validation**: Invalid configurations are rejected properly
@@ -233,6 +233,6 @@ If you encounter any unexpected behavior:
 
 ---
 
-**Ready to start testing?** 
+**Ready to start testing?**
 
 Begin with **Test 1** and work through each test in order. Each test builds on the previous one to give you complete confidence in the M001 implementation.

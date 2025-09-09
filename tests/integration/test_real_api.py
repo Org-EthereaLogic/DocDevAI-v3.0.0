@@ -12,11 +12,12 @@ Prerequisites:
 """
 
 import os
-import pytest
 from unittest.mock import patch
+
+import pytest
+
 from devdocai.core.config import ConfigurationManager
 from devdocai.intelligence.llm_adapter import LLMAdapter, ProviderType
-
 
 # Skip all tests unless explicitly enabled with environment variable
 pytestmark = pytest.mark.skipif(

@@ -15,18 +15,16 @@ Pass 4 Refactoring:
 """
 
 import json
-import time
 import logging
-import hashlib
-import hmac
-from enum import Enum
-from typing import Dict, List, Set, Optional, Tuple, Any, Protocol
-from dataclasses import dataclass, field, asdict
-from collections import defaultdict, deque
-from datetime import datetime
-from abc import ABC, abstractmethod
-from functools import lru_cache
 import threading
+import time
+from abc import ABC, abstractmethod
+from collections import defaultdict, deque
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from functools import lru_cache
+from typing import Any, Dict, List, Optional, Protocol, Set
 
 # Optional dependencies for enhanced performance
 try:
@@ -217,7 +215,7 @@ class SecureValidation:
 
         # Check for path traversal
         if "../" in doc_id or "..\\" in doc_id:
-            raise ValueError(f"Invalid document ID: potential path traversal")
+            raise ValueError("Invalid document ID: potential path traversal")
 
         # Check format
         import re

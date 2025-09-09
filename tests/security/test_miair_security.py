@@ -6,33 +6,30 @@ Tests OWASP Top 10 compliance, input validation, secure caching,
 and resource protection.
 """
 
-import pytest
-import time
-import secrets
-import hashlib
 import base64
-from unittest.mock import Mock, MagicMock, patch, call
+import secrets
+import time
 from threading import Thread
-from datetime import datetime, timedelta
-import json
-import numpy as np
+from unittest.mock import Mock, patch
 
-# Import the module to test
-from devdocai.intelligence.miair import (
-    MIAIREngine,
-    SecurityValidator,
-    SecureCache,
-    SecurityValidationError,
-    ResourceLimitError,
-    rate_limit,
-    EntropyOptimizationError,
-)
+import pytest
 from cryptography.fernet import Fernet
 
 # Import validated modules for integration testing
 from devdocai.core.config import ConfigurationManager
-from devdocai.intelligence.llm_adapter import LLMAdapter, LLMResponse
 from devdocai.core.storage import StorageManager
+from devdocai.intelligence.llm_adapter import LLMAdapter, LLMResponse
+
+# Import the module to test
+from devdocai.intelligence.miair import (
+    EntropyOptimizationError,
+    MIAIREngine,
+    ResourceLimitError,
+    SecureCache,
+    SecurityValidationError,
+    SecurityValidator,
+    rate_limit,
+)
 
 
 class TestSecurityValidator:

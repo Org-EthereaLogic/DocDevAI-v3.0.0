@@ -3,8 +3,9 @@ Memory Detection Utilities - DevDocAI v3.0.0
 Pass 4: Simplified memory detection
 """
 
-import psutil
 from typing import Literal
+
+import psutil
 
 MemoryMode = Literal["baseline", "standard", "enhanced", "performance"]
 

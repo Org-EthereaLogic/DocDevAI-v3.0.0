@@ -1,8 +1,8 @@
 # M004 Document Generator Security Assessment Report
 
-**Date**: 2025-08-26  
-**Module**: M004 Document Generator  
-**Assessment Type**: Basic Security Pass  
+**Date**: 2025-08-26
+**Module**: M004 Document Generator
+**Assessment Type**: Basic Security Pass
 **Status**: CRITICAL VULNERABILITIES IDENTIFIED
 
 ## Executive Summary
@@ -192,7 +192,7 @@ const json = JSON.parse(content);
 
 ## Sign-off
 
-**Security Assessment Completed By**: Claude Code Security Analysis Engine  
-**Review Date**: 2025-08-26  
-**Next Review Due**: After remediation completion  
+**Security Assessment Completed By**: Claude Code Security Analysis Engine
+**Review Date**: 2025-08-26
+**Next Review Due**: After remediation completion
 **Approval Status**: ❌ **REJECTED - CRITICAL ISSUES MUST BE RESOLVED**

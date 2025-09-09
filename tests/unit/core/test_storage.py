@@ -6,29 +6,25 @@ Tests written BEFORE implementation as per TDD principles.
 Comprehensive test coverage for storage operations with SQLCipher encryption.
 """
 
-import pytest
-import tempfile
-import os
-import sqlite3
-import hashlib
-import json
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock, call
-from datetime import datetime, timedelta
 import base64
+import os
 import secrets
+import tempfile
+from unittest.mock import MagicMock, Mock, call, patch
+
+import pytest
+
+from devdocai.core.config import ConfigurationManager
 
 # Import will fail initially (TDD) - that's expected
 from devdocai.core.storage import (
-    StorageManager,
     Document,
-    DocumentMetadata,
-    StorageError,
     EncryptionError,
     IntegrityError,
+    StorageError,
+    StorageManager,
     TransactionError,
 )
-from devdocai.core.config import ConfigurationManager
 
 
 class TestDocument:
@@ -146,7 +142,7 @@ class TestStorageManager:
         # Check documents table
         cursor.execute(
             """
-            SELECT name FROM sqlite_master 
+            SELECT name FROM sqlite_master
             WHERE type='table' AND name='documents'
         """
         )
@@ -155,7 +151,7 @@ class TestStorageManager:
         # Check document_metadata table
         cursor.execute(
             """
-            SELECT name FROM sqlite_master 
+            SELECT name FROM sqlite_master
             WHERE type='table' AND name='document_metadata'
         """
         )
@@ -164,7 +160,7 @@ class TestStorageManager:
         # Check document_versions table
         cursor.execute(
             """
-            SELECT name FROM sqlite_master 
+            SELECT name FROM sqlite_master
             WHERE type='table' AND name='document_versions'
         """
         )

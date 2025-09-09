@@ -8,14 +8,13 @@ Architecture: Clean Factory + Strategy patterns with modular design
 Code Reduction: 40%+ from Pass 3 implementation
 """
 
+import hashlib
+import logging
 import re
 import time
-import logging
-import hashlib
 from functools import wraps
-from typing import Dict, List, Optional, Any, Callable
-from datetime import datetime
 from threading import Semaphore
+from typing import Any, Callable, Dict, List, Optional
 
 import numpy as np
 
@@ -23,6 +22,7 @@ import numpy as np
 from ..core.config import ConfigurationManager
 from ..core.storage import StorageManager
 from ..intelligence.llm_adapter import LLMAdapter
+from .miair_batch import BatchOptimizer, OptimizationResult
 
 # Import modular components
 from .miair_strategies import (
@@ -31,28 +31,31 @@ from .miair_strategies import (
     QualityOptimizationStrategy,
     get_strategy,
 )
-from .miair_batch import OptimizationResult, BatchOptimizer
 
 # Import enhanced security components if available
 try:
     from .miair_security_enhanced import (
-        PIIDetector,
+        AuditEvent,
+        AuditLogger,
+        CircuitBreaker,
         DocumentIntegrity,
         EnhancedRateLimiter,
-        CircuitBreaker,
-        AuditLogger,
-        AuditEvent,
-        SecurityLevel,
         InputValidator,
+        PIIDetector,
+        SecurityLevel,
     )
+
     ENHANCED_SECURITY = True
 except ImportError:
     ENHANCED_SECURITY = False
+
     # Define minimal placeholders
     class AuditEvent:
         DOC_OPTIMIZED = "doc_optimized"
+
     class SecurityLevel:
         INFO = "info"
+
 
 logger = logging.getLogger(__name__)
 
@@ -64,16 +67,19 @@ logger = logging.getLogger(__name__)
 
 class EntropyOptimizationError(Exception):
     """Base exception for MIAIR optimization errors."""
+
     pass
 
 
 class QualityGateError(Exception):
     """Raised when quality gate requirements are not met."""
+
     pass
 
 
 class ResourceLimitError(Exception):
     """Raised when resource limits are exceeded."""
+
     pass
 
 
@@ -84,6 +90,7 @@ class ResourceLimitError(Exception):
 
 def with_error_handling(error_class: type = EntropyOptimizationError):
     """Decorator for consistent error handling."""
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -92,27 +99,30 @@ def with_error_handling(error_class: type = EntropyOptimizationError):
             except Exception as e:
                 logger.error(f"{func.__name__} failed: {e}")
                 raise error_class(f"{func.__name__} error: {e}") from e
+
         return wrapper
+
     return decorator
 
 
 def rate_limit(max_calls: int = 100, window_seconds: int = 60):
     """Rate limiting decorator."""
+
     def decorator(func: Callable) -> Callable:
         if ENHANCED_SECURITY:
             limiter = EnhancedRateLimiter(max_calls, window_seconds)
-            
+
             @wraps(func)
             def wrapper(*args, **kwargs):
                 if not limiter.allow_request():
-                    raise ResourceLimitError(
-                        f"Rate limit exceeded: {max_calls}/{window_seconds}s"
-                    )
+                    raise ResourceLimitError(f"Rate limit exceeded: {max_calls}/{window_seconds}s")
                 return func(*args, **kwargs)
+
             return wrapper
         else:
             # Simple rate limiting without enhanced features
             return func
+
     return decorator
 
 
@@ -123,12 +133,12 @@ def rate_limit(max_calls: int = 100, window_seconds: int = 60):
 
 class SecurityManager:
     """Minimal security manager for document processing."""
-    
+
     def __init__(self, config):
         """Initialize security manager."""
         self.config = config
         self._cache = {}
-        
+
         if ENHANCED_SECURITY:
             self.pii_detector = PIIDetector(enable_masking=True)
             self.integrity_validator = DocumentIntegrity()
@@ -137,7 +147,7 @@ class SecurityManager:
             self.pii_detector = None
             self.integrity_validator = None
             self.input_validator = None
-    
+
     def validate_and_sanitize(self, document: str) -> str:
         """Basic validation and sanitization."""
         if not document:
@@ -146,8 +156,9 @@ class SecurityManager:
             raise ValueError("Document must be a string")
         # Basic HTML escaping
         import html
+
         return html.escape(document)
-    
+
     def sanitize_for_llm(self, content: str) -> str:
         """Sanitize content for LLM processing."""
         # Remove potential prompt injections
@@ -161,7 +172,7 @@ class SecurityManager:
         if len(sanitized) > 50000:
             sanitized = sanitized[:50000] + "... [truncated]"
         return sanitized
-    
+
     def detect_pii(self, document: str) -> Dict[str, bool]:
         """Detect PII in document."""
         if ENHANCED_SECURITY and self.pii_detector:
@@ -173,11 +184,11 @@ class SecurityManager:
         if re.search(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b", document):
             pii["email"] = True
         return pii
-    
+
     def cache_get(self, key: str):
         """Get from cache."""
         return self._cache.get(key)
-    
+
     def cache_set(self, key: str, value):
         """Set in cache."""
         self._cache[key] = value
@@ -186,7 +197,7 @@ class SecurityManager:
             # Remove oldest
             oldest = next(iter(self._cache))
             del self._cache[oldest]
-    
+
     def get_cache_stats(self) -> Dict[str, int]:
         """Get cache statistics."""
         return {"size": len(self._cache)}
@@ -263,20 +274,20 @@ class MetricsCalculator:
         """Calculate overall quality score."""
         # Entropy factor (optimal: 1.5-2.5)
         entropy_score = self._score_entropy(entropy)
-        
+
         # Coherence factor
         coherence_score = coherence * 100
-        
+
         # Length factor
         length_score = self._score_length(word_count)
-        
+
         # Vocabulary richness
         richness_score = self._score_richness(unique_words, word_count)
 
         # Weighted average
         weights = [0.3, 0.4, 0.2, 0.1]
         scores = [entropy_score, coherence_score, length_score, richness_score]
-        
+
         return min(100, max(0, sum(s * w for s, w in zip(scores, weights))))
 
     def _score_entropy(self, entropy: float) -> float:
@@ -311,9 +322,7 @@ class MetricsCalculator:
 
         entropy = self.calculate_entropy(words)
         coherence = self.calculate_coherence(document, words)
-        quality_score = self.calculate_quality_score(
-            entropy, coherence, word_count, unique_words
-        )
+        quality_score = self.calculate_quality_score(entropy, coherence, word_count, unique_words)
 
         return DocumentMetrics(
             entropy=entropy,
@@ -332,7 +341,7 @@ class MetricsCalculator:
 class MIAIREngine:
     """
     Meta-Iterative AI Refinement Engine - Production Ready.
-    
+
     Clean architecture with dependency injection, modular design,
     and enterprise-grade performance.
     """
@@ -356,28 +365,20 @@ class MIAIREngine:
         self.security = SecurityManager(config)
         self.metrics = MetricsCalculator(config)
         self.strategy = strategy or QualityOptimizationStrategy()
-        
+
         # Batch operations
-        self.batch_optimizer = BatchOptimizer(
-            self.optimize,
-            self.max_workers,
-            self.batch_size
-        )
+        self.batch_optimizer = BatchOptimizer(self.optimize, self.max_workers, self.batch_size)
 
         # Security components
         self._init_security_components()
 
         # Resource management
-        self._semaphore = Semaphore(
-            config.get("security.max_concurrent_operations", 10)
-        )
+        self._semaphore = Semaphore(config.get("security.max_concurrent_operations", 10))
 
         # Statistics
         self._stats = {"optimizations": 0, "total_improvement": 0.0}
 
-        logger.info(
-            f"MIAIR Engine initialized - Strategy: {self.strategy.__class__.__name__}"
-        )
+        logger.info(f"MIAIR Engine initialized - Strategy: {self.strategy.__class__.__name__}")
 
     def _load_configuration(self):
         """Load configuration values."""
@@ -398,12 +399,12 @@ class MIAIREngine:
                 failure_threshold=self.config.get("security.circuit_breaker_threshold", 5),
                 recovery_timeout=self.config.get("security.circuit_breaker_recovery", 60),
             )
-            
+
             self.rate_limiter = EnhancedRateLimiter(
                 max_calls=self.config.get("security.rate_limit_calls", 1000),
                 window_seconds=self.config.get("security.rate_limit_window", 60),
             )
-            
+
             self.audit_logger = AuditLogger(
                 enable_encryption=self.config.get("security.audit_encryption", True)
             )
@@ -432,7 +433,7 @@ class MIAIREngine:
         words = self.metrics.tokenize(validated)
         result = self.metrics.calculate_entropy(words)
         self.security.cache_set(cache_key, result)
-        
+
         return result
 
     @rate_limit(max_calls=500, window_seconds=60)
@@ -445,24 +446,22 @@ class MIAIREngine:
         # Validate and check PII
         validated = self.security.validate_and_sanitize(document)
         pii_detected = self.security.detect_pii(validated)
-        
+
         if pii_detected:
             logger.warning(f"PII detected: {list(pii_detected.keys())}")
 
         return self.metrics.measure_document(validated)
 
     @rate_limit(max_calls=50, window_seconds=60)
-    def refine_content(
-        self, document: str, metrics: Optional[DocumentMetrics] = None
-    ) -> str:
+    def refine_content(self, document: str, metrics: Optional[DocumentMetrics] = None) -> str:
         """Refine document using LLM."""
         with self._semaphore:
             # Sanitize for LLM
             sanitized = self.security.sanitize_for_llm(document)
-            
+
             # Build prompt
             prompt = self.strategy.build_refinement_prompt(sanitized, metrics)
-            
+
             # Query LLM with circuit breaker if available
             if ENHANCED_SECURITY and self.circuit_breaker:
                 response = self.circuit_breaker.call(
@@ -496,12 +495,12 @@ class MIAIREngine:
     ) -> OptimizationResult:
         """
         Optimize document using iterative refinement.
-        
+
         Args:
             document: Document to optimize
             max_iterations: Maximum refinement iterations
             save_to_storage: Whether to save result
-            
+
         Returns:
             Optimization result with metrics
         """
@@ -514,7 +513,7 @@ class MIAIREngine:
 
             # Validate document
             validated = self.security.validate_and_sanitize(document)
-            
+
             # Log optimization start if available
             if ENHANCED_SECURITY and self.audit_logger:
                 self.audit_logger.log(
@@ -530,21 +529,16 @@ class MIAIREngine:
             current_metrics = initial_metrics
             iterations = 0
 
-            logger.info(
-                f"Starting optimization - Quality: {initial_metrics.quality_score:.1f}%"
-            )
+            logger.info(f"Starting optimization - Quality: {initial_metrics.quality_score:.1f}%")
 
             # Optimization loop
-            result = self._optimization_loop(
-                current_content, current_metrics, max_iters
-            )
-            
+            result = self._optimization_loop(current_content, current_metrics, max_iters)
+
             current_content, current_metrics, iterations = result
 
             # Calculate improvement
             improvement = self._calculate_improvement(
-                initial_metrics.quality_score,
-                current_metrics.quality_score
+                initial_metrics.quality_score, current_metrics.quality_score
             )
 
             # Save if requested
@@ -556,7 +550,7 @@ class MIAIREngine:
             self._update_statistics(improvement)
 
             optimization_time = time.time() - start_time
-            
+
             # Log completion if available
             if ENHANCED_SECURITY and self.audit_logger:
                 self.audit_logger.log(
@@ -627,9 +621,7 @@ class MIAIREngine:
 
         return current_content, current_metrics, iterations
 
-    def _calculate_improvement(
-        self, initial_quality: float, final_quality: float
-    ) -> float:
+    def _calculate_improvement(self, initial_quality: float, final_quality: float) -> float:
         """Calculate improvement percentage."""
         if initial_quality == 0:
             return 100.0 if final_quality > 0 else 0.0
@@ -676,9 +668,7 @@ class MIAIREngine:
         save_to_storage: bool = False,
     ) -> List[OptimizationResult]:
         """Optimize multiple documents in parallel."""
-        return self.batch_optimizer.process_batch(
-            documents, max_iterations, save_to_storage
-        )
+        return self.batch_optimizer.process_batch(documents, max_iterations, save_to_storage)
 
     def get_statistics(self) -> Dict[str, Any]:
         """Get engine statistics."""
@@ -723,13 +713,13 @@ class MIAIREngineFactory:
     ) -> MIAIREngine:
         """
         Create MIAIR engine with specified strategy.
-        
+
         Args:
             config: Configuration manager
             llm_adapter: LLM adapter
-            storage: Storage manager  
+            storage: Storage manager
             strategy_name: Strategy name
-            
+
         Returns:
             Configured MIAIR engine
         """

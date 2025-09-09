@@ -6,11 +6,9 @@ Target benchmarks from design documents:
 - Validation: 4M ops/sec
 """
 
-import pytest
-import time
 import tempfile
+import time
 from pathlib import Path
-import yaml
 
 from devdocai.core.config import ConfigurationManager
 

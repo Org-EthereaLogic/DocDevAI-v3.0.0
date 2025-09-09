@@ -24,7 +24,7 @@ fi
 PYTHON_VERSION=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
 REQUIRED_VERSION="3.8"
 
-if [ "$(printf '%s\n' "$REQUIRED_VERSION" "$PYTHON_VERSION" | sort -V | head -n1)" != "$REQUIRED_VERSION" ]; then 
+if [ "$(printf '%s\n' "$REQUIRED_VERSION" "$PYTHON_VERSION" | sort -V | head -n1)" != "$REQUIRED_VERSION" ]; then
     echo -e "${RED}❌ Python $PYTHON_VERSION is too old. Minimum required: $REQUIRED_VERSION${NC}"
     exit 1
 fi
@@ -123,24 +123,24 @@ cat > .devdocai/config.yaml << EOF
 system:
   memory_mode: auto  # auto, baseline, standard, enhanced, performance
   detected_mode: ${MEMORY_MODE}
-  
+
 # Privacy settings (privacy-first defaults)
 privacy:
   telemetry: false  # Opt-in only
   analytics: false
   local_only: true
-  
+
 # Security settings
 security:
   encryption_enabled: true
   encryption_algorithm: AES-256-GCM
   key_derivation: argon2id
-  
+
 # Development settings
 development:
   debug: true
   verbose: true
-  
+
 # Quality gates
 quality:
   min_coverage: 95  # M001 requirement
@@ -162,7 +162,7 @@ def test_import():
     """Test that devdocai package can be imported."""
     import devdocai
     assert devdocai.__version__ == "3.0.0"
-    
+
 def test_python_version():
     """Test Python version requirement."""
     import sys

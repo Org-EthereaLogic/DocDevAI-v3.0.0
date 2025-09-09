@@ -24,7 +24,7 @@ Successfully completed Pass 4 refactoring of M005 Tracking Matrix, achieving **3
 ```python
 class AnalysisFactory:
     """Factory for creating analysis components."""
-    
+
     @staticmethod
     def create_validation(secure: bool = False) -> ValidationStrategy
     @staticmethod

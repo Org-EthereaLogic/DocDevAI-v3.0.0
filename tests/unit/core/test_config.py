@@ -5,27 +5,26 @@ Following Enhanced 4-Pass TDD Methodology - PASS 1 (80% Coverage Target)
 Tests written BEFORE implementation as per TDD principles.
 """
 
-import pytest
-import tempfile
 import os
-import yaml
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+import tempfile
 import time
-from typing import Dict, Any
+from pathlib import Path
+from unittest.mock import Mock, patch
+
+import pytest
+import yaml
+from pydantic import ValidationError as PydanticValidationError
 
 # Import will fail initially (TDD) - that's expected
 from devdocai.core.config import (
-    ConfigurationManager,
-    PrivacyConfig,
-    SystemConfig,
-    SecurityConfig,
-    LLMConfig,
-    QualityConfig,
-    ValidationError,
     ConfigurationError,
+    ConfigurationManager,
+    LLMConfig,
+    PrivacyConfig,
+    QualityConfig,
+    SecurityConfig,
+    SystemConfig,
 )
-from pydantic import ValidationError as PydanticValidationError
 
 
 class TestPrivacyConfig:

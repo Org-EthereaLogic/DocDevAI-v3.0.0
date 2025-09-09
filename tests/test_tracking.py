@@ -9,35 +9,25 @@ Test Coverage Targets:
 - Pass 4: 90% coverage (Integration tests)
 """
 
-import pytest
 import json
-import time
-import tempfile
-import sqlite3
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
-from typing import Dict, List, Set, Tuple
 
 # Import module to test
 import sys
+import tempfile
+import time
+from pathlib import Path
+from unittest.mock import Mock
+
+import pytest
 
 sys.path.append(str(Path(__file__).parent.parent))
 from devdocai.core.tracking import (
-    TrackingMatrix,
+    CircularReferenceError,
     DocumentRelationship,
     OptimizedDependencyGraph,
     ParallelImpactAnalysis,
-    CircularReferenceError,
-    TrackingError,
     RelationshipType,
-    ImpactResult,
-    ConsistencyReport,
-    SecurityValidator,
-    RateLimiter,
-    AuditLogger,
-    SecurityConfig,
-    ResourceLimitError,
-    SecurityError,
+    TrackingMatrix,
 )
 
 

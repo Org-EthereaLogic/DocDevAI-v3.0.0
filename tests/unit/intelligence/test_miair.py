@@ -3,27 +3,22 @@ Unit tests for M003 MIAIR Engine
 DevDocAI v3.0.0 - Pass 1: Core Implementation with TDD
 """
 
-import pytest
-import numpy as np
-from unittest.mock import Mock, MagicMock, patch, call
-from datetime import datetime
-import json
-import math
-from collections import Counter
+from unittest.mock import Mock
 
-# Import the module to test
-from devdocai.intelligence.miair import (
-    MIAIREngine,
-    EntropyOptimizationError,
-    QualityGateError,
-    DocumentMetrics,
-    OptimizationResult,
-)
+import pytest
 
 # Import validated modules for integration testing
 from devdocai.core.config import ConfigurationManager
-from devdocai.intelligence.llm_adapter import LLMAdapter, LLMResponse
 from devdocai.core.storage import StorageManager
+from devdocai.intelligence.llm_adapter import LLMAdapter, LLMResponse
+
+# Import the module to test
+from devdocai.intelligence.miair import (
+    DocumentMetrics,
+    EntropyOptimizationError,
+    MIAIREngine,
+    OptimizationResult,
+)
 
 
 class TestMIAIREngine:
@@ -545,12 +540,12 @@ class TestMIAIREngine:
         """Test handling of documents with code blocks."""
         document = """
         Here is some text.
-        
+
         ```python
         def hello():
             print("Hello, world!")
         ```
-        
+
         More text here.
         """
 

@@ -74,7 +74,7 @@ def _prepare_llm_for_save(self) -> Dict[str, Any]:
     Stored Key Format: encrypted:BMyvlp4xy90M...
     Key Is Encrypted: True
     Retrieved Key Matches: True
-    
+
 ✅ ALL TESTS PASSED (8/8 - 100%)
 ```
 

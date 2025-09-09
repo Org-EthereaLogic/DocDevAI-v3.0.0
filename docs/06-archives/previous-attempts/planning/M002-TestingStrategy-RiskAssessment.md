@@ -66,13 +66,13 @@ jest.mock('../../M001-ConfigurationManager/services/ConfigurationManager');
 describe('StorageManager', () => {
   let storageManager: StorageManager;
   let mockDb: jest.Mocked<DatabaseConnection>;
-  
+
   beforeEach(() => {
     jest.clearAllMocks();
     storageManager = StorageManager.getInstance();
     mockDb = new DatabaseConnection() as jest.Mocked<DatabaseConnection>;
   });
-  
+
   describe('saveDocument', () => {
     it('should save a valid document and return ID', async () => {
       const document: IDocument = {
@@ -85,59 +85,59 @@ describe('StorageManager', () => {
           status: DocumentStatus.DRAFT
         }
       };
-      
+
       const result = await storageManager.saveDocument(document);
-      
+
       expect(result).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
       expect(mockDb.executeQuery).toHaveBeenCalledWith(
         expect.stringContaining('INSERT INTO documents'),
         expect.any(Array)
       );
     });
-    
+
     it('should encrypt document content when encryption is enabled', async () => {
       const document = createTestDocument();
       mockConfig.storage.encryptionEnabled = true;
-      
+
       await storageManager.saveDocument(document);
-      
+
       expect(mockEncryption.encryptDocument).toHaveBeenCalledWith(document);
       expect(mockDb.executeQuery).toHaveBeenCalledWith(
         expect.any(String),
         expect.arrayContaining([expect.not.stringContaining(document.content)])
       );
     });
-    
+
     it('should validate document before saving', async () => {
       const invalidDocument = { ...createTestDocument(), title: '' };
-      
+
       await expect(storageManager.saveDocument(invalidDocument))
         .rejects.toThrow('Document validation failed');
     });
-    
+
     it('should handle database errors gracefully', async () => {
       mockDb.executeQuery.mockRejectedValue(new Error('Database error'));
-      
+
       await expect(storageManager.saveDocument(createTestDocument()))
         .rejects.toThrow('Storage operation failed');
     });
-    
+
     it('should update cache after successful save', async () => {
       const document = createTestDocument();
       const spy = jest.spyOn(mockCache, 'setDocument');
-      
+
       await storageManager.saveDocument(document);
-      
+
       expect(spy).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({
         title: document.title
       }));
     });
-    
+
     it('should create audit trail entry', async () => {
       const document = createTestDocument();
-      
+
       await storageManager.saveDocument(document);
-      
+
       expect(mockAudit.record).toHaveBeenCalledWith({
         action: 'CREATE',
         documentId: expect.any(String),
@@ -146,7 +146,7 @@ describe('StorageManager', () => {
       });
     });
   });
-  
+
   describe('query', () => {
     it('should execute query with filters', async () => {
       const query = {
@@ -157,49 +157,49 @@ describe('StorageManager', () => {
         },
         limit: 10
       };
-      
+
       const results = await storageManager.query(query);
-      
+
       expect(mockDb.executeQuery).toHaveBeenCalledWith(
         expect.stringContaining('WHERE type = ?'),
         [DocumentType.REQUIREMENTS]
       );
       expect(results.documents).toHaveLength(10);
     });
-    
+
     it('should use cache for repeated queries', async () => {
       const query = { limit: 10 };
-      
+
       await storageManager.query(query);
       await storageManager.query(query); // Second call
-      
+
       expect(mockDb.executeQuery).toHaveBeenCalledTimes(1);
       expect(mockCache.getQuery).toHaveBeenCalledTimes(2);
     });
-    
+
     // More query tests...
   });
-  
+
   describe('transaction handling', () => {
     it('should rollback transaction on error', async () => {
       const transaction = storageManager.beginTransaction();
-      
+
       await transaction.saveDocument(createTestDocument());
       mockDb.executeQuery.mockRejectedValue(new Error('Constraint violation'));
-      
+
       await expect(transaction.saveDocument(createTestDocument()))
         .rejects.toThrow();
-      
+
       expect(mockDb.rollback).toHaveBeenCalled();
     });
-    
+
     it('should commit successful transaction', async () => {
       const transaction = storageManager.beginTransaction();
-      
+
       await transaction.saveDocument(createTestDocument());
       await transaction.updateDocument('id', { title: 'Updated' });
       await transaction.commit();
-      
+
       expect(mockDb.commit).toHaveBeenCalled();
       expect(transaction.status).toBe(TransactionStatus.COMMITTED);
     });
@@ -215,42 +215,42 @@ describe('Edge Cases', () => {
     it('should handle maximum document size (10MB)', async () => {
       const largeContent = 'x'.repeat(10 * 1024 * 1024);
       const document = { ...createTestDocument(), content: largeContent };
-      
+
       const result = await storageManager.saveDocument(document);
       expect(result).toBeDefined();
     });
-    
+
     it('should reject documents exceeding maximum size', async () => {
       const tooLarge = 'x'.repeat(10 * 1024 * 1024 + 1);
       const document = { ...createTestDocument(), content: tooLarge };
-      
+
       await expect(storageManager.saveDocument(document))
         .rejects.toThrow('Content exceeds maximum size');
     });
-    
+
     it('should handle 1000 concurrent operations', async () => {
-      const operations = Array(1000).fill(null).map(() => 
+      const operations = Array(1000).fill(null).map(() =>
         storageManager.getDocument(generateId())
       );
-      
+
       const results = await Promise.all(operations);
       expect(results).toHaveLength(1000);
     });
   });
-  
+
   describe('Unicode and Special Characters', () => {
     it('should handle emoji in content', async () => {
-      const document = { 
-        ...createTestDocument(), 
-        content: '📝 Document with emoji 🎉' 
+      const document = {
+        ...createTestDocument(),
+        content: '📝 Document with emoji 🎉'
       };
-      
+
       const id = await storageManager.saveDocument(document);
       const retrieved = await storageManager.getDocument(id);
-      
+
       expect(retrieved.content).toBe(document.content);
     });
-    
+
     it('should handle various language scripts', async () => {
       const scripts = [
         'Hello World', // English
@@ -259,7 +259,7 @@ describe('Edge Cases', () => {
         'Здравствуй мир', // Russian
         '🌍🌎🌏' // Emoji
       ];
-      
+
       for (const content of scripts) {
         const doc = { ...createTestDocument(), content };
         const id = await storageManager.saveDocument(doc);
@@ -282,48 +282,48 @@ describe('Edge Cases', () => {
 describe('M001-M002 Integration', () => {
   let configManager: ConfigurationManager;
   let storageManager: StorageManager;
-  
+
   beforeAll(async () => {
     // Use real instances, not mocks
     configManager = ConfigurationManager.getInstance();
     storageManager = StorageManager.getInstance();
-    
+
     // Load test configuration
     await configManager.loadConfiguration();
     const config = configManager.getConfiguration();
-    
+
     // Initialize storage with real config
     await storageManager.initialize(config.storage);
   });
-  
+
   afterAll(async () => {
     await storageManager.shutdown();
   });
-  
+
   it('should respect encryption settings from configuration', async () => {
     const config = configManager.getConfiguration();
     config.features.enableEncryption = true;
     configManager.updateConfiguration(config);
-    
+
     const document = createTestDocument();
     const id = await storageManager.saveDocument(document);
-    
+
     // Query database directly to verify encryption
     const raw = await queryDatabase(`SELECT content FROM documents WHERE id = ?`, [id]);
     expect(raw.content).not.toBe(document.content); // Should be encrypted
   });
-  
+
   it('should adapt to memory mode changes', async () => {
     const config = configManager.getConfiguration();
-    
+
     // Test each memory mode
     const modes = ['baseline', 'standard', 'enhanced', 'performance'];
     for (const mode of modes) {
       config.performance.memoryMode = mode;
       configManager.updateConfiguration(config);
-      
+
       await storageManager.initialize(config.storage);
-      
+
       const metrics = await storageManager.getStatistics();
       expect(metrics.cacheSize).toBeLessThanOrEqual(
         getMaxCacheForMode(mode)
@@ -338,7 +338,7 @@ describe('M001-M002 Integration', () => {
 ```typescript
 describe('Database Integration', () => {
   let db: DatabaseConnection;
-  
+
   beforeAll(async () => {
     db = new DatabaseConnection();
     await db.connect({
@@ -348,49 +348,49 @@ describe('Database Integration', () => {
       maxSizeMB: 100
     });
   });
-  
+
   it('should maintain referential integrity', async () => {
     // Create document
     const docId = await db.executeQuery(
       'INSERT INTO documents (id, type, title, content) VALUES (?, ?, ?, ?)',
       [generateId(), 'test', 'Test', 'Content']
     );
-    
+
     // Try to create metadata with invalid document_id
     await expect(db.executeQuery(
       'INSERT INTO metadata (id, document_id, category) VALUES (?, ?, ?)',
       [generateId(), 'invalid-id', 'test']
     )).rejects.toThrow('FOREIGN KEY constraint failed');
-    
+
     // Create valid metadata
     await db.executeQuery(
       'INSERT INTO metadata (id, document_id, category) VALUES (?, ?, ?)',
       [generateId(), docId, 'test']
     );
-    
+
     // Delete document should cascade
     await db.executeQuery('DELETE FROM documents WHERE id = ?', [docId]);
-    
+
     const metadata = await db.executeQuery(
       'SELECT * FROM metadata WHERE document_id = ?',
       [docId]
     );
     expect(metadata).toHaveLength(0);
   });
-  
+
   it('should handle concurrent transactions', async () => {
     const operations = Array(10).fill(null).map(async (_, i) => {
       const tx = await db.beginTransaction();
-      
+
       try {
         await tx.execute(
           'INSERT INTO documents (id, type, title, content) VALUES (?, ?, ?, ?)',
           [generateId(), 'test', `Doc ${i}`, `Content ${i}`]
         );
-        
+
         // Simulate some work
         await new Promise(resolve => setTimeout(resolve, Math.random() * 100));
-        
+
         await tx.commit();
         return 'success';
       } catch (error) {
@@ -398,12 +398,12 @@ describe('Database Integration', () => {
         return 'failed';
       }
     });
-    
+
     const results = await Promise.all(operations);
     const successes = results.filter(r => r === 'success').length;
-    
+
     expect(successes).toBeGreaterThan(0);
-    
+
     // Verify data consistency
     const count = await db.executeQuery('SELECT COUNT(*) as count FROM documents');
     expect(count[0].count).toBe(successes);
@@ -422,7 +422,7 @@ describe('Database Integration', () => {
 describe('Performance Benchmarks', () => {
   let storageManager: StorageManager;
   let performanceMetrics: PerformanceMetrics;
-  
+
   beforeAll(async () => {
     storageManager = StorageManager.getInstance();
     await storageManager.initialize({
@@ -431,66 +431,66 @@ describe('Performance Benchmarks', () => {
       encryptionEnabled: false, // Disable for baseline performance
       maxSizeMB: 1000
     });
-    
+
     performanceMetrics = new PerformanceMetrics();
   });
-  
+
   describe('Document Operations', () => {
     it('should retrieve single document in <10ms', async () => {
       const document = createLargeDocument(100000); // 100KB
       const id = await storageManager.saveDocument(document);
-      
+
       const iterations = 100;
       const durations: number[] = [];
-      
+
       for (let i = 0; i < iterations; i++) {
         const start = performance.now();
         await storageManager.getDocument(id);
         const duration = performance.now() - start;
         durations.push(duration);
       }
-      
+
       const average = durations.reduce((a, b) => a + b) / durations.length;
       const p95 = percentile(durations, 95);
-      
+
       expect(average).toBeLessThan(10);
       expect(p95).toBeLessThan(15);
     });
-    
+
     it('should handle 1000+ documents/second for batch operations', async () => {
       const documents = Array(1000).fill(null).map(() => createTestDocument());
-      
+
       const start = performance.now();
       const ids = await storageManager.batchSave(documents);
       const duration = performance.now() - start;
-      
+
       const docsPerSecond = 1000 / (duration / 1000);
-      
+
       expect(docsPerSecond).toBeGreaterThan(1000);
       expect(ids).toHaveLength(1000);
     });
-    
+
     it('should maintain <20% encryption overhead', async () => {
       const document = createLargeDocument(1000000); // 1MB
-      
+
       // Baseline without encryption
       await storageManager.initialize({ encryptionEnabled: false });
       const startPlain = performance.now();
       await storageManager.saveDocument(document);
       const plainDuration = performance.now() - startPlain;
-      
+
       // With encryption
       await storageManager.initialize({ encryptionEnabled: true });
       const startEncrypted = performance.now();
       await storageManager.saveDocument(document);
       const encryptedDuration = performance.now() - startEncrypted;
-      
+
       const overhead = ((encryptedDuration - plainDuration) / plainDuration) * 100;
-      
+
       expect(overhead).toBeLessThan(20);
     });
   });
-  
+
   describe('Query Performance', () => {
     beforeAll(async () => {
       // Seed database with test data
@@ -505,7 +505,7 @@ describe('Performance Benchmarks', () => {
         });
       }
     });
-    
+
     it('should execute complex queries in <100ms', async () => {
       const query = {
         filters: {
@@ -520,15 +520,15 @@ describe('Performance Benchmarks', () => {
         ],
         limit: 100
       };
-      
+
       const start = performance.now();
       const results = await storageManager.query(query);
       const duration = performance.now() - start;
-      
+
       expect(duration).toBeLessThan(100);
       expect(results.documents.length).toBeLessThanOrEqual(100);
     });
-    
+
     it('should achieve >80% cache hit rate', async () => {
       const queries = [
         { limit: 10 },
@@ -536,22 +536,22 @@ describe('Performance Benchmarks', () => {
         { limit: 10 }, // Repeat
         { filters: { field: 'type', operator: FilterOperator.EQUALS, value: DocumentType.REQUIREMENTS } } // Repeat
       ];
-      
+
       for (const query of queries) {
         await storageManager.query(query);
       }
-      
+
       const metrics = await storageManager.getStatistics();
       const hitRate = metrics.cache.hitRate;
-      
+
       expect(hitRate).toBeGreaterThan(0.8);
     });
   });
-  
+
   describe('Memory Usage', () => {
     it('should stay under 100MB for typical operations', async () => {
       const initialMemory = process.memoryUsage().heapUsed;
-      
+
       // Perform typical operations
       for (let i = 0; i < 100; i++) {
         const doc = createTestDocument();
@@ -559,12 +559,12 @@ describe('Performance Benchmarks', () => {
         await storageManager.getDocument(id);
         await storageManager.query({ limit: 10 });
       }
-      
+
       global.gc?.(); // Force garbage collection if available
-      
+
       const finalMemory = process.memoryUsage().heapUsed;
       const memoryIncrease = (finalMemory - initialMemory) / 1024 / 1024; // MB
-      
+
       expect(memoryIncrease).toBeLessThan(100);
     });
   });
@@ -586,29 +586,29 @@ class LoadTester {
       requestsPerSecond: 0,
       errors: []
     };
-    
-    const workers = Array(config.concurrency).fill(null).map(() => 
+
+    const workers = Array(config.concurrency).fill(null).map(() =>
       this.runWorker(config, results)
     );
-    
+
     const startTime = Date.now();
     await Promise.all(workers);
     const duration = (Date.now() - startTime) / 1000;
-    
+
     results.requestsPerSecond = results.totalRequests / duration;
-    
+
     return results;
   }
-  
+
   private async runWorker(
     config: LoadTestConfig,
     results: LoadTestResults
   ): Promise<void> {
     const operations = this.generateOperations(config);
-    
+
     for (const operation of operations) {
       const start = performance.now();
-      
+
       try {
         await this.executeOperation(operation);
         results.successfulRequests++;
@@ -616,15 +616,15 @@ class LoadTester {
         results.failedRequests++;
         results.errors.push(error.message);
       }
-      
+
       const duration = performance.now() - start;
       results.totalRequests++;
       results.minResponseTime = Math.min(results.minResponseTime, duration);
       results.maxResponseTime = Math.max(results.maxResponseTime, duration);
-      
+
       // Update average incrementally
-      results.averageResponseTime = 
-        (results.averageResponseTime * (results.totalRequests - 1) + duration) / 
+      results.averageResponseTime =
+        (results.averageResponseTime * (results.totalRequests - 1) + duration) /
         results.totalRequests;
     }
   }
@@ -642,7 +642,7 @@ describe('Security Tests', () => {
   describe('SQL Injection Prevention', () => {
     it('should prevent SQL injection in queries', async () => {
       const maliciousInput = "'; DROP TABLE documents; --";
-      
+
       const query = {
         filters: {
           field: 'title',
@@ -650,38 +650,38 @@ describe('Security Tests', () => {
           value: maliciousInput
         }
       };
-      
+
       // Should not throw but also should not execute malicious SQL
       const results = await storageManager.query(query);
-      
+
       // Verify table still exists
       const tableExists = await verifyTableExists('documents');
       expect(tableExists).toBe(true);
     });
-    
+
     it('should sanitize dynamic column names', async () => {
       const maliciousColumn = 'title; DROP TABLE documents; --';
-      
+
       const query = {
         orderBy: [{
           field: maliciousColumn,
           direction: 'asc'
         }]
       };
-      
+
       await expect(storageManager.query(query))
         .rejects.toThrow('Invalid field name');
     });
   });
-  
+
   describe('Path Traversal Prevention', () => {
     it('should prevent path traversal in backup operations', async () => {
       const maliciousPath = '../../../etc/passwd';
-      
+
       await expect(storageManager.backup(maliciousPath))
         .rejects.toThrow('Path traversal attempt detected');
     });
-    
+
     it('should validate all file paths', async () => {
       const paths = [
         '../../sensitive/data.db',
@@ -689,24 +689,24 @@ describe('Security Tests', () => {
         'C:\\Windows\\System32\\config\\sam',
         '..\\..\\..\\windows\\system32\\config\\sam'
       ];
-      
+
       for (const path of paths) {
         await expect(storageManager.restore(path))
           .rejects.toThrow(/Path|Invalid/);
       }
     });
   });
-  
+
   describe('Encryption Security', () => {
     it('should not leak sensitive data in errors', async () => {
       const document = {
         ...createTestDocument(),
         content: 'Sensitive: API_KEY=secret123'
       };
-      
+
       // Force an error
       mockDb.executeQuery.mockRejectedValue(new Error('Database error with secret123'));
-      
+
       try {
         await storageManager.saveDocument(document);
       } catch (error) {
@@ -714,7 +714,7 @@ describe('Security Tests', () => {
         expect(error.message).not.toContain('API_KEY');
       }
     });
-    
+
     it('should properly encrypt all sensitive fields', async () => {
       const document = {
         ...createTestDocument(),
@@ -727,46 +727,46 @@ describe('Security Tests', () => {
           }
         }
       };
-      
+
       const id = await storageManager.saveDocument(document);
-      
+
       // Query raw database
       const raw = await queryDatabaseRaw(
         'SELECT * FROM documents WHERE id = ?',
         [id]
       );
-      
+
       expect(raw.content).not.toBe(document.content);
       expect(raw.content).toMatch(/^[a-f0-9]+$/); // Hex encrypted
     });
   });
-  
+
   describe('Access Control', () => {
     it('should enforce file permissions', async () => {
       const testFile = './test-permissions.db';
-      
+
       await storageManager.initialize({
         type: 'sqlite',
         path: testFile
       });
-      
+
       const stats = fs.statSync(testFile);
       const mode = (stats.mode & parseInt('777', 8)).toString(8);
-      
+
       if (process.platform !== 'win32') {
         expect(mode).toBe('600'); // Owner read/write only
       }
     });
-    
+
     it('should rate limit operations', async () => {
       const operations = Array(1000).fill(null).map(() =>
         storageManager.getDocument(generateId())
       );
-      
+
       const start = Date.now();
       await Promise.all(operations);
       const duration = Date.now() - start;
-      
+
       // Should be rate limited, not instant
       expect(duration).toBeGreaterThan(100);
     });
@@ -784,7 +784,7 @@ class PenetrationTester {
       passed: [],
       warnings: []
     };
-    
+
     // Test for common vulnerabilities
     await this.testSQLInjection(report);
     await this.testXSS(report);
@@ -793,10 +793,10 @@ class PenetrationTester {
     await this.testDataLeakage(report);
     await this.testWeakEncryption(report);
     await this.testAccessControl(report);
-    
+
     return report;
   }
-  
+
   private async testSQLInjection(report: SecurityAuditReport): Promise<void> {
     const payloads = [
       "' OR '1'='1",
@@ -804,7 +804,7 @@ class PenetrationTester {
       "' UNION SELECT * FROM users--",
       "' AND 1=CAST((SELECT password FROM users) AS INT)--"
     ];
-    
+
     for (const payload of payloads) {
       try {
         await storageManager.query({
@@ -814,10 +814,10 @@ class PenetrationTester {
             value: payload
           }
         });
-        
+
         // If we get here without error, check if injection worked
         const tablesIntact = await this.verifyDatabaseIntegrity();
-        
+
         if (!tablesIntact) {
           report.vulnerabilities.push({
             type: 'SQL_INJECTION',
@@ -833,7 +833,7 @@ class PenetrationTester {
       }
     }
   }
-  
+
   private async testDoS(report: SecurityAuditReport): Promise<void> {
     // Test resource exhaustion
     const largeQuery = {
@@ -845,12 +845,12 @@ class PenetrationTester {
         }))
       }
     };
-    
+
     try {
       const start = Date.now();
       await storageManager.query(largeQuery);
       const duration = Date.now() - start;
-      
+
       if (duration > 5000) {
         report.vulnerabilities.push({
           type: 'DOS',
@@ -993,9 +993,9 @@ class PenetrationTester {
 
 ## Document Metadata
 
-**Created**: 2025-08-25  
-**Author**: DevDocAI Implementation Team  
-**Version**: 1.0.0  
-**Status**: APPROVED  
-**Review Date**: 2025-08-25  
+**Created**: 2025-08-25
+**Author**: DevDocAI Implementation Team
+**Version**: 1.0.0
+**Status**: APPROVED
+**Review Date**: 2025-08-25
 **Next Review**: 2025-09-01

@@ -4,17 +4,17 @@ Pass 4: Simplified encryption with focused functionality
 """
 
 import base64
-import secrets
 import json
 import logging
-from typing import Optional, Dict, Any
-from pathlib import Path
+import secrets
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, Optional
 
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.backends import default_backend
 
 logger = logging.getLogger(__name__)
 

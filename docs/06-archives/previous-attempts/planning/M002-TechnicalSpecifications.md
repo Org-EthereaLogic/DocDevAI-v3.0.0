@@ -9,25 +9,25 @@
 export interface IStorageManager {
   initialize(config: IStorageConfig): Promise<void>;
   shutdown(): Promise<void>;
-  
+
   // Document operations
   saveDocument(document: IDocument): Promise<string>;
   getDocument(id: string): Promise<IDocument | null>;
   updateDocument(id: string, updates: Partial<IDocument>): Promise<void>;
   deleteDocument(id: string): Promise<boolean>;
-  
+
   // Query operations
   query(params: IQuery): Promise<IQueryResult>;
   count(params: IQuery): Promise<number>;
   exists(id: string): Promise<boolean>;
-  
+
   // Transaction operations
   beginTransaction(): ITransaction;
-  
+
   // Backup operations
   backup(path: string): Promise<void>;
   restore(path: string): Promise<void>;
-  
+
   // Utility operations
   getStatistics(): Promise<IStorageStatistics>;
   vacuum(): Promise<void>;
@@ -77,23 +77,23 @@ export interface IMetadata {
 export interface IQuery {
   // Filter criteria
   filters?: IFilterCriteria;
-  
+
   // Sorting
   orderBy?: ISortCriteria[];
-  
+
   // Pagination
   limit?: number;
   offset?: number;
-  
+
   // Field selection
   select?: string[];
-  
+
   // Relationships to include
   include?: string[];
-  
+
   // Full-text search
   search?: string;
-  
+
   // Aggregation
   groupBy?: string[];
   having?: IFilterCriteria;
@@ -104,7 +104,7 @@ export interface IFilterCriteria {
   and?: IFilterCriteria[];
   or?: IFilterCriteria[];
   not?: IFilterCriteria;
-  
+
   // Field comparisons
   field?: string;
   operator?: FilterOperator;
@@ -128,16 +128,16 @@ export interface IQueryResult {
 export interface ITransaction {
   id: string;
   status: TransactionStatus;
-  
+
   // Document operations within transaction
   saveDocument(document: IDocument): Promise<string>;
   updateDocument(id: string, updates: Partial<IDocument>): Promise<void>;
   deleteDocument(id: string): Promise<boolean>;
-  
+
   // Transaction control
   commit(): Promise<void>;
   rollback(): Promise<void>;
-  
+
   // Transaction info
   getOperations(): IOperation[];
   getDuration(): number;
@@ -370,24 +370,24 @@ export class StorageManager implements IStorageManager {
     }
 
     this.config = config;
-    
+
     // Initialize database connection
     this.db = new DatabaseConnection();
     await this.db.connect(config);
-    
+
     // Initialize services
     this.documentService = new DocumentService(this.db);
     this.queryService = new QueryService(this.db);
     this.transactionManager = new TransactionManager(this.db);
     this.backupService = new BackupService(this.db);
-    
+
     // Initialize utilities
     this.cache = new StorageCache(config.cacheEnabled, config.cacheSizeMB);
     this.metrics = new StorageMetrics();
-    
+
     // Run migrations if needed
     await this.runMigrations();
-    
+
     this.initialized = true;
   }
 
@@ -411,38 +411,38 @@ export class DatabaseConnection {
 
   public async connect(config: IStorageConfig): Promise<void> {
     this.config = config;
-    
+
     const dbPath = config.type === 'memory' ? ':memory:' : config.path;
-    
+
     // Validate path if not memory database
     if (config.type !== 'memory' && dbPath) {
       SecurityUtils.validatePath(dbPath, process.cwd());
     }
-    
+
     // Create main connection
     this.db = new Database(dbPath, {
       verbose: process.env.NODE_ENV === 'development' ? console.log : undefined,
       fileMustExist: false
     });
-    
+
     // Enable SQLCipher if encryption is enabled
     if (config.encryptionEnabled) {
       await this.enableEncryption();
     }
-    
+
     // Configure database settings
     this.configureDatabase();
-    
+
     // Initialize connection pool
     this.initializeConnectionPool();
   }
 
   private async enableEncryption(): Promise<void> {
     if (!this.db) throw new Error('Database not connected');
-    
+
     // Derive encryption key from configuration
     const masterKey = this.deriveMasterKey();
-    
+
     // Set SQLCipher encryption
     this.db.pragma(`cipher = 'aes-256-gcm'`);
     this.db.pragma(`key = '${masterKey}'`);
@@ -451,18 +451,18 @@ export class DatabaseConnection {
 
   private configureDatabase(): void {
     if (!this.db) throw new Error('Database not connected');
-    
+
     // Performance optimizations
     this.db.pragma('journal_mode = WAL');
     this.db.pragma('synchronous = NORMAL');
     this.db.pragma('cache_size = -64000'); // 64MB cache
     this.db.pragma('temp_store = MEMORY');
     this.db.pragma('mmap_size = 30000000000'); // 30GB mmap
-    
+
     // Security settings
     this.db.pragma('trusted_schema = OFF');
     this.db.pragma('cell_size_check = ON');
-    
+
     // Enable foreign keys
     this.db.pragma('foreign_keys = ON');
   }
@@ -502,15 +502,15 @@ class StorageEncryption {
   private enableDatabaseEncryption(key: string): void {
     // SQLCipher configuration
   }
-  
+
   // Layer 2: Field-level encryption for sensitive data
   public async encryptField(
-    value: string, 
+    value: string,
     fieldName: string
   ): Promise<EncryptedField> {
     const fieldKey = await this.deriveFieldKey(fieldName);
     const { encrypted, iv, tag } = SecurityUtils.encryptData(value, fieldKey);
-    
+
     return {
       data: encrypted,
       iv: iv,
@@ -519,7 +519,7 @@ class StorageEncryption {
       keyId: this.currentKeyId
     };
   }
-  
+
   // Layer 3: Attachment encryption
   public async encryptAttachment(
     data: Buffer
@@ -578,7 +578,7 @@ class StorageValidator {
   // Document validation
   public validateDocument(document: IDocument): ValidationResult {
     const errors: ValidationError[] = [];
-    
+
     // Required fields
     if (!document.title?.trim()) {
       errors.push({
@@ -587,7 +587,7 @@ class StorageValidator {
         code: 'REQUIRED_FIELD'
       });
     }
-    
+
     // Field length limits
     if (document.title?.length > 255) {
       errors.push({
@@ -596,7 +596,7 @@ class StorageValidator {
         code: 'MAX_LENGTH'
       });
     }
-    
+
     // Content size limits
     if (document.content?.length > 10 * 1024 * 1024) { // 10MB
       errors.push({
@@ -605,7 +605,7 @@ class StorageValidator {
         code: 'MAX_SIZE'
       });
     }
-    
+
     // Type validation
     if (!Object.values(DocumentType).includes(document.type)) {
       errors.push({
@@ -614,7 +614,7 @@ class StorageValidator {
         code: 'INVALID_ENUM'
       });
     }
-    
+
     // Checksum validation
     if (document.checksum) {
       const calculated = this.calculateChecksum(document);
@@ -626,17 +626,17 @@ class StorageValidator {
         });
       }
     }
-    
+
     return {
       valid: errors.length === 0,
       errors
     };
   }
-  
+
   // Query validation
   public validateQuery(query: IQuery): ValidationResult {
     const errors: ValidationError[] = [];
-    
+
     // Pagination limits
     if (query.limit && query.limit > 1000) {
       errors.push({
@@ -645,7 +645,7 @@ class StorageValidator {
         code: 'MAX_LIMIT'
       });
     }
-    
+
     // Valid field names
     if (query.select) {
       const validFields = this.getValidFields();
@@ -658,7 +658,7 @@ class StorageValidator {
         });
       }
     }
-    
+
     return {
       valid: errors.length === 0,
       errors
@@ -710,19 +710,19 @@ export class StorageErrorHandler {
     if (error instanceof Database.SqliteError) {
       return this.handleSqliteError(error);
     }
-    
+
     // Encryption errors
     if (error instanceof Error && error.message.includes('decrypt')) {
-      return new EncryptionError('Decryption failed', { 
-        originalError: error.message 
+      return new EncryptionError('Decryption failed', {
+        originalError: error.message
       });
     }
-    
+
     // Validation errors
     if (error instanceof ValidationError) {
       return error;
     }
-    
+
     // Generic errors
     if (error instanceof Error) {
       return new StorageError(
@@ -731,13 +731,13 @@ export class StorageErrorHandler {
         { originalError: error.message }
       );
     }
-    
+
     return new StorageError(
       'Unknown error occurred',
       'UNKNOWN_ERROR'
     );
   }
-  
+
   private handleSqliteError(error: Database.SqliteError): StorageError {
     // Map SQLite error codes to storage errors
     switch (error.code) {
@@ -773,62 +773,62 @@ class StorageCache {
   private documentCache: LRUCache<string, IDocument>;
   private queryCache: LRUCache<string, IQueryResult>;
   private metadataCache: LRUCache<string, IMetadata>;
-  
+
   constructor(
     private enabled: boolean,
     private maxSizeMB: number
   ) {
     const maxItems = this.calculateMaxItems(maxSizeMB);
-    
+
     this.documentCache = new LRUCache({
       max: maxItems,
       ttl: 1000 * 60 * 5, // 5 minutes
       updateAgeOnGet: true,
       updateAgeOnHas: true
     });
-    
+
     this.queryCache = new LRUCache({
       max: 100,
       ttl: 1000 * 60 * 2, // 2 minutes
       updateAgeOnGet: false
     });
-    
+
     this.metadataCache = new LRUCache({
       max: maxItems * 2,
       ttl: 1000 * 60 * 10, // 10 minutes
       updateAgeOnGet: true
     });
   }
-  
+
   public async getDocument(id: string): Promise<IDocument | undefined> {
     if (!this.enabled) return undefined;
-    
+
     const cached = this.documentCache.get(id);
     if (cached) {
       this.metrics.recordCacheHit('document');
       return cached;
     }
-    
+
     this.metrics.recordCacheMiss('document');
     return undefined;
   }
-  
+
   public setDocument(id: string, document: IDocument): void {
     if (!this.enabled) return;
-    
+
     this.documentCache.set(id, document);
-    
+
     // Also cache metadata
     if (document.metadata) {
       this.metadataCache.set(document.metadata.id, document.metadata);
     }
   }
-  
+
   public invalidateDocument(id: string): void {
     this.documentCache.delete(id);
     this.invalidateQueriesContaining(id);
   }
-  
+
   private invalidateQueriesContaining(documentId: string): void {
     // Invalidate all cached queries that might contain this document
     for (const [key, result] of this.queryCache.entries()) {
@@ -847,7 +847,7 @@ class ConnectionPool {
   private pool: Database.Database[] = [];
   private available: Database.Database[] = [];
   private inUse: Map<Database.Database, Date> = new Map();
-  
+
   constructor(
     private config: IStorageConfig,
     private minConnections: number = 2,
@@ -855,7 +855,7 @@ class ConnectionPool {
   ) {
     this.initialize();
   }
-  
+
   private async initialize(): Promise<void> {
     // Create minimum connections
     for (let i = 0; i < this.minConnections; i++) {
@@ -864,7 +864,7 @@ class ConnectionPool {
       this.available.push(conn);
     }
   }
-  
+
   public async acquire(): Promise<Database.Database> {
     // Return available connection
     if (this.available.length > 0) {
@@ -872,7 +872,7 @@ class ConnectionPool {
       this.inUse.set(conn, new Date());
       return conn;
     }
-    
+
     // Create new connection if under limit
     if (this.pool.length < this.maxConnections) {
       const conn = await this.createConnection();
@@ -880,28 +880,28 @@ class ConnectionPool {
       this.inUse.set(conn, new Date());
       return conn;
     }
-    
+
     // Wait for connection to become available
     return this.waitForConnection();
   }
-  
+
   public release(conn: Database.Database): void {
     if (this.inUse.has(conn)) {
       this.inUse.delete(conn);
       this.available.push(conn);
     }
   }
-  
+
   private async waitForConnection(timeout: number = 5000): Promise<Database.Database> {
     const start = Date.now();
-    
+
     while (Date.now() - start < timeout) {
       if (this.available.length > 0) {
         return this.acquire();
       }
       await new Promise(resolve => setTimeout(resolve, 100));
     }
-    
+
     throw new Error('Connection pool timeout');
   }
 }
@@ -912,14 +912,14 @@ class ConnectionPool {
 ```typescript
 class StorageMetrics {
   private metrics: Map<string, IMetric> = new Map();
-  
+
   public recordOperation(
     operation: string,
     duration: number,
     success: boolean
   ): void {
     const key = `operation.${operation}`;
-    
+
     if (!this.metrics.has(key)) {
       this.metrics.set(key, {
         count: 0,
@@ -931,21 +931,21 @@ class StorageMetrics {
         errorCount: 0
       });
     }
-    
+
     const metric = this.metrics.get(key)!;
     metric.count++;
     metric.totalDuration += duration;
     metric.minDuration = Math.min(metric.minDuration, duration);
     metric.maxDuration = Math.max(metric.maxDuration, duration);
     metric.avgDuration = metric.totalDuration / metric.count;
-    
+
     if (success) {
       metric.successCount++;
     } else {
       metric.errorCount++;
     }
   }
-  
+
   public getMetrics(): IMetricsReport {
     const report: IMetricsReport = {
       operations: {},
@@ -965,14 +965,14 @@ class StorageMetrics {
         errorRate: this.getErrorRate()
       }
     };
-    
+
     for (const [key, metric] of this.metrics.entries()) {
       if (key.startsWith('operation.')) {
         const operation = key.substring(10);
         report.operations[operation] = metric;
       }
     }
-    
+
     return report;
   }
 }
@@ -987,7 +987,7 @@ class StorageMetrics {
 ```typescript
 class StorageAccessControl {
   private permissions: Map<string, IPermission> = new Map();
-  
+
   public async checkAccess(
     actor: string,
     resource: string,
@@ -998,7 +998,7 @@ class StorageAccessControl {
     if (this.permissions.has(key)) {
       return this.permissions.get(key)!.allowed;
     }
-    
+
     // Check role-based permissions
     const roles = await this.getUserRoles(actor);
     for (const role of roles) {
@@ -1007,11 +1007,11 @@ class StorageAccessControl {
         return this.permissions.get(roleKey)!.allowed;
       }
     }
-    
+
     // Default deny
     return false;
   }
-  
+
   public async audit(
     actor: string,
     action: string,
@@ -1029,7 +1029,7 @@ class StorageAccessControl {
       ipAddress: this.getClientIP(),
       userAgent: this.getUserAgent()
     };
-    
+
     await this.auditRepository.create(entry);
   }
 }
@@ -1045,25 +1045,25 @@ class StorageSanitizer {
     // This is just for extra safety on dynamic column names
     return value.replace(/[^a-zA-Z0-9_]/g, '');
   }
-  
+
   // Path traversal prevention
   public sanitizePath(path: string): string {
     // Remove dangerous characters
     let safe = path.replace(/\.\./g, '');
     safe = safe.replace(/[<>:"|?*]/g, '');
     safe = safe.replace(/\x00/g, ''); // Null bytes
-    
+
     // Ensure path is within allowed directory
     const resolved = path.resolve(safe);
     const allowed = path.resolve(this.config.basePath);
-    
+
     if (!resolved.startsWith(allowed)) {
       throw new SecurityError('Path traversal attempt detected');
     }
-    
+
     return resolved;
   }
-  
+
   // XSS prevention for stored content
   public sanitizeHTML(html: string): string {
     // Use DOMPurify or similar library
@@ -1072,7 +1072,7 @@ class StorageSanitizer {
       ALLOWED_ATTR: ['href']
     });
   }
-  
+
   // JSON injection prevention
   public sanitizeJSON(json: string): any {
     try {
@@ -1080,14 +1080,14 @@ class StorageSanitizer {
       if (json.length > 1024 * 1024) { // 1MB limit
         throw new Error('JSON too large');
       }
-      
+
       const parsed = JSON.parse(json);
-      
+
       // Check depth
       if (this.getDepth(parsed) > 10) {
         throw new Error('JSON too deep');
       }
-      
+
       return parsed;
     } catch (error) {
       throw new ValidationError('Invalid JSON');
@@ -1100,9 +1100,9 @@ class StorageSanitizer {
 
 ## Document Metadata
 
-**Created**: 2025-08-25  
-**Author**: DevDocAI Implementation Team  
-**Version**: 1.0.0  
-**Status**: APPROVED  
-**Review Date**: 2025-08-25  
+**Created**: 2025-08-25
+**Author**: DevDocAI Implementation Team
+**Version**: 1.0.0
+**Status**: APPROVED
+**Review Date**: 2025-08-25
 **Next Review**: 2025-09-01

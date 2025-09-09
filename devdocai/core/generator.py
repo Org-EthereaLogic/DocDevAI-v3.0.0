@@ -13,38 +13,36 @@ Pass 4 Improvements:
 - Preserved enterprise security features
 """
 
-import os
-import uuid
-import json
-import yaml
+import ast
 import asyncio
-import logging
+import base64
 import hashlib
 import hmac
-import time
+import json
+import logging
+import os
 import pickle
-import secrets
-import psutil
 import re
-import ast
-import base64
-from pathlib import Path
-from typing import Dict, Any, List, Optional, Union, Tuple, Set, Protocol
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
-from collections import OrderedDict, defaultdict
-from functools import lru_cache, wraps
-from abc import ABC, abstractmethod
+import secrets
 import threading
-from queue import Queue, Empty
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+import time
+import uuid
+from abc import ABC, abstractmethod
+from collections import OrderedDict, defaultdict
+from dataclasses import dataclass, field
+from datetime import datetime
+from functools import lru_cache
+from pathlib import Path
+from queue import Queue
+from typing import Any, Dict, List, Optional, Protocol, Tuple, Union
+
+import yaml
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 # Local imports
 from ..core.config import ConfigurationManager
-from ..core.storage import StorageManager, Document, DocumentMetadata
+from ..core.storage import Document, StorageManager
 from ..intelligence.llm_adapter import LLMAdapter, LLMResponse
 
 logger = logging.getLogger(__name__)
@@ -333,7 +331,7 @@ class ResponseCache(BaseCache):
 
         # L3 cache directory (disk) with safe default when config_dir missing
         try:
-            base_dir = Path(getattr(config, "config_file")).parent  # type: ignore[attr-defined]
+            base_dir = Path(config.config_file).parent  # type: ignore[attr-defined]
         except Exception:
             base_dir = Path.home() / ".devdocai"
         self.cache_dir = Path(getattr(config, "config_dir", base_dir)) / "response_cache"
@@ -678,7 +676,7 @@ class TemplateManager:
                 f"Template not found: {template_name}", error_type="template_not_found"
             )
 
-        with open(template_file, "r") as f:
+        with open(template_file) as f:
             template = yaml.safe_load(f)
 
         self.templates_cache[template_name] = template
@@ -738,7 +736,7 @@ class ContextBuilder:
                 continue
 
             try:
-                with open(py_file, "r", encoding="utf-8") as f:
+                with open(py_file, encoding="utf-8") as f:
                     tree = ast.parse(f.read())
 
                 for node in ast.walk(tree):
@@ -785,7 +783,7 @@ class ContextBuilder:
         head_file = git_dir / "HEAD"
         if head_file.exists():
             try:
-                with open(head_file, "r") as f:
+                with open(head_file) as f:
                     ref = f.read().strip()
                     if ref.startswith("ref: refs/heads/"):
                         context["branch"] = ref.replace("ref: refs/heads/", "")
@@ -822,13 +820,13 @@ class ContextBuilder:
 
     def _parse_requirements(self, file_path: Path) -> Dict[str, Any]:
         """Parse requirements.txt for dependencies."""
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             deps = [line.strip() for line in f if line.strip() and not line.startswith("#")]
         return {"dependencies": deps[:10]}  # Limit to first 10
 
     def _parse_package_json(self, file_path: Path) -> Dict[str, Any]:
         """Parse package.json for Node.js projects."""
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             data = json.load(f)
         return {
             "package_type": "nodejs",
@@ -1167,7 +1165,7 @@ class DocumentGenerator:
             response = await self._llm_generate(prompt, system_prompt=system_prompt)
 
             if not (response and getattr(response, "content", None)):
-                raise DocumentGenerationError(f"LLM generation failed", error_type="llm_failure")
+                raise DocumentGenerationError("LLM generation failed", error_type="llm_failure")
 
             return response.content
 

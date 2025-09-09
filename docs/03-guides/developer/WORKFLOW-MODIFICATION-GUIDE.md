@@ -348,6 +348,6 @@ If you encounter issues:
 
 ---
 
-**Last Updated**: 2025-08-25  
-**Version**: 1.0.0  
+**Last Updated**: 2025-08-25
+**Version**: 1.0.0
 **Maintained By**: DevOps Team
