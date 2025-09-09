@@ -26,22 +26,28 @@ from unittest.mock import Mock, AsyncMock, patch, MagicMock, call
 # Import will fail initially (TDD) - that's expected
 from devdocai.core.suite import (
     SuiteManager,
+    SuiteManagerFactory,
+    SuiteError,
+    ConsistencyError,
+    ImpactAnalysisError,
+)
+
+from devdocai.core.suite_types import (
     SuiteConfig,
     SuiteResult,
     ConsistencyReport,
     ImpactAnalysis,
-    SuiteError,
-    ConsistencyError,
-    ImpactAnalysisError,
-    SuiteManagerFactory,
-    ConsistencyStrategy,
-    ImpactStrategy,
     DocumentSuite,
     CrossReference,
     DocumentGap,
     DependencyIssue,
     ImpactSeverity,
     ChangeType,
+)
+
+from devdocai.core.suite_strategies import (
+    ConsistencyStrategy,
+    ImpactStrategy,
 )
 
 # Import dependencies
