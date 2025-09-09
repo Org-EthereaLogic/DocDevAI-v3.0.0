@@ -42,36 +42,40 @@ def show() -> None:
     try:
         # Use our existing M001 Configuration Manager
         config_manager = ConfigurationManager()
-        
+
         # Create a nice table for display
         table = Table(title="DevDocAI Configuration", show_header=True)
         table.add_column("Setting", style="cyan", no_wrap=True)
         table.add_column("Value", style="green")
         table.add_column("Source", style="yellow")
-        
+
         # Show some basic settings
         # Import MemoryDetector to show system memory
         from devdocai.core.memory import MemoryDetector
         import psutil
-        
+
         memory_gb = psutil.virtual_memory().total / (1024**3)
         memory_mode = MemoryDetector.detect_memory_mode()
-        
+
         settings = [
             ("privacy_mode", config_manager.get("privacy.mode", "LOCAL_ONLY"), "default"),
-            ("telemetry_enabled", str(config_manager.get("privacy.telemetry_enabled", False)), "default"),
+            (
+                "telemetry_enabled",
+                str(config_manager.get("privacy.telemetry_enabled", False)),
+                "default",
+            ),
             ("api_provider", config_manager.get("llm.default_provider", "openai"), "default"),
             ("available_memory", f"{memory_gb:.1f} GB", "system"),
             ("memory_mode", memory_mode, "detected"),
             ("config_file", str(config_manager.config_file), "path"),
         ]
-        
+
         for setting, value, source in settings:
             table.add_row(setting, str(value), source)
-        
+
         console.print(table)
         console.print("\n✅ Configuration loaded successfully", style="green")
-        
+
     except Exception as e:
         console.print(f"❌ Error loading configuration: {e}", style="red")
         sys.exit(1)
@@ -95,14 +99,8 @@ def generate() -> None:
 @click.argument("doc_type")
 def doc(doc_type: str) -> None:
     """Generate a specific document type (NOT IMPLEMENTED)."""
-    console.print(
-        f"⚠️  Document generation for '{doc_type}' not yet implemented.",
-        style="yellow"
-    )
-    console.print(
-        "M004 Document Generator and M008 LLM Adapter are required.",
-        style="dim"
-    )
+    console.print(f"⚠️  Document generation for '{doc_type}' not yet implemented.", style="yellow")
+    console.print("M004 Document Generator and M008 LLM Adapter are required.", style="dim")
     sys.exit(1)
 
 
@@ -116,14 +114,8 @@ def analyze() -> None:
 @click.argument("path", required=False, default=".")
 def project(path: str) -> None:
     """Analyze project documentation (NOT IMPLEMENTED)."""
-    console.print(
-        f"⚠️  Project analysis for '{path}' not yet implemented.",
-        style="yellow"
-    )
-    console.print(
-        "M003 MIAIR Engine and M007 Review Engine are required.",
-        style="dim"
-    )
+    console.print(f"⚠️  Project analysis for '{path}' not yet implemented.", style="yellow")
+    console.print("M003 MIAIR Engine and M007 Review Engine are required.", style="dim")
     sys.exit(1)
 
 

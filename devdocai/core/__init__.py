@@ -4,23 +4,17 @@ Configuration management and foundational components.
 """
 
 from .config import ConfigurationManager, ValidationError, ConfigurationError
-from .models import (
-    PrivacyConfig,
-    SystemConfig,
-    SecurityConfig,
-    LLMConfig,
-    QualityConfig
-)
+from .models import PrivacyConfig, SystemConfig, SecurityConfig, LLMConfig, QualityConfig
 
 __all__ = [
-    'ConfigurationManager',
-    'PrivacyConfig',
-    'SystemConfig',
-    'SecurityConfig',
-    'LLMConfig',
-    'QualityConfig',
-    'ValidationError',
-    'ConfigurationError'
+    "ConfigurationManager",
+    "PrivacyConfig",
+    "SystemConfig",
+    "SecurityConfig",
+    "LLMConfig",
+    "QualityConfig",
+    "ValidationError",
+    "ConfigurationError",
 ]
 
-__version__ = '3.0.0'
+__version__ = "3.0.0"
