@@ -32,27 +32,14 @@ from .miair_strategies import (
     get_strategy,
 )
 from .miair_batch import OptimizationResult, BatchOptimizer
-
-# Import enhanced security components if available
-try:
-    from .miair_security_enhanced import (
-        PIIDetector,
-        DocumentIntegrity,
-        EnhancedRateLimiter,
-        CircuitBreaker,
-        AuditLogger,
-        AuditEvent,
-        SecurityLevel,
-        InputValidator,
-    )
-    ENHANCED_SECURITY = True
-except ImportError:
-    ENHANCED_SECURITY = False
-    # Define minimal placeholders
-    class AuditEvent:
-        DOC_OPTIMIZED = "doc_optimized"
-    class SecurityLevel:
-        INFO = "info"
+from .miair_security_enhanced import (
+    SecurityManager,
+    EnhancedRateLimiter,
+    CircuitBreaker,
+    AuditLogger,
+    AuditEvent,
+    SecurityLevel,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -99,97 +86,17 @@ def with_error_handling(error_class: type = EntropyOptimizationError):
 def rate_limit(max_calls: int = 100, window_seconds: int = 60):
     """Rate limiting decorator."""
     def decorator(func: Callable) -> Callable:
-        if ENHANCED_SECURITY:
-            limiter = EnhancedRateLimiter(max_calls, window_seconds)
-            
-            @wraps(func)
-            def wrapper(*args, **kwargs):
-                if not limiter.allow_request():
-                    raise ResourceLimitError(
-                        f"Rate limit exceeded: {max_calls}/{window_seconds}s"
-                    )
-                return func(*args, **kwargs)
-            return wrapper
-        else:
-            # Simple rate limiting without enhanced features
-            return func
-    return decorator
-
-
-# ============================================================================
-# Security Manager (Minimal Implementation)
-# ============================================================================
-
-
-class SecurityManager:
-    """Minimal security manager for document processing."""
-    
-    def __init__(self, config):
-        """Initialize security manager."""
-        self.config = config
-        self._cache = {}
+        limiter = EnhancedRateLimiter(max_calls, window_seconds)
         
-        if ENHANCED_SECURITY:
-            self.pii_detector = PIIDetector(enable_masking=True)
-            self.integrity_validator = DocumentIntegrity()
-            self.input_validator = InputValidator()
-        else:
-            self.pii_detector = None
-            self.integrity_validator = None
-            self.input_validator = None
-    
-    def validate_and_sanitize(self, document: str) -> str:
-        """Basic validation and sanitization."""
-        if not document:
-            return ""
-        if not isinstance(document, str):
-            raise ValueError("Document must be a string")
-        # Basic HTML escaping
-        import html
-        return html.escape(document)
-    
-    def sanitize_for_llm(self, content: str) -> str:
-        """Sanitize content for LLM processing."""
-        # Remove potential prompt injections
-        sanitized = re.sub(
-            r"(ignore previous|disregard|system:|assistant:|###instruction)",
-            "[FILTERED]",
-            content,
-            flags=re.IGNORECASE,
-        )
-        # Limit length
-        if len(sanitized) > 50000:
-            sanitized = sanitized[:50000] + "... [truncated]"
-        return sanitized
-    
-    def detect_pii(self, document: str) -> Dict[str, bool]:
-        """Detect PII in document."""
-        if ENHANCED_SECURITY and self.pii_detector:
-            return self.pii_detector.detect(document)
-        # Basic PII patterns
-        pii = {}
-        if re.search(r"\b\d{3}-\d{2}-\d{4}\b", document):
-            pii["ssn"] = True
-        if re.search(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b", document):
-            pii["email"] = True
-        return pii
-    
-    def cache_get(self, key: str):
-        """Get from cache."""
-        return self._cache.get(key)
-    
-    def cache_set(self, key: str, value):
-        """Set in cache."""
-        self._cache[key] = value
-        # Simple LRU: limit cache size
-        if len(self._cache) > 1000:
-            # Remove oldest
-            oldest = next(iter(self._cache))
-            del self._cache[oldest]
-    
-    def get_cache_stats(self) -> Dict[str, int]:
-        """Get cache statistics."""
-        return {"size": len(self._cache)}
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            if not limiter.allow_request():
+                raise ResourceLimitError(
+                    f"Rate limit exceeded: {max_calls}/{window_seconds}s"
+                )
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
 
 
 # ============================================================================
@@ -393,25 +300,19 @@ class MIAIREngine:
 
     def _init_security_components(self):
         """Initialize security components."""
-        if ENHANCED_SECURITY:
-            self.circuit_breaker = CircuitBreaker(
-                failure_threshold=self.config.get("security.circuit_breaker_threshold", 5),
-                recovery_timeout=self.config.get("security.circuit_breaker_recovery", 60),
-            )
-            
-            self.rate_limiter = EnhancedRateLimiter(
-                max_calls=self.config.get("security.rate_limit_calls", 1000),
-                window_seconds=self.config.get("security.rate_limit_window", 60),
-            )
-            
-            self.audit_logger = AuditLogger(
-                enable_encryption=self.config.get("security.audit_encryption", True)
-            )
-        else:
-            # Minimal placeholders
-            self.circuit_breaker = None
-            self.rate_limiter = None
-            self.audit_logger = None
+        self.circuit_breaker = CircuitBreaker(
+            failure_threshold=self.config.get("security.circuit_breaker_threshold", 5),
+            recovery_timeout=self.config.get("security.circuit_breaker_recovery", 60),
+        )
+        
+        self.rate_limiter = EnhancedRateLimiter(
+            max_calls=self.config.get("security.rate_limit_calls", 1000),
+            window_seconds=self.config.get("security.rate_limit_window", 60),
+        )
+        
+        self.audit_logger = AuditLogger(
+            enable_encryption=self.config.get("security.audit_encryption", True)
+        )
 
     @rate_limit(max_calls=1000, window_seconds=60)
     @with_error_handling()
@@ -463,24 +364,15 @@ class MIAIREngine:
             # Build prompt
             prompt = self.strategy.build_refinement_prompt(sanitized, metrics)
             
-            # Query LLM with circuit breaker if available
-            if ENHANCED_SECURITY and self.circuit_breaker:
-                response = self.circuit_breaker.call(
-                    self.llm_adapter.query,
-                    prompt,
-                    preferred_providers=["claude", "openai"],
-                    max_tokens=2000,
-                    temperature=0.7,
-                    metadata={"operation": "miair_refinement"},
-                )
-            else:
-                response = self.llm_adapter.query(
-                    prompt,
-                    preferred_providers=["claude", "openai"],
-                    max_tokens=2000,
-                    temperature=0.7,
-                    metadata={"operation": "miair_refinement"},
-                )
+            # Query LLM with circuit breaker
+            response = self.circuit_breaker.call(
+                self.llm_adapter.query,
+                prompt,
+                preferred_providers=["claude", "openai"],
+                max_tokens=2000,
+                temperature=0.7,
+                metadata={"operation": "miair_refinement"},
+            )
 
             if not response or not response.content:
                 raise EntropyOptimizationError("Empty LLM response")
@@ -515,14 +407,13 @@ class MIAIREngine:
             # Validate document
             validated = self.security.validate_and_sanitize(document)
             
-            # Log optimization start if available
-            if ENHANCED_SECURITY and self.audit_logger:
-                self.audit_logger.log(
-                    event_type=AuditEvent.DOC_OPTIMIZED,
-                    severity=SecurityLevel.INFO,
-                    action="Starting optimization",
-                    details={"max_iterations": max_iters},
-                )
+            # Log optimization start
+            self.audit_logger.log(
+                event_type=AuditEvent.DOC_OPTIMIZED,
+                severity=SecurityLevel.INFO,
+                action="Starting optimization",
+                details={"max_iterations": max_iters},
+            )
 
             # Initial metrics
             initial_metrics = self.measure_quality(validated)
@@ -557,20 +448,19 @@ class MIAIREngine:
 
             optimization_time = time.time() - start_time
             
-            # Log completion if available
-            if ENHANCED_SECURITY and self.audit_logger:
-                self.audit_logger.log(
-                    event_type=AuditEvent.DOC_OPTIMIZED,
-                    severity=SecurityLevel.INFO,
-                    action="Optimization complete",
-                    result="success",
-                    resource=storage_id,
-                    details={
-                        "iterations": iterations,
-                        "improvement": improvement,
-                        "time": optimization_time,
-                    },
-                )
+            # Log completion
+            self.audit_logger.log(
+                event_type=AuditEvent.DOC_OPTIMIZED,
+                severity=SecurityLevel.INFO,
+                action="Optimization complete",
+                result="success",
+                resource=storage_id,
+                details={
+                    "iterations": iterations,
+                    "improvement": improvement,
+                    "time": optimization_time,
+                },
+            )
 
             logger.info(
                 f"Optimization complete - Iterations: {iterations}, "
@@ -696,7 +586,7 @@ class MIAIREngine:
             "coherence_target": self.coherence_target,
             "strategy": self.strategy.__class__.__name__,
             "cache_stats": self.security.get_cache_stats(),
-            "circuit_breaker_state": self.circuit_breaker.state if self.circuit_breaker else "N/A",
+            "circuit_breaker_state": self.circuit_breaker.state,
         }
 
     def reset_statistics(self):
