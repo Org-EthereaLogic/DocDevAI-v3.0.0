@@ -280,7 +280,7 @@ class TestAsyncFileHandler:
         # Try to read non-existent file
         file_path = tmp_path / "nonexistent.txt"
 
-        with pytest.raises(Exception):
+        with pytest.raises(FileNotFoundError):
             await AsyncFileHandler.read_file_async(file_path)
 
 
@@ -652,7 +652,7 @@ class TestPerformanceBenchmarks:
             for i in range(100, 110):
                 cache.get(f"key_{i}")  # Miss
 
-        result = benchmark(cache_operations)
+        benchmark(cache_operations)
 
         # Should complete quickly
         assert cache.hit_ratio > 0.7  # Most operations are hits

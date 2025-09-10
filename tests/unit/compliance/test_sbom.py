@@ -604,9 +604,7 @@ class TestEd25519Signer:
 
     def test_initialize_keys(self, mock_config):
         """Test key initialization."""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            # Set HOME to temp directory
-            with patch.dict("os.environ", {"HOME": tmpdir}):
+        with tempfile.TemporaryDirectory() as tmpdir, patch.dict("os.environ", {"HOME": tmpdir}):
                 signer = Ed25519Signer(mock_config)
 
                 # Should generate new keys
@@ -641,8 +639,7 @@ class TestEd25519Signer:
 
     def test_sign_data(self, mock_config):
         """Test signing data."""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            with patch.dict("os.environ", {"HOME": tmpdir}):
+        with tempfile.TemporaryDirectory() as tmpdir, patch.dict("os.environ", {"HOME": tmpdir}):
                 signer = Ed25519Signer(mock_config)
 
                 # Sign some data
@@ -655,8 +652,7 @@ class TestEd25519Signer:
 
     def test_verify_signature(self, mock_config):
         """Test signature verification."""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            with patch.dict("os.environ", {"HOME": tmpdir}):
+        with tempfile.TemporaryDirectory() as tmpdir, patch.dict("os.environ", {"HOME": tmpdir}):
                 signer = Ed25519Signer(mock_config)
 
                 # Sign and verify
@@ -675,8 +671,7 @@ class TestEd25519Signer:
 
     def test_sign_basemodel(self, mock_config, sample_package):
         """Test signing Pydantic BaseModel."""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            with patch.dict("os.environ", {"HOME": tmpdir}):
+        with tempfile.TemporaryDirectory() as tmpdir, patch.dict("os.environ", {"HOME": tmpdir}):
                 signer = Ed25519Signer(mock_config)
 
                 signature = signer.sign(sample_package)
@@ -685,8 +680,7 @@ class TestEd25519Signer:
 
     def test_get_public_key(self, mock_config):
         """Test getting public key."""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            with patch.dict("os.environ", {"HOME": tmpdir}):
+        with tempfile.TemporaryDirectory() as tmpdir, patch.dict("os.environ", {"HOME": tmpdir}):
                 signer = Ed25519Signer(mock_config)
 
                 public_key = signer.public_key
@@ -756,8 +750,7 @@ class TestSBOMGenerator:
 
     def test_generate_with_signature(self, temp_project_dir, mock_config):
         """Test generating signed SBOM."""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            with patch.dict("os.environ", {"HOME": tmpdir}):
+        with tempfile.TemporaryDirectory() as tmpdir, patch.dict("os.environ", {"HOME": tmpdir}):
                 generator = SBOMGenerator(mock_config)
 
                 sbom = generator.generate(
@@ -980,8 +973,7 @@ class TestSBOMGenerator:
 
     def test_validate_with_valid_signature(self, temp_project_dir, mock_config):
         """Test validating SBOM with valid signature."""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            with patch.dict("os.environ", {"HOME": tmpdir}):
+        with tempfile.TemporaryDirectory() as tmpdir, patch.dict("os.environ", {"HOME": tmpdir}):
                 generator = SBOMGenerator(mock_config)
 
                 sbom = generator.generate(

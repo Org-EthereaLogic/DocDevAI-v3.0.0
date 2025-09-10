@@ -191,7 +191,7 @@ class SBOMPerformanceBenchmark:
 
         # Second scan (warm cache)
         start_time = time.time()
-        vulns_warm = scanner.scan(packages)
+        scanner.scan(packages)  # Warm cache run
         warm_duration = time.time() - start_time
 
         cache_speedup = cold_duration / warm_duration if warm_duration > 0 else 1.0

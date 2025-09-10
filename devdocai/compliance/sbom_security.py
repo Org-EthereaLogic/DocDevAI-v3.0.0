@@ -152,8 +152,7 @@ class CircuitBreaker:
         """Execute function with circuit breaker protection."""
         with self._lock:
             # Check if circuit is open
-            if self._state == "open":
-                if self._last_failure:
+            if self._state == "open" and self._last_failure:
                     elapsed = time.time() - self._last_failure
                     if elapsed > self._recovery_timeout:
                         self._state = "half-open"
