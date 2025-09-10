@@ -445,7 +445,8 @@ class BatchOperationsManager:
                 pre_results.append(
                     BatchResult(
                         success=False,
-                        document_id=(doc.get("id") if isinstance(doc, dict) else "unknown") or "unknown",
+                        document_id=(doc.get("id") if isinstance(doc, dict) else "unknown")
+                        or "unknown",
                         operation=str(operation),
                         error="Invalid document",
                     )
@@ -650,6 +651,7 @@ class BatchOperationsManager:
             # Prefer module-level EnhancementPipeline so tests can patch it
             if EnhancementPipeline is None:  # Fallback import if not available
                 from ..intelligence.enhance import EnhancementPipeline as _EnhancementPipeline
+
                 self._enhancement_pipeline = _EnhancementPipeline()
             else:
                 self._enhancement_pipeline = EnhancementPipeline()

@@ -23,5 +23,8 @@ alembic>=1.12.0
 # System dependencies
 psutil>=5.9.0
 
+# AI/ML dependencies (required for MIAIR engine in M003)
+numpy>=1.24.0
+
 # Development quality
 typing-extensions>=4.8.0

@@ -73,7 +73,7 @@ class SecurityConfig:
     allowed_content_types: Set[str] = field(
         default_factory=lambda: {"text", "markdown", "json", "xml"}
     )
-    
+
     # PII protection
     enable_pii_detection: bool = True
     pii_redaction_enabled: bool = False
@@ -144,16 +144,11 @@ class InputValidator:
         """Initialize input validator."""
         self.config = config
         self._compiled_dangerous = [
-            re.compile(pattern, re.IGNORECASE | re.DOTALL)
-            for pattern in self.DANGEROUS_PATTERNS
+            re.compile(pattern, re.IGNORECASE | re.DOTALL) for pattern in self.DANGEROUS_PATTERNS
         ]
-        self._compiled_pii = [
-            re.compile(pattern) for pattern in self.PII_PATTERNS
-        ]
+        self._compiled_pii = [re.compile(pattern) for pattern in self.PII_PATTERNS]
 
-    def validate_document(
-        self, document: Dict[str, Any]
-    ) -> Tuple[bool, Optional[str], List[str]]:
+    def validate_document(self, document: Dict[str, Any]) -> Tuple[bool, Optional[str], List[str]]:
         """
         Validate document for security issues.
 
@@ -246,10 +241,9 @@ class RateLimiter:
     def __init__(self, config: SecurityConfig):
         """Initialize rate limiter."""
         self.config = config
-        self._buckets = defaultdict(lambda: {
-            "tokens": config.rate_limit_burst_size,
-            "last_refill": time.time()
-        })
+        self._buckets = defaultdict(
+            lambda: {"tokens": config.rate_limit_burst_size, "last_refill": time.time()}
+        )
         self._blocked_until = {}
 
     def check_rate_limit(self, client_id: str) -> Tuple[bool, Optional[str]]:
@@ -280,13 +274,8 @@ class RateLimiter:
         # Refill tokens based on time elapsed
         prev_refill = bucket["last_refill"]
         time_elapsed = current_time - prev_refill
-        tokens_to_add = (
-            time_elapsed * self.config.rate_limit_requests_per_minute / 60
-        )
-        bucket["tokens"] = min(
-            self.config.rate_limit_burst_size,
-            bucket["tokens"] + tokens_to_add
-        )
+        tokens_to_add = time_elapsed * self.config.rate_limit_requests_per_minute / 60
+        bucket["tokens"] = min(self.config.rate_limit_burst_size, bucket["tokens"] + tokens_to_add)
         bucket["last_refill"] = current_time
 
         # Check if request can be allowed
@@ -299,9 +288,7 @@ class RateLimiter:
                 bucket["tokens"] = 0
                 return True, None
             # Apply cooldown
-            self._blocked_until[client_id] = (
-                current_time + self.config.rate_limit_cooldown_seconds
-            )
+            self._blocked_until[client_id] = current_time + self.config.rate_limit_cooldown_seconds
             return False, "Rate limit exceeded"
 
     def reset_client(self, client_id: str):
@@ -325,7 +312,7 @@ class SecureCache:
         self.config = config
         self._cache = {}
         self._cache_hmac = {}
-        
+
         # Initialize encryption
         if config.enable_cache_encryption:
             if encryption_key:
@@ -441,24 +428,20 @@ class AuditLogger:
 
         # Add file handler with rotation
         from logging.handlers import RotatingFileHandler
+
         handler = RotatingFileHandler(
             self.config.audit_log_path,
             maxBytes=self.config.audit_log_rotation_mb * 1024 * 1024,
-            backupCount=5
+            backupCount=5,
         )
         formatter = logging.Formatter(
-            '%(asctime)s - %(levelname)s - %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S'
+            "%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
         )
         handler.setFormatter(formatter)
         self._logger.addHandler(handler)
 
     def log_event(
-        self,
-        event: SecurityEvent,
-        client_id: str,
-        details: Dict[str, Any],
-        severity: str = "INFO"
+        self, event: SecurityEvent, client_id: str, details: Dict[str, Any], severity: str = "INFO"
     ):
         """Log security event."""
         if not self._logger:
@@ -469,7 +452,7 @@ class AuditLogger:
             "event": event.value,
             "client_id": client_id,
             "severity": severity,
-            "details": details
+            "details": details,
         }
 
         if severity == "CRITICAL":
@@ -536,7 +519,7 @@ class CircuitBreaker:
         """Handle failed call."""
         self.failure_count += 1
         self.last_failure_time = time.time()
-        
+
         if self.failure_count >= self.config.circuit_breaker_threshold:
             self.state = self.State.OPEN
             self.success_count = 0
@@ -545,7 +528,7 @@ class CircuitBreaker:
         """Check if should attempt reset."""
         if not self.last_failure_time:
             return True
-        
+
         time_since_failure = time.time() - self.last_failure_time
         return time_since_failure >= self.config.circuit_breaker_timeout_seconds
 
@@ -572,12 +555,16 @@ class ResourceMonitor:
             Tuple of (within_limits, error_message)
         """
         import psutil
+
         process = psutil.Process(os.getpid())
 
         # Check memory usage
         memory_mb = process.memory_info().rss / (1024 * 1024)
         if memory_mb > self.config.max_memory_mb:
-            return False, f"Memory limit exceeded: {memory_mb:.1f}MB > {self.config.max_memory_mb}MB"
+            return (
+                False,
+                f"Memory limit exceeded: {memory_mb:.1f}MB > {self.config.max_memory_mb}MB",
+            )
 
         # Check CPU usage
         cpu_percent = process.cpu_percent(interval=0.1)
@@ -603,6 +590,7 @@ class ResourceMonitor:
 
 class BatchSecurityError(Exception):
     """Security-related batch operation error."""
+
     pass
 
 
@@ -614,7 +602,7 @@ class BatchSecurityError(Exception):
 class BatchSecurityManager:
     """
     Comprehensive security manager for batch operations.
-    
+
     Provides:
     - Input validation and sanitization
     - Rate limiting and DoS protection
@@ -627,7 +615,7 @@ class BatchSecurityManager:
     def __init__(self, config: Optional[SecurityConfig] = None):
         """Initialize security manager."""
         self.config = config or SecurityConfig()
-        
+
         # Initialize components
         self.validator = InputValidator(self.config)
         self.rate_limiter = RateLimiter(self.config)
@@ -639,10 +627,7 @@ class BatchSecurityManager:
         logger.info("BatchSecurityManager initialized with Pass 3 security hardening")
 
     async def validate_and_process(
-        self,
-        document: Dict[str, Any],
-        client_id: str,
-        processor_func: Any
+        self, document: Dict[str, Any], client_id: str, processor_func: Any
     ) -> Tuple[bool, Any, Optional[str]]:
         """
         Validate and process document with full security.
@@ -655,10 +640,7 @@ class BatchSecurityManager:
             allowed, error = self.rate_limiter.check_rate_limit(client_id)
             if not allowed:
                 self.audit_logger.log_event(
-                    SecurityEvent.RATE_LIMIT_EXCEEDED,
-                    client_id,
-                    {"error": error},
-                    "WARNING"
+                    SecurityEvent.RATE_LIMIT_EXCEEDED, client_id, {"error": error}, "WARNING"
                 )
                 return False, None, error
 
@@ -666,10 +648,7 @@ class BatchSecurityManager:
             within_limits, error = self.resource_monitor.check_limits()
             if not within_limits:
                 self.audit_logger.log_event(
-                    SecurityEvent.RESOURCE_LIMIT_EXCEEDED,
-                    client_id,
-                    {"error": error},
-                    "ERROR"
+                    SecurityEvent.RESOURCE_LIMIT_EXCEEDED, client_id, {"error": error}, "ERROR"
                 )
                 return False, None, error
 
@@ -680,7 +659,7 @@ class BatchSecurityManager:
                     SecurityEvent.INVALID_INPUT,
                     client_id,
                     {"error": error, "issues": issues},
-                    "WARNING"
+                    "WARNING",
                 )
                 return False, None, error
 
@@ -688,9 +667,7 @@ class BatchSecurityManager:
             sanitized = self.validator.sanitize_document(document)
 
             # Process with circuit breaker
-            result = await self._process_with_circuit_breaker(
-                sanitized, processor_func
-            )
+            result = await self._process_with_circuit_breaker(sanitized, processor_func)
 
             # Release resources
             self.resource_monitor.release_operation()
@@ -699,28 +676,18 @@ class BatchSecurityManager:
 
         except Exception as e:
             self.audit_logger.log_event(
-                SecurityEvent.VALIDATION_FAILURE,
-                client_id,
-                {"error": str(e)},
-                "ERROR"
+                SecurityEvent.VALIDATION_FAILURE, client_id, {"error": str(e)}, "ERROR"
             )
             return False, None, str(e)
 
-    async def _process_with_circuit_breaker(
-        self,
-        document: Dict[str, Any],
-        processor_func: Any
-    ):
+    async def _process_with_circuit_breaker(self, document: Dict[str, Any], processor_func: Any):
         """Process with circuit breaker protection."""
         if asyncio.iscoroutinefunction(processor_func):
             return await self.circuit_breaker.call(processor_func, document)
         else:
             loop = asyncio.get_event_loop()
             return await loop.run_in_executor(
-                None,
-                self.circuit_breaker.call,
-                processor_func,
-                document
+                None, self.circuit_breaker.call, processor_func, document
             )
 
     def generate_secure_cache_key(self, *args) -> str:

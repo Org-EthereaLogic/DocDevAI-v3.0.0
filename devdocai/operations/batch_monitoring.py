@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 class BatchEvent(Enum):
     """Batch operation events."""
-    
+
     BATCH_STARTED = "batch_started"
     BATCH_COMPLETED = "batch_completed"
     BATCH_FAILED = "batch_failed"
@@ -54,52 +54,52 @@ class BatchEvent(Enum):
 @dataclass
 class BatchMetrics:
     """Comprehensive batch processing metrics."""
-    
+
     # Document counts
     total_documents: int = 0
     successful: int = 0
     failed: int = 0
     skipped: int = 0
-    
+
     # Timing metrics
     start_time: float = field(default_factory=time.time)
     end_time: Optional[float] = None
     total_time: float = 0.0
     average_time_per_doc: float = 0.0
-    
+
     # Performance metrics
     throughput_per_hour: float = 0.0
     throughput_per_minute: float = 0.0
     success_rate: float = 0.0
-    
+
     # Resource metrics
     peak_memory_mb: float = 0.0
     average_memory_mb: float = 0.0
     peak_cpu_percent: float = 0.0
     average_cpu_percent: float = 0.0
-    
+
     # Cache metrics
     cache_hits: int = 0
     cache_misses: int = 0
     cache_hit_rate: float = 0.0
-    
+
     # Retry metrics
     retry_count: int = 0
     retry_success: int = 0
-    
+
     def calculate_derived_metrics(self):
         """Calculate derived metrics from raw data."""
         if self.end_time and self.start_time:
             self.total_time = self.end_time - self.start_time
-        
+
         if self.total_documents > 0:
             self.success_rate = (self.successful / self.total_documents) * 100
-            
+
             if self.total_time > 0:
                 self.average_time_per_doc = self.total_time / self.total_documents
                 self.throughput_per_hour = (self.total_documents / self.total_time) * 3600
                 self.throughput_per_minute = (self.total_documents / self.total_time) * 60
-        
+
         total_cache_requests = self.cache_hits + self.cache_misses
         if total_cache_requests > 0:
             self.cache_hit_rate = (self.cache_hits / total_cache_requests) * 100
@@ -124,12 +124,7 @@ class ProgressTracker:
         self._lock = asyncio.Lock()
         self._update_callbacks: List[Callable] = []
 
-    async def update(
-        self,
-        completed: int = 0,
-        failed: int = 0,
-        current: Optional[str] = None
-    ):
+    async def update(self, completed: int = 0, failed: int = 0, current: Optional[str] = None):
         """Update progress with thread safety."""
         async with self._lock:
             self.completed += completed
@@ -137,7 +132,7 @@ class ProgressTracker:
             if current:
                 self.current_document = current
             self.last_update_time = time.time()
-            
+
             # Trigger callbacks
             for callback in self._update_callbacks:
                 if asyncio.iscoroutinefunction(callback):
@@ -155,11 +150,11 @@ class ProgressTracker:
         """Get estimated time remaining."""
         if self.completed == 0:
             return None
-        
+
         elapsed = time.time() - self.start_time
         rate = self.completed / elapsed
         remaining = self.total - self.completed
-        
+
         if rate > 0:
             seconds_remaining = remaining / rate
             return timedelta(seconds=seconds_remaining)
@@ -169,7 +164,7 @@ class ProgressTracker:
         """Get comprehensive status."""
         elapsed = time.time() - self.start_time
         eta = self.get_eta()
-        
+
         return {
             "total": self.total,
             "completed": self.completed,
@@ -215,10 +210,8 @@ class MetricsCollector:
         """Start resource monitoring."""
         if self._monitoring_task:
             return
-        
-        self._monitoring_task = asyncio.create_task(
-            self._monitor_resources(interval)
-        )
+
+        self._monitoring_task = asyncio.create_task(self._monitor_resources(interval))
 
     async def stop_monitoring(self):
         """Stop resource monitoring."""
@@ -233,29 +226,23 @@ class MetricsCollector:
     async def _monitor_resources(self, interval: float):
         """Monitor system resources periodically."""
         process = psutil.Process()
-        
+
         while True:
             try:
                 # Sample memory
                 memory_mb = process.memory_info().rss / (1024 * 1024)
                 self._memory_samples.append(memory_mb)
-                
+
                 # Sample CPU
                 cpu_percent = process.cpu_percent()
                 self._cpu_samples.append(cpu_percent)
-                
+
                 # Update peaks
-                self.metrics.peak_memory_mb = max(
-                    self.metrics.peak_memory_mb,
-                    memory_mb
-                )
-                self.metrics.peak_cpu_percent = max(
-                    self.metrics.peak_cpu_percent,
-                    cpu_percent
-                )
-                
+                self.metrics.peak_memory_mb = max(self.metrics.peak_memory_mb, memory_mb)
+                self.metrics.peak_cpu_percent = max(self.metrics.peak_cpu_percent, cpu_percent)
+
                 await asyncio.sleep(interval)
-                
+
             except asyncio.CancelledError:
                 break
             except Exception as e:
@@ -283,14 +270,14 @@ class MetricsCollector:
     def finalize(self):
         """Finalize metrics calculation."""
         self.metrics.end_time = time.time()
-        
+
         # Calculate averages
         if self._memory_samples:
             self.metrics.average_memory_mb = sum(self._memory_samples) / len(self._memory_samples)
-        
+
         if self._cpu_samples:
             self.metrics.average_cpu_percent = sum(self._cpu_samples) / len(self._cpu_samples)
-        
+
         # Calculate derived metrics
         self.metrics.calculate_derived_metrics()
 
@@ -347,37 +334,43 @@ class BatchMonitor:
         self.progress_tracker.reset(total_documents)
         self.metrics_collector = MetricsCollector()
         self.metrics_collector.metrics.total_documents = total_documents
-        
+
         await self.metrics_collector.start_monitoring()
-        await self._publish_event(BatchEvent.BATCH_STARTED, {
-            "total_documents": total_documents,
-            "start_time": datetime.now().isoformat(),
-        })
+        await self._publish_event(
+            BatchEvent.BATCH_STARTED,
+            {
+                "total_documents": total_documents,
+                "start_time": datetime.now().isoformat(),
+            },
+        )
 
     async def end_batch(self, success: bool = True):
         """End batch monitoring."""
         self._active = False
         await self.metrics_collector.stop_monitoring()
         self.metrics_collector.finalize()
-        
+
         event = BatchEvent.BATCH_COMPLETED if success else BatchEvent.BATCH_FAILED
-        await self._publish_event(event, {
-            "metrics": self.metrics_collector.get_summary(),
-            "end_time": datetime.now().isoformat(),
-        })
+        await self._publish_event(
+            event,
+            {
+                "metrics": self.metrics_collector.get_summary(),
+                "end_time": datetime.now().isoformat(),
+            },
+        )
 
     async def record_document_start(self, document_id: str):
         """Record document processing start."""
         await self.progress_tracker.update(current=document_id)
-        await self._publish_event(BatchEvent.DOCUMENT_STARTED, {
-            "document_id": document_id,
-        })
+        await self._publish_event(
+            BatchEvent.DOCUMENT_STARTED,
+            {
+                "document_id": document_id,
+            },
+        )
 
     async def record_document_complete(
-        self,
-        document_id: str,
-        success: bool,
-        processing_time: float
+        self, document_id: str, success: bool, processing_time: float
     ):
         """Record document processing completion."""
         if success:
@@ -388,13 +381,16 @@ class BatchMonitor:
             await self.progress_tracker.update(failed=1)
             self.metrics_collector.metrics.failed += 1
             event = BatchEvent.DOCUMENT_FAILED
-        
+
         self.metrics_collector.record_document_time(processing_time)
-        
-        await self._publish_event(event, {
-            "document_id": document_id,
-            "processing_time": processing_time,
-        })
+
+        await self._publish_event(
+            event,
+            {
+                "document_id": document_id,
+                "processing_time": processing_time,
+            },
+        )
 
     def subscribe(self, event: BatchEvent, callback: Callable):
         """Subscribe to batch events."""

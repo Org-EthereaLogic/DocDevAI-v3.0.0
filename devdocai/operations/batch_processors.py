@@ -30,11 +30,7 @@ class DocumentProcessor(ABC):
     """Abstract base class for document processors."""
 
     @abstractmethod
-    async def process(
-        self,
-        document: Dict[str, Any],
-        **kwargs
-    ) -> Dict[str, Any]:
+    async def process(self, document: Dict[str, Any], **kwargs) -> Dict[str, Any]:
         """Process a single document."""
         pass
 
@@ -66,27 +62,22 @@ class EnhanceProcessor(DocumentProcessor):
     def __init__(self):
         self._pipeline = None  # Lazy loading
 
-    async def process(
-        self,
-        document: Dict[str, Any],
-        **kwargs
-    ) -> Dict[str, Any]:
+    async def process(self, document: Dict[str, Any], **kwargs) -> Dict[str, Any]:
         """Enhance document using AI pipeline."""
         # Lazy load enhancement pipeline
         if self._pipeline is None:
             from ..intelligence.enhance import EnhancementPipeline
+
             self._pipeline = EnhancementPipeline()
 
         content = document.get("content", "")
         doc_type = document.get("type", "general")
-        
+
         try:
             result = await self._pipeline.enhance_document(
-                content=content,
-                document_type=doc_type,
-                **kwargs
+                content=content, document_type=doc_type, **kwargs
             )
-            
+
             return {
                 "success": True,
                 "document_id": document.get("id", "unknown"),
@@ -96,22 +87,15 @@ class EnhanceProcessor(DocumentProcessor):
                     "original_length": len(content),
                     "enhanced_length": len(result.enhanced_content),
                     "improvement_percentage": result.quality_improvement,
-                }
+                },
             }
         except Exception as e:
             logger.error(f"Enhancement failed: {e}")
-            return {
-                "success": False,
-                "document_id": document.get("id", "unknown"),
-                "error": str(e)
-            }
+            return {"success": False, "document_id": document.get("id", "unknown"), "error": str(e)}
 
     def validate_input(self, document: Dict[str, Any]) -> bool:
         """Validate document has required fields."""
-        return all(
-            field in document
-            for field in self.get_required_fields()
-        )
+        return all(field in document for field in self.get_required_fields())
 
     def get_required_fields(self) -> List[str]:
         """Enhancement requires content field."""
@@ -133,27 +117,22 @@ class GenerateProcessor(DocumentProcessor):
     def __init__(self):
         self._generator = None  # Lazy loading
 
-    async def process(
-        self,
-        document: Dict[str, Any],
-        **kwargs
-    ) -> Dict[str, Any]:
+    async def process(self, document: Dict[str, Any], **kwargs) -> Dict[str, Any]:
         """Generate document content."""
         # Lazy load generator
         if self._generator is None:
             from ..core.generator import DocumentGenerator
+
             self._generator = DocumentGenerator()
 
         template_type = document.get("template", "readme")
         context = document.get("context", {})
-        
+
         try:
             generated = await self._generator.generate(
-                template_type=template_type,
-                context=context,
-                **kwargs
+                template_type=template_type, context=context, **kwargs
             )
-            
+
             return {
                 "success": True,
                 "document_id": document.get("id", "unknown"),
@@ -162,11 +141,7 @@ class GenerateProcessor(DocumentProcessor):
             }
         except Exception as e:
             logger.error(f"Generation failed: {e}")
-            return {
-                "success": False,
-                "document_id": document.get("id", "unknown"),
-                "error": str(e)
-            }
+            return {"success": False, "document_id": document.get("id", "unknown"), "error": str(e)}
 
     def validate_input(self, document: Dict[str, Any]) -> bool:
         """Validate document has template or context."""
@@ -192,27 +167,22 @@ class ReviewProcessor(DocumentProcessor):
     def __init__(self):
         self._reviewer = None  # Lazy loading
 
-    async def process(
-        self,
-        document: Dict[str, Any],
-        **kwargs
-    ) -> Dict[str, Any]:
+    async def process(self, document: Dict[str, Any], **kwargs) -> Dict[str, Any]:
         """Review document for quality."""
         # Lazy load reviewer
         if self._reviewer is None:
             from ..core.review import ReviewEngine
+
             self._reviewer = ReviewEngine()
 
         content = document.get("content", "")
         doc_type = document.get("type", "general")
-        
+
         try:
             review_result = await self._reviewer.review_document(
-                content=content,
-                document_type=doc_type,
-                **kwargs
+                content=content, document_type=doc_type, **kwargs
             )
-            
+
             return {
                 "success": True,
                 "document_id": document.get("id", "unknown"),
@@ -223,11 +193,7 @@ class ReviewProcessor(DocumentProcessor):
             }
         except Exception as e:
             logger.error(f"Review failed: {e}")
-            return {
-                "success": False,
-                "document_id": document.get("id", "unknown"),
-                "error": str(e)
-            }
+            return {"success": False, "document_id": document.get("id", "unknown"), "error": str(e)}
 
     def validate_input(self, document: Dict[str, Any]) -> bool:
         """Validate document has content to review."""
@@ -256,16 +222,12 @@ class ValidateProcessor(DocumentProcessor):
         "changelog": ["version", "date", "changes"],
     }
 
-    async def process(
-        self,
-        document: Dict[str, Any],
-        **kwargs
-    ) -> Dict[str, Any]:
+    async def process(self, document: Dict[str, Any], **kwargs) -> Dict[str, Any]:
         """Validate document structure and content."""
         doc_id = document.get("id", "unknown")
         doc_type = document.get("type", "general")
         content = document.get("content", "")
-        
+
         validation_results = {
             "success": True,
             "document_id": doc_id,
@@ -273,40 +235,36 @@ class ValidateProcessor(DocumentProcessor):
             "errors": [],
             "warnings": [],
         }
-        
+
         # Check required fields
         if not content:
             validation_results["valid"] = False
             validation_results["errors"].append("Missing content field")
-        
+
         # Check document structure
         if doc_type in self.REQUIRED_STRUCTURE:
             required_sections = self.REQUIRED_STRUCTURE[doc_type]
             missing_sections = []
-            
+
             for section in required_sections:
                 if section.lower() not in content.lower():
                     missing_sections.append(section)
-            
+
             if missing_sections:
                 validation_results["warnings"].append(
                     f"Missing sections: {', '.join(missing_sections)}"
                 )
-        
+
         # Check content length
         if len(content) < 100:
-            validation_results["warnings"].append(
-                "Content is very short (< 100 characters)"
-            )
+            validation_results["warnings"].append("Content is very short (< 100 characters)")
         elif len(content) > 1_000_000:
-            validation_results["warnings"].append(
-                "Content is very large (> 1MB)"
-            )
-        
+            validation_results["warnings"].append("Content is very large (> 1MB)")
+
         # Overall validation status
         validation_results["valid"] = len(validation_results["errors"]) == 0
         validation_results["success"] = validation_results["valid"]
-        
+
         return validation_results
 
     def validate_input(self, document: Dict[str, Any]) -> bool:
@@ -333,7 +291,7 @@ class CustomProcessor(DocumentProcessor):
     def __init__(self, process_func: callable):
         """
         Initialize with custom processing function.
-        
+
         Args:
             process_func: Async function to process documents
         """
@@ -341,11 +299,7 @@ class CustomProcessor(DocumentProcessor):
             raise TypeError("process_func must be callable")
         self._process_func = process_func
 
-    async def process(
-        self,
-        document: Dict[str, Any],
-        **kwargs
-    ) -> Dict[str, Any]:
+    async def process(self, document: Dict[str, Any], **kwargs) -> Dict[str, Any]:
         """Process document with custom function."""
         try:
             if asyncio.iscoroutinefunction(self._process_func):
@@ -353,28 +307,19 @@ class CustomProcessor(DocumentProcessor):
             else:
                 # Run sync function in executor
                 loop = asyncio.get_event_loop()
-                result = await loop.run_in_executor(
-                    None,
-                    self._process_func,
-                    document,
-                    kwargs
-                )
-            
+                result = await loop.run_in_executor(None, self._process_func, document, kwargs)
+
             # Ensure result is a dict
             if not isinstance(result, dict):
                 result = {"result": result}
-            
+
             result["success"] = True
             result["document_id"] = document.get("id", "unknown")
             return result
-            
+
         except Exception as e:
             logger.error(f"Custom processor failed: {e}")
-            return {
-                "success": False,
-                "document_id": document.get("id", "unknown"),
-                "error": str(e)
-            }
+            return {"success": False, "document_id": document.get("id", "unknown"), "error": str(e)}
 
     def validate_input(self, document: Dict[str, Any]) -> bool:
         """Custom processor accepts any dict."""
@@ -405,18 +350,14 @@ class DocumentProcessorFactory:
     }
 
     @classmethod
-    def create(
-        cls,
-        processor_type: str,
-        **kwargs
-    ) -> DocumentProcessor:
+    def create(cls, processor_type: str, **kwargs) -> DocumentProcessor:
         """
         Create a document processor.
-        
+
         Args:
             processor_type: Type of processor to create
             **kwargs: Processor-specific configuration
-            
+
         Returns:
             DocumentProcessor instance
         """
@@ -424,10 +365,10 @@ class DocumentProcessorFactory:
             if "process_func" not in kwargs:
                 raise ValueError("Custom processor requires process_func")
             return CustomProcessor(kwargs["process_func"])
-        
+
         if processor_type not in cls._processors:
             raise ValueError(f"Unknown processor type: {processor_type}")
-        
+
         processor_class = cls._processors[processor_type]
         return processor_class(**kwargs)
 
