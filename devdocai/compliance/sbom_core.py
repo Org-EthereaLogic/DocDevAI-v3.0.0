@@ -28,11 +28,8 @@ from pydantic import BaseModel
 
 from ..core.config import ConfigurationManager
 from .sbom_performance import CacheManager, PerformanceMonitor, cached_result, measure_performance
-from .sbom_security import SecurityManager, PIIDetector, MAX_DEPENDENCY_COUNT
-from .sbom_types import (
-    LicenseInfo, Package, Vulnerability, SBOM, SBOMSignature,
-    SignatureError, SBOMError
-)
+from .sbom_security import MAX_DEPENDENCY_COUNT, SecurityManager
+from .sbom_types import SBOM, LicenseInfo, Package, SignatureError, Vulnerability
 
 logger = logging.getLogger(__name__)
 audit_logger = logging.getLogger(f"{__name__}.audit")
@@ -46,7 +43,7 @@ audit_logger = logging.getLogger(f"{__name__}.audit")
 class LicenseDetector:
     """
     Detects software licenses from package metadata and files.
-    
+
     Performance optimized with caching and parallel detection.
     Uses SPDX license list for standardization.
     """
@@ -89,20 +86,20 @@ class LicenseDetector:
         """Initialize license detector with performance features."""
         self._lock = threading.RLock()
         self._cache: Dict[str, LicenseInfo] = {}
-        
+
         # Performance components
         self._cache_manager = CacheManager()
         self._perf_monitor = PerformanceMonitor()
 
-    @cached_result('license')
+    @cached_result("license")
     @measure_performance("license_detection")
     def detect(self, package: Package) -> Optional[LicenseInfo]:
         """
         Detect license for a package with caching.
-        
+
         Args:
             package: Package to detect license for
-            
+
         Returns:
             License information if detected, None otherwise
         """
@@ -113,11 +110,9 @@ class LicenseDetector:
             )
             cached = self._cache_manager.license_cache.get(perf_cache_key)
             if cached:
-                self._perf_monitor.record_operation(
-                    "license_cache_hit", 0.0, cache_hit=True
-                )
+                self._perf_monitor.record_operation("license_cache_hit", 0.0, cache_hit=True)
                 return cached
-            
+
             # Check legacy cache
             cache_key = f"{package.name}@{package.version}"
             if cache_key in self._cache:
@@ -135,38 +130,33 @@ class LicenseDetector:
                 license_info = self._detect_from_files(package.file_path)
 
             detection_time = time.time() - start_time
-            
+
             # Update caches
             if license_info:
                 self._cache[cache_key] = license_info
                 self._cache_manager.license_cache.set(perf_cache_key, license_info)
-            
+
             self._perf_monitor.record_operation(
-                "license_detection",
-                detection_time,
-                cache_hit=False
+                "license_detection", detection_time, cache_hit=False
             )
 
             return license_info
-    
+
     def detect_batch(self, packages: List[Package]) -> Dict[str, Optional[LicenseInfo]]:
         """
         Detect licenses for multiple packages in parallel.
-        
+
         Args:
             packages: List of packages to detect licenses for
-            
+
         Returns:
             Dictionary mapping package key to license info
         """
         results = {}
-        
+
         with ThreadPoolExecutor(max_workers=4) as executor:
-            future_to_package = {
-                executor.submit(self.detect, pkg): pkg
-                for pkg in packages
-            }
-            
+            future_to_package = {executor.submit(self.detect, pkg): pkg for pkg in packages}
+
             for future in as_completed(future_to_package):
                 package = future_to_package[future]
                 key = f"{package.name}@{package.version}"
@@ -175,7 +165,7 @@ class LicenseDetector:
                 except Exception as e:
                     logger.error(f"License detection failed for {key}: {e}")
                     results[key] = None
-        
+
         return results
 
     def _detect_from_purl(self, purl: str) -> Optional[LicenseInfo]:
@@ -199,7 +189,7 @@ class LicenseDetector:
             file_path = path / license_file
             if file_path.exists():
                 try:
-                    with open(file_path, "r", encoding="utf-8") as f:
+                    with open(file_path, encoding="utf-8") as f:
                         content = f.read()
                         return self._identify_license_from_text(content)
                 except Exception as e:
@@ -233,12 +223,12 @@ class LicenseDetector:
 class VulnerabilityScanner:
     """
     Scans packages for known security vulnerabilities.
-    
+
     Performance optimized with:
     - Batch scanning for multiple packages
     - Connection pooling for API calls
     - Multi-tier caching
-    
+
     In production, would integrate with:
         - NVD (National Vulnerability Database)
         - OSV (Open Source Vulnerabilities)
@@ -251,7 +241,7 @@ class VulnerabilityScanner:
         self._cache: Dict[str, List[Vulnerability]] = {}
         self._security = SecurityManager()
         self._scan_count = 0
-        
+
         # Performance components
         self._cache_manager = CacheManager()
         self._perf_monitor = PerformanceMonitor()
@@ -260,15 +250,15 @@ class VulnerabilityScanner:
     def scan(self, packages: List[Package]) -> List[Vulnerability]:
         """
         Scan packages for vulnerabilities with batch processing.
-        
+
         Performance optimized with:
         - Batch API calls
         - Multi-tier caching
         - Connection pooling
-        
+
         Args:
             packages: List of packages to scan
-            
+
         Returns:
             List of discovered vulnerabilities
         """
@@ -277,105 +267,100 @@ class VulnerabilityScanner:
             if not self._security.check_rate_limit("vulnerability_scan"):
                 audit_logger.warning(
                     "Rate limit exceeded for vulnerability scanning",
-                    extra={"security_event": "vuln_scan_rate_limited"}
+                    extra={"security_event": "vuln_scan_rate_limited"},
                 )
                 return []
-            
+
             # Security: Limit package count
             if len(packages) > MAX_DEPENDENCY_COUNT:
                 audit_logger.warning(
                     f"Too many packages for vulnerability scan: {len(packages)}",
-                    extra={"security_event": "vuln_scan_limit_exceeded"}
+                    extra={"security_event": "vuln_scan_limit_exceeded"},
                 )
                 packages = packages[:MAX_DEPENDENCY_COUNT]
-            
+
             audit_logger.info(
                 f"Starting batch vulnerability scan for {len(packages)} packages",
-                extra={"security_event": "vuln_scan_started", "package_count": len(packages)}
+                extra={"security_event": "vuln_scan_started", "package_count": len(packages)},
             )
-            
+
             start_time = time.time()
             all_vulnerabilities = []
             self._scan_count = 0
-            
+
             # Process packages in batches for efficiency
             batch_size = 50
             for i in range(0, len(packages), batch_size):
-                batch = packages[i:i + batch_size]
+                batch = packages[i : i + batch_size]
                 batch_vulns = self._scan_batch(batch)
                 all_vulnerabilities.extend(batch_vulns)
-                
+
                 # Check processing limits
                 self._scan_count += len(batch)
                 if self._scan_count > MAX_DEPENDENCY_COUNT:
                     break
-            
+
             scan_duration = time.time() - start_time
-            
+
             # Record performance metrics
             self._perf_monitor.record_operation(
-                "vuln_scan_total",
-                scan_duration,
-                size=len(all_vulnerabilities),
-                cache_hit=False
+                "vuln_scan_total", scan_duration, size=len(all_vulnerabilities), cache_hit=False
             )
-            
+
             # Log cache performance
             cache_stats = self._cache_manager.vulnerability_cache.get_stats()
             logger.info(
                 f"Vulnerability cache hit ratio: {cache_stats['hit_ratio']:.1%} "
                 f"({cache_stats['hits']}/{cache_stats['hits'] + cache_stats['misses']})"
             )
-            
+
             if all_vulnerabilities:
                 audit_logger.warning(
                     f"Found {len(all_vulnerabilities)} vulnerabilities in {scan_duration:.2f}s",
                     extra={
                         "security_event": "vulnerabilities_found",
                         "vulnerability_count": len(all_vulnerabilities),
-                        "duration": scan_duration
-                    }
+                        "duration": scan_duration,
+                    },
                 )
-            
+
             logger.info(f"Vulnerability scan completed in {scan_duration:.2f}s")
             return all_vulnerabilities
-    
+
     def _scan_batch(self, packages: List[Package]) -> List[Vulnerability]:
         """
         Scan a batch of packages for vulnerabilities.
-        
+
         Args:
             packages: Batch of packages to scan
-            
+
         Returns:
             List of vulnerabilities found in batch
         """
         batch_vulnerabilities = []
-        
+
         # Check cache for all packages first
         uncached_packages = []
         for package in packages:
             cache_key = f"{package.name}@{package.version}"
-            
+
             # Check performance cache
             perf_cache_key = self._cache_manager.get_cache_key(
                 "vuln", package.name, package.version
             )
             cached = self._cache_manager.vulnerability_cache.get(perf_cache_key)
-            
+
             if cached is not None:
                 package.vulnerabilities = cached
                 batch_vulnerabilities.extend(cached)
-                self._perf_monitor.record_operation(
-                    "vuln_cache_hit", 0.0, cache_hit=True
-                )
+                self._perf_monitor.record_operation("vuln_cache_hit", 0.0, cache_hit=True)
             elif cache_key in self._cache:
                 vulns = self._cache[cache_key]
                 package.vulnerabilities = vulns
                 batch_vulnerabilities.extend(vulns)
             else:
                 uncached_packages.append(package)
-        
+
         # Scan uncached packages in parallel
         if uncached_packages:
             with ThreadPoolExecutor(max_workers=6) as executor:
@@ -383,7 +368,7 @@ class VulnerabilityScanner:
                     executor.submit(self._scan_package_with_cache, pkg): pkg
                     for pkg in uncached_packages
                 }
-                
+
                 for future in as_completed(future_to_package):
                     package = future_to_package[future]
                     try:
@@ -393,34 +378,30 @@ class VulnerabilityScanner:
                     except Exception as e:
                         logger.error(f"Error scanning {package.name}: {e}")
                         package.vulnerabilities = []
-        
+
         return batch_vulnerabilities
-    
+
     def _scan_package_with_cache(self, package: Package) -> List[Vulnerability]:
         """
         Scan individual package with caching.
-        
+
         Args:
             package: Package to scan
-            
+
         Returns:
             List of vulnerabilities
         """
         cache_key = f"{package.name}@{package.version}"
-        perf_cache_key = self._cache_manager.get_cache_key(
-            "vuln", package.name, package.version
-        )
-        
+        perf_cache_key = self._cache_manager.get_cache_key("vuln", package.name, package.version)
+
         try:
             # Use circuit breaker for external API calls
-            vulns = self._security.circuit_breaker_call(
-                self._scan_package, package
-            )
-            
+            vulns = self._security.circuit_breaker_call(self._scan_package, package)
+
             # Update caches
             self._cache[cache_key] = vulns
             self._cache_manager.vulnerability_cache.set(perf_cache_key, vulns)
-            
+
             return vulns
         except Exception as e:
             logger.error(f"Error scanning package {package.name}: {e}")
@@ -433,11 +414,29 @@ class VulnerabilityScanner:
         # In production, would query vulnerability databases
         # For demonstration, check for known vulnerable versions
         # Check for Log4j vulnerability (handle both simple and Maven-style names)
-        if ("log4j" in package.name.lower() and 
-            package.version.startswith("2.") and 
-            package.version in ["2.14.0", "2.14.1", "2.13.0", "2.12.0", "2.11.0", 
-                               "2.10.0", "2.9.0", "2.8.0", "2.7", "2.6", "2.5", 
-                               "2.4", "2.3", "2.2", "2.1", "2.0"]):
+        if (
+            "log4j" in package.name.lower()
+            and package.version.startswith("2.")
+            and package.version
+            in [
+                "2.14.0",
+                "2.14.1",
+                "2.13.0",
+                "2.12.0",
+                "2.11.0",
+                "2.10.0",
+                "2.9.0",
+                "2.8.0",
+                "2.7",
+                "2.6",
+                "2.5",
+                "2.4",
+                "2.3",
+                "2.2",
+                "2.1",
+                "2.0",
+            ]
+        ):
             # Log4Shell vulnerability
             vulnerabilities.append(
                 Vulnerability(
@@ -463,14 +462,14 @@ class VulnerabilityScanner:
 class Ed25519Signer:
     """
     Digital signature generator using Ed25519 algorithm.
-    
+
     Provides cryptographic signatures for SBOM integrity.
     """
 
     def __init__(self, config: Optional[ConfigurationManager] = None):
         """
         Initialize digital signer with secure key management.
-        
+
         Args:
             config: Configuration manager for key management
         """
@@ -488,35 +487,33 @@ class Ed25519Signer:
         """Initialize signing keys with secure storage."""
         with self._lock:
             key_path = Path.home() / ".devdocai" / "sbom_signing_key.enc"
-            
+
             # Derive key encryption key from system entropy
             self._key_encryption_key = self._derive_key_encryption_key()
-            
+
             if key_path.exists():
                 # Load existing encrypted key
                 try:
                     with open(key_path, "rb") as f:
                         encrypted_data = f.read()
-                    
+
                     # Decrypt the private key
                     decrypted_key = self._decrypt_key(encrypted_data)
-                    
+
                     self._private_key = serialization.load_pem_private_key(
                         decrypted_key,
                         password=None,
                     )
                     self._public_key = self._private_key.public_key()
-                    
+
                     audit_logger.info(
-                        "Loaded encrypted SBOM signing key",
-                        extra={"security_event": "key_loaded"}
+                        "Loaded encrypted SBOM signing key", extra={"security_event": "key_loaded"}
                     )
                     logger.info("Loaded existing SBOM signing key")
                 except Exception as e:
                     logger.error(f"Error loading signing key: {e}")
                     audit_logger.error(
-                        f"Key loading failed: {e}",
-                        extra={"security_event": "key_load_failed"}
+                        f"Key loading failed: {e}", extra={"security_event": "key_load_failed"}
                     )
                     self._generate_new_keys(key_path)
             else:
@@ -526,7 +523,7 @@ class Ed25519Signer:
     def _generate_new_keys(self, key_path: Path):
         """Generate new Ed25519 key pair with secure storage."""
         logger.info("Generating new Ed25519 key pair for SBOM signing")
-        
+
         # Generate key pair
         self._private_key = ed25519.Ed25519PrivateKey.generate()
         self._public_key = self._private_key.public_key()
@@ -537,24 +534,23 @@ class Ed25519Signer:
             format=serialization.PrivateFormat.OpenSSH,
             encryption_algorithm=serialization.NoEncryption(),
         )
-        
+
         # Encrypt the private key before storage
         encrypted_key = self._encrypt_key(pem)
-        
+
         # Save encrypted private key
         key_path.parent.mkdir(parents=True, exist_ok=True)
         with open(key_path, "wb") as f:
             f.write(encrypted_key)
-        
+
         # Set restrictive permissions
         key_path.chmod(0o600)
-        
+
         audit_logger.info(
-            f"Generated new encrypted signing key",
-            extra={"security_event": "key_generated"}
+            "Generated new encrypted signing key", extra={"security_event": "key_generated"}
         )
         logger.info(f"Saved new signing key to {key_path}")
-    
+
     def _derive_key_encryption_key(self) -> bytes:
         """Derive key encryption key from system entropy."""
         # Use system-specific entropy sources
@@ -563,57 +559,57 @@ class Ed25519Signer:
             str(os.getpid()).encode(),  # Process ID
             str(time.time()).encode(),  # Current time
         ]
-        
+
         # Combine entropy
-        combined = b''.join(entropy_sources)
-        
+        combined = b"".join(entropy_sources)
+
         # Derive key using PBKDF2
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
-            salt=b'devdocai-sbom-key-salt',  # Static salt for deterministic derivation
+            salt=b"devdocai-sbom-key-salt",  # Static salt for deterministic derivation
             iterations=100000,
-            backend=default_backend()
+            backend=default_backend(),
         )
-        
+
         return kdf.derive(combined)
-    
+
     def _encrypt_key(self, key_data: bytes) -> bytes:
         """Encrypt private key for storage."""
         if not self._key_encryption_key:
             raise RuntimeError("Key encryption key not initialized")
-        
+
         # Use Fernet for symmetric encryption
         fernet_key = base64.urlsafe_b64encode(self._key_encryption_key)
         f = Fernet(fernet_key)
-        
+
         return f.encrypt(key_data)
-    
+
     def _decrypt_key(self, encrypted_data: bytes) -> bytes:
         """Decrypt private key from storage."""
         if not self._key_encryption_key:
             raise RuntimeError("Key encryption key not initialized")
-        
+
         # Use Fernet for symmetric decryption
         fernet_key = base64.urlsafe_b64encode(self._key_encryption_key)
         f = Fernet(fernet_key)
-        
+
         return f.decrypt(encrypted_data)
 
     def sign(self, data: Any) -> str:
         """
         Sign data with Ed25519 private key.
-        
+
         Args:
             data: Data to sign (will be JSON serialized)
-            
+
         Returns:
             Base64-encoded signature
         """
         with self._lock:
             if not self._private_key:
                 raise SignatureError("Signing key not initialized")
-            
+
             # Security: Rate limiting for signature operations
             if not self._security.check_rate_limit("signature_generation"):
                 raise SignatureError("Rate limit exceeded for signature generation")
@@ -626,32 +622,31 @@ class Ed25519Signer:
 
             # Add integrity HMAC
             integrity_hmac = hmac.new(
-                self._key_encryption_key or b'default-hmac-key',
-                json_data.encode('utf-8'),
-                hashlib.sha256
+                self._key_encryption_key or b"default-hmac-key",
+                json_data.encode("utf-8"),
+                hashlib.sha256,
             ).digest()
-            
+
             # Sign the data with HMAC appended
-            data_with_hmac = json_data.encode('utf-8') + integrity_hmac
+            data_with_hmac = json_data.encode("utf-8") + integrity_hmac
             signature = self._private_key.sign(data_with_hmac)
 
             # Log signature generation
             audit_logger.info(
-                "SBOM signature generated",
-                extra={"security_event": "signature_generated"}
+                "SBOM signature generated", extra={"security_event": "signature_generated"}
             )
-            
+
             # Return base64-encoded signature
             return base64.b64encode(signature).decode("ascii")
 
     def verify(self, data: Any, signature: str) -> bool:
         """
         Verify signature with Ed25519 public key.
-        
+
         Args:
             data: Data to verify
             signature: Base64-encoded signature
-            
+
         Returns:
             True if signature is valid
         """
@@ -668,13 +663,13 @@ class Ed25519Signer:
 
                 # Add integrity HMAC (same as in sign method)
                 integrity_hmac = hmac.new(
-                    self._key_encryption_key or b'default-hmac-key',
-                    json_data.encode('utf-8'),
-                    hashlib.sha256
+                    self._key_encryption_key or b"default-hmac-key",
+                    json_data.encode("utf-8"),
+                    hashlib.sha256,
                 ).digest()
-                
+
                 # Reconstruct data with HMAC
-                data_with_hmac = json_data.encode('utf-8') + integrity_hmac
+                data_with_hmac = json_data.encode("utf-8") + integrity_hmac
 
                 # Decode signature
                 sig_bytes = base64.b64decode(signature)
@@ -695,7 +690,7 @@ class Ed25519Signer:
             encoding=serialization.Encoding.OpenSSH,
             format=serialization.PublicFormat.OpenSSH,
         )
-        
+
         return base64.b64encode(pem).decode("ascii")
 
 
@@ -706,18 +701,18 @@ class Ed25519Signer:
 
 class SBOMValidator:
     """Validates SBOM against format specifications."""
-    
+
     def __init__(self, signer: Optional[Ed25519Signer] = None):
         """Initialize validator."""
         self._signer = signer
-    
+
     def validate(self, sbom: SBOM) -> Tuple[bool, List[str]]:
         """
         Validate SBOM against format specifications.
-        
+
         Args:
             sbom: SBOM to validate
-            
+
         Returns:
             Tuple of (is_valid, list_of_errors)
         """

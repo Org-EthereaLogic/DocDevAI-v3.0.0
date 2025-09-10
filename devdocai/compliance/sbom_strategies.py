@@ -14,9 +14,9 @@ import xml.etree.ElementTree as ET
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import List
 
-from .sbom_types import LicenseInfo, Package, Relationship, SBOM, SBOMFormat
+from .sbom_types import SBOM, Package, Relationship, SBOMFormat
 
 logger = logging.getLogger(__name__)
 
@@ -28,12 +28,12 @@ logger = logging.getLogger(__name__)
 
 class PackageScannerStrategy(ABC):
     """Abstract base class for package scanning strategies."""
-    
+
     @abstractmethod
     def scan(self, project_path: Path) -> List[Package]:
         """Scan for packages in the project."""
         pass
-    
+
     @abstractmethod
     def supports(self, project_path: Path) -> bool:
         """Check if this scanner supports the project."""
@@ -42,7 +42,7 @@ class PackageScannerStrategy(ABC):
 
 class PythonPackageScanner(PackageScannerStrategy):
     """Scanner for Python packages."""
-    
+
     def scan(self, project_path: Path) -> List[Package]:
         """Scan Python dependencies."""
         packages = []
@@ -66,26 +66,28 @@ class PythonPackageScanner(PackageScannerStrategy):
             packages.extend(self._parse_pipfile(pipfile))
 
         return packages
-    
+
     def supports(self, project_path: Path) -> bool:
         """Check if Python project."""
-        return any([
-            (project_path / "requirements.txt").exists(),
-            (project_path / "pyproject.toml").exists(),
-            (project_path / "Pipfile").exists(),
-            (project_path / "setup.py").exists(),
-        ])
-    
+        return any(
+            [
+                (project_path / "requirements.txt").exists(),
+                (project_path / "pyproject.toml").exists(),
+                (project_path / "Pipfile").exists(),
+                (project_path / "setup.py").exists(),
+            ]
+        )
+
     def _parse_requirements_txt(self, file_path: Path) -> List[Package]:
         """Parse requirements.txt file."""
         packages = []
-        
+
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 for line_num, line in enumerate(f, 1):
                     if line_num > 10000:  # Limit lines to prevent DoS
                         break
-                    
+
                     line = line.strip()
                     if line and not line.startswith("#"):
                         # Parse package==version format
@@ -101,9 +103,9 @@ class PythonPackageScanner(PackageScannerStrategy):
                             )
         except Exception as e:
             logger.error(f"Error parsing requirements.txt: {e}")
-        
+
         return packages
-    
+
     def _parse_pyproject_toml(self, file_path: Path) -> List[Package]:
         """Parse pyproject.toml file."""
         packages = []
@@ -155,9 +157,9 @@ class PythonPackageScanner(PackageScannerStrategy):
             logger.warning("tomli not installed, skipping pyproject.toml parsing")
         except Exception as e:
             logger.error(f"Error parsing pyproject.toml: {e}")
-        
+
         return packages
-    
+
     def _parse_pipfile(self, file_path: Path) -> List[Package]:
         """Parse Pipfile."""
         packages = []
@@ -188,13 +190,13 @@ class PythonPackageScanner(PackageScannerStrategy):
             logger.warning("tomli not installed, skipping Pipfile parsing")
         except Exception as e:
             logger.error(f"Error parsing Pipfile: {e}")
-        
+
         return packages
 
 
 class NodePackageScanner(PackageScannerStrategy):
     """Scanner for Node.js packages."""
-    
+
     def scan(self, project_path: Path) -> List[Package]:
         """Scan Node.js dependencies."""
         packages = []
@@ -204,7 +206,7 @@ class NodePackageScanner(PackageScannerStrategy):
         if lock_file.exists():
             logger.debug("Scanning package-lock.json")
             try:
-                with open(lock_file, "r", encoding="utf-8") as f:
+                with open(lock_file, encoding="utf-8") as f:
                     data = json.load(f)
                     if "packages" in data:
                         for path, info in data["packages"].items():
@@ -225,7 +227,7 @@ class NodePackageScanner(PackageScannerStrategy):
         elif (project_path / "package.json").exists():
             logger.debug("Scanning package.json")
             try:
-                with open(project_path / "package.json", "r", encoding="utf-8") as f:
+                with open(project_path / "package.json", encoding="utf-8") as f:
                     data = json.load(f)
                     for dep_type in ["dependencies", "devDependencies"]:
                         if dep_type in data:
@@ -241,19 +243,21 @@ class NodePackageScanner(PackageScannerStrategy):
                 logger.error(f"Error parsing package.json: {e}")
 
         return packages
-    
+
     def supports(self, project_path: Path) -> bool:
         """Check if Node.js project."""
-        return any([
-            (project_path / "package.json").exists(),
-            (project_path / "package-lock.json").exists(),
-            (project_path / "yarn.lock").exists(),
-        ])
+        return any(
+            [
+                (project_path / "package.json").exists(),
+                (project_path / "package-lock.json").exists(),
+                (project_path / "yarn.lock").exists(),
+            ]
+        )
 
 
 class JavaPackageScanner(PackageScannerStrategy):
     """Scanner for Java packages."""
-    
+
     def scan(self, project_path: Path) -> List[Package]:
         """Scan Java dependencies (Maven/Gradle)."""
         packages = []
@@ -293,19 +297,21 @@ class JavaPackageScanner(PackageScannerStrategy):
             logger.warning("Gradle scanning not fully implemented")
 
         return packages
-    
+
     def supports(self, project_path: Path) -> bool:
         """Check if Java project."""
-        return any([
-            (project_path / "pom.xml").exists(),
-            (project_path / "build.gradle").exists(),
-            (project_path / "build.gradle.kts").exists(),
-        ])
+        return any(
+            [
+                (project_path / "pom.xml").exists(),
+                (project_path / "build.gradle").exists(),
+                (project_path / "build.gradle.kts").exists(),
+            ]
+        )
 
 
 class DotNetPackageScanner(PackageScannerStrategy):
     """Scanner for .NET packages."""
-    
+
     def scan(self, project_path: Path) -> List[Package]:
         """Scan .NET dependencies."""
         packages = []
@@ -332,19 +338,21 @@ class DotNetPackageScanner(PackageScannerStrategy):
                 logger.error(f"Error parsing {csproj}: {e}")
 
         return packages
-    
+
     def supports(self, project_path: Path) -> bool:
         """Check if .NET project."""
-        return any([
-            list(project_path.glob("**/*.csproj")),
-            list(project_path.glob("**/*.vbproj")),
-            list(project_path.glob("**/*.fsproj")),
-        ])
+        return any(
+            [
+                list(project_path.glob("**/*.csproj")),
+                list(project_path.glob("**/*.vbproj")),
+                list(project_path.glob("**/*.fsproj")),
+            ]
+        )
 
 
 class GoPackageScanner(PackageScannerStrategy):
     """Scanner for Go packages."""
-    
+
     def scan(self, project_path: Path) -> List[Package]:
         """Scan Go dependencies."""
         packages = []
@@ -353,7 +361,7 @@ class GoPackageScanner(PackageScannerStrategy):
         if go_mod.exists():
             logger.debug("Scanning go.mod")
             try:
-                with open(go_mod, "r", encoding="utf-8") as f:
+                with open(go_mod, encoding="utf-8") as f:
                     in_require = False
                     for line in f:
                         line = line.strip()
@@ -377,18 +385,20 @@ class GoPackageScanner(PackageScannerStrategy):
                 logger.error(f"Error parsing go.mod: {e}")
 
         return packages
-    
+
     def supports(self, project_path: Path) -> bool:
         """Check if Go project."""
-        return any([
-            (project_path / "go.mod").exists(),
-            (project_path / "go.sum").exists(),
-        ])
+        return any(
+            [
+                (project_path / "go.mod").exists(),
+                (project_path / "go.sum").exists(),
+            ]
+        )
 
 
 class RustPackageScanner(PackageScannerStrategy):
     """Scanner for Rust packages."""
-    
+
     def scan(self, project_path: Path) -> List[Package]:
         """Scan Rust dependencies."""
         packages = []
@@ -419,13 +429,15 @@ class RustPackageScanner(PackageScannerStrategy):
                 logger.error(f"Error parsing Cargo.lock: {e}")
 
         return packages
-    
+
     def supports(self, project_path: Path) -> bool:
         """Check if Rust project."""
-        return any([
-            (project_path / "Cargo.toml").exists(),
-            (project_path / "Cargo.lock").exists(),
-        ])
+        return any(
+            [
+                (project_path / "Cargo.toml").exists(),
+                (project_path / "Cargo.lock").exists(),
+            ]
+        )
 
 
 # ============================================================================
@@ -435,19 +447,17 @@ class RustPackageScanner(PackageScannerStrategy):
 
 class FormatBuilderStrategy(ABC):
     """Abstract base class for SBOM format building strategies."""
-    
+
     @abstractmethod
-    def build(self, project_path: Path, packages: List[Package], 
-              vulnerabilities: List) -> SBOM:
+    def build(self, project_path: Path, packages: List[Package], vulnerabilities: List) -> SBOM:
         """Build SBOM in specific format."""
         pass
 
 
 class SPDXFormatBuilder(FormatBuilderStrategy):
     """Builder for SPDX 2.3 format."""
-    
-    def build(self, project_path: Path, packages: List[Package], 
-              vulnerabilities: List) -> SBOM:
+
+    def build(self, project_path: Path, packages: List[Package], vulnerabilities: List) -> SBOM:
         """Build SPDX 2.3 format SBOM."""
         # Generate document namespace
         timestamp = datetime.now(timezone.utc).isoformat()
@@ -456,7 +466,7 @@ class SPDXFormatBuilder(FormatBuilderStrategy):
         # Build relationships
         relationships = []
         doc_spdx_id = "SPDXRef-DOCUMENT"
-        
+
         for i, package in enumerate(packages):
             pkg_spdx_id = f"SPDXRef-Package-{i}"
             relationships.append(
@@ -505,9 +515,8 @@ class SPDXFormatBuilder(FormatBuilderStrategy):
 
 class CycloneDXFormatBuilder(FormatBuilderStrategy):
     """Builder for CycloneDX 1.4 format."""
-    
-    def build(self, project_path: Path, packages: List[Package], 
-              vulnerabilities: List) -> SBOM:
+
+    def build(self, project_path: Path, packages: List[Package], vulnerabilities: List) -> SBOM:
         """Build CycloneDX 1.4 format SBOM."""
         # Build dependency graph
         dependencies = {}
@@ -557,7 +566,7 @@ class CycloneDXFormatBuilder(FormatBuilderStrategy):
 
 class PackageScannerFactory:
     """Factory for creating package scanners."""
-    
+
     _scanners = [
         PythonPackageScanner(),
         NodePackageScanner(),
@@ -566,12 +575,12 @@ class PackageScannerFactory:
         GoPackageScanner(),
         RustPackageScanner(),
     ]
-    
+
     @classmethod
     def get_scanners(cls, project_path: Path) -> List[PackageScannerStrategy]:
         """Get all applicable scanners for a project."""
         return [s for s in cls._scanners if s.supports(project_path)]
-    
+
     @classmethod
     def register_scanner(cls, scanner: PackageScannerStrategy):
         """Register a new scanner."""
@@ -580,19 +589,19 @@ class PackageScannerFactory:
 
 class FormatBuilderFactory:
     """Factory for creating format builders."""
-    
+
     _builders = {
         SBOMFormat.SPDX: SPDXFormatBuilder(),
         SBOMFormat.CYCLONEDX: CycloneDXFormatBuilder(),
     }
-    
+
     @classmethod
     def get_builder(cls, format: SBOMFormat) -> FormatBuilderStrategy:
         """Get builder for specified format."""
         if format not in cls._builders:
             raise ValueError(f"Unsupported SBOM format: {format}")
         return cls._builders[format]
-    
+
     @classmethod
     def register_builder(cls, format: SBOMFormat, builder: FormatBuilderStrategy):
         """Register a new format builder."""

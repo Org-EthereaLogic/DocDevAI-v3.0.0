@@ -27,13 +27,13 @@ Pass 3 Performance Optimization for the M010 SBOM Generator has been successfull
 
 ### 2. **Multi-Tier Caching System** ✅
 - **Architecture**: Three-tier cache (dependency, license, vulnerability)
-- **Features**: 
+- **Features**:
   - LRU eviction policy
   - TTL-based expiration (3600s default)
   - SHA256-based cache keys
 - **Cache Sizes**:
   - Dependencies: 10,000 entries
-  - Licenses: 5,000 entries  
+  - Licenses: 5,000 entries
   - Vulnerabilities: 5,000 entries
 - **Hit Ratios**: 80-95% after warm-up
 
@@ -81,7 +81,7 @@ devdocai/compliance/sbom_performance.py  # 600+ lines
 - Performance caching for scan results
 - Memory monitoring during scans
 
-# LicenseDetector  
+# LicenseDetector
 - Batch detection API
 - Cached license lookups
 - Parallel processing support
@@ -114,7 +114,7 @@ devdocai/compliance/sbom_performance.py  # 600+ lines
 ### Dependency Scanning Performance
 ```
 10 packages:    0.1s  (100 pkg/s)
-100 packages:   0.5s  (200 pkg/s)  
+100 packages:   0.5s  (200 pkg/s)
 500 packages:   2.0s  (250 pkg/s)
 1000 packages:  3.5s  (285 pkg/s)
 ```
