@@ -31,6 +31,7 @@ export default function DocumentStudio() {
   const [generatedContent, setGeneratedContent] = useState('')
   const [enhancedContent, setEnhancedContent] = useState('')
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null)
+  const [successAnimation, setSuccessAnimation] = useState<'generate' | 'enhance' | 'analyze' | null>(null)
 
   const [isGenerating, setIsGenerating] = useState(false)
   const [isEnhancing, setIsEnhancing] = useState(false)
@@ -88,6 +89,8 @@ export default function DocumentStudio() {
         source: templateSource // Pass template source to backend
       })
       setGeneratedContent(result.content)
+      setSuccessAnimation('generate')
+      setTimeout(() => setSuccessAnimation(null), 2000)
       setActiveTab('enhance')
     } catch (error) {
       console.error('Generation failed:', error)
@@ -107,6 +110,8 @@ export default function DocumentStudio() {
         strategy: 'MIAIR_ENHANCED'
       })
       setEnhancedContent(result.enhanced_content)
+      setSuccessAnimation('enhance')
+      setTimeout(() => setSuccessAnimation(null), 2000)
       setActiveTab('analyze')
     } catch (error) {
       console.error('Enhancement failed:', error)
@@ -127,6 +132,8 @@ export default function DocumentStudio() {
         include_suggestions: true
       })
       setAnalysis(result as AnalysisResult)
+      setSuccessAnimation('analyze')
+      setTimeout(() => setSuccessAnimation(null), 2000)
     } catch (error) {
       console.error('Analysis failed:', error)
       alert('Analysis failed. Please try again.')
@@ -136,25 +143,33 @@ export default function DocumentStudio() {
   }
 
   return (
-    <div className="w-full min-h-screen bg-gray-50 flex flex-col">
+    <div className="w-full min-h-screen bg-gray-50 flex flex-col animate-fadeIn">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b flex-shrink-0">
+      <header className="bg-white shadow-sm border-b flex-shrink-0 animate-slideInUp">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between min-w-0">
             <div className="flex items-center space-x-3 min-w-0 flex-1">
               <img
                 src="/devdocai-logo.png"
                 alt="DevDocAI"
-                className="h-16 w-auto flex-shrink-0"
+                className="h-16 w-auto flex-shrink-0 hover-scale transition-transform duration-300"
               />
               <h1 className="text-xl font-bold text-gray-900 truncate">Document Studio</h1>
             </div>
-            <Link
-              href="/"
-              className="text-gray-600 hover:text-gray-900 font-medium whitespace-nowrap flex-shrink-0 ml-4"
-            >
-              ← Back to Home
-            </Link>
+            <div className="flex items-center space-x-4 flex-shrink-0 ml-4">
+              <Link
+                href="/settings"
+                className="text-gray-600 hover:text-gray-900 font-medium whitespace-nowrap transition-colors duration-200 hover:scale-105 inline-block"
+              >
+                ⚙️ Settings
+              </Link>
+              <Link
+                href="/"
+                className="text-gray-600 hover:text-gray-900 font-medium whitespace-nowrap transition-colors duration-200 hover:scale-105 inline-block"
+              >
+                ← Back to Home
+              </Link>
+            </div>
           </div>
         </div>
       </header>
@@ -166,10 +181,10 @@ export default function DocumentStudio() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-2 px-2 sm:px-4 rounded-md font-medium text-xs sm:text-sm transition-colors ${
+              className={`flex-1 py-2 px-2 sm:px-4 rounded-md font-medium text-xs sm:text-sm transition-all duration-200 ${successAnimation === tab ? 'animate-wiggle' : ''} ${
                 activeTab === tab
                   ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
               <span className="hidden sm:inline">{tab === 'generate' && '1. Generate'}</span>
@@ -239,7 +254,7 @@ export default function DocumentStudio() {
                   <select
                     value={selectedTemplate}
                     onChange={(e) => setSelectedTemplate(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-blue-400"
                     disabled={templateSource === 'marketplace' && marketplaceTemplates.length === 0}
                   >
                     {templateSource === 'local' ? (
@@ -281,7 +296,7 @@ export default function DocumentStudio() {
                       value={projectTitle}
                       onChange={(e) => setProjectTitle(e.target.value)}
                       placeholder="My Awesome Project"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-blue-400"
                     />
                   </div>
 
@@ -294,7 +309,7 @@ export default function DocumentStudio() {
                       onChange={(e) => setProjectDescription(e.target.value)}
                       placeholder="A brief description of what your project does..."
                       rows={3}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none transition-all duration-200 hover:border-blue-400"
                     />
                   </div>
 
@@ -305,7 +320,7 @@ export default function DocumentStudio() {
                     <select
                       value={projectType}
                       onChange={(e) => setProjectType(e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-blue-400"
                     >
                       <option value="">Select project type...</option>
                       <option value="web-application">Web Application</option>
@@ -327,7 +342,7 @@ export default function DocumentStudio() {
                       onChange={(e) => setMainFeatures(e.target.value)}
                       placeholder="List the key features or capabilities (one per line or comma-separated)"
                       rows={3}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none transition-all duration-200 hover:border-blue-400"
                     />
                   </div>
                 </div>
@@ -335,16 +350,22 @@ export default function DocumentStudio() {
                 <button
                   onClick={handleGenerate}
                   disabled={isGenerating || !selectedTemplate || !projectTitle.trim()}
-                  className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 rounded-lg font-medium hover:from-blue-600 hover:to-purple-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 rounded-lg font-medium hover:from-blue-600 hover:to-purple-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center button-press hover-lift relative overflow-hidden group"
                 >
-                  {isGenerating ? (
-                    <>
-                      <LoadingSpinner size="sm" />
-                      <span className="ml-2">Generating...</span>
-                    </>
-                  ) : (
-                    '🚀 Generate Document'
-                  )}
+                  <span className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></span>
+                  <span className="relative z-10">
+                    {isGenerating ? (
+                      <>
+                        <LoadingSpinner size="sm" />
+                        <span className="ml-2">Generating<span className="loading-dots"></span></span>
+                      </>
+                    ) : (
+                      <span className="flex items-center">
+                        <span className="group-hover:animate-wiggle mr-2">🚀</span>
+                        Generate Document
+                      </span>
+                    )}
+                  </span>
                 </button>
               </>
             )}
@@ -358,7 +379,7 @@ export default function DocumentStudio() {
                   <textarea
                     value={generatedContent}
                     onChange={(e) => setGeneratedContent(e.target.value)}
-                    className="w-full h-64 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full h-64 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-green-400"
                     placeholder="Generate content first, or paste content here to enhance..."
                   />
                 </div>
@@ -366,16 +387,22 @@ export default function DocumentStudio() {
                 <button
                   onClick={handleEnhance}
                   disabled={isEnhancing || !generatedContent.trim()}
-                  className="w-full bg-gradient-to-r from-green-500 to-teal-500 text-white py-3 rounded-lg font-medium hover:from-green-600 hover:to-teal-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  className="w-full bg-gradient-to-r from-green-500 to-teal-500 text-white py-3 rounded-lg font-medium hover:from-green-600 hover:to-teal-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center button-press hover-lift relative overflow-hidden group"
                 >
-                  {isEnhancing ? (
-                    <>
-                      <LoadingSpinner size="sm" />
-                      <span className="ml-2">Enhancing with MIAIR...</span>
-                    </>
-                  ) : (
-                    '✨ Enhance with AI'
-                  )}
+                  <span className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></span>
+                  <span className="relative z-10">
+                    {isEnhancing ? (
+                      <>
+                        <LoadingSpinner size="sm" />
+                        <span className="ml-2">Enhancing with MIAIR<span className="loading-dots"></span></span>
+                      </>
+                    ) : (
+                      <span className="flex items-center">
+                        <span className="group-hover:animate-bounce mr-2">✨</span>
+                        Enhance with AI
+                      </span>
+                    )}
+                  </span>
                 </button>
               </>
             )}
@@ -389,7 +416,7 @@ export default function DocumentStudio() {
                   <textarea
                     value={enhancedContent || generatedContent}
                     onChange={(e) => enhancedContent ? setEnhancedContent(e.target.value) : setGeneratedContent(e.target.value)}
-                    className="w-full h-64 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full h-64 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-green-400"
                     placeholder="Content will appear here after generation/enhancement..."
                   />
                 </div>
@@ -397,16 +424,22 @@ export default function DocumentStudio() {
                 <button
                   onClick={handleAnalyze}
                   disabled={isAnalyzing || !(enhancedContent || generatedContent).trim()}
-                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-lg font-medium hover:from-purple-600 hover:to-pink-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-lg font-medium hover:from-purple-600 hover:to-pink-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center button-press hover-lift relative overflow-hidden group"
                 >
-                  {isAnalyzing ? (
-                    <>
-                      <LoadingSpinner size="sm" />
-                      <span className="ml-2">Analyzing Quality...</span>
-                    </>
-                  ) : (
-                    '🔍 Analyze Quality'
-                  )}
+                  <span className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></span>
+                  <span className="relative z-10">
+                    {isAnalyzing ? (
+                      <>
+                        <LoadingSpinner size="sm" />
+                        <span className="ml-2">Analyzing Quality<span className="loading-dots"></span></span>
+                      </>
+                    ) : (
+                      <span className="flex items-center">
+                        <span className="group-hover:animate-wiggle mr-2">🔍</span>
+                        Analyze Quality
+                      </span>
+                    )}
+                  </span>
                 </button>
               </>
             )}
@@ -415,7 +448,7 @@ export default function DocumentStudio() {
           {/* Right Column - Output */}
           <div className="space-y-6">
             {activeTab === 'generate' && generatedContent && (
-              <div className="bg-white rounded-lg shadow-md p-6">
+              <div className={`bg-white rounded-lg shadow-md p-6 animate-fadeInScale ${successAnimation === 'generate' ? 'success-animation' : ''}`}>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Generated Content</h3>
                 <div className="bg-gray-50 rounded p-4 max-h-96 overflow-y-auto">
                   <pre className="whitespace-pre-wrap text-sm">{generatedContent}</pre>
@@ -424,7 +457,7 @@ export default function DocumentStudio() {
             )}
 
             {activeTab === 'enhance' && enhancedContent && (
-              <div className="bg-white rounded-lg shadow-md p-6">
+              <div className={`bg-white rounded-lg shadow-md p-6 animate-fadeInScale ${successAnimation === 'enhance' ? 'success-animation' : ''}`}>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Enhanced Content</h3>
                 <div className="bg-gray-50 rounded p-4 max-h-96 overflow-y-auto">
                   <pre className="whitespace-pre-wrap text-sm">{enhancedContent}</pre>
@@ -433,19 +466,19 @@ export default function DocumentStudio() {
             )}
 
             {activeTab === 'analyze' && analysis && (
-              <div className="bg-white rounded-lg shadow-md p-6">
+              <div className={`bg-white rounded-lg shadow-md p-6 animate-fadeInScale ${successAnimation === 'analyze' ? 'success-animation' : ''}`}>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Quality Analysis</h3>
 
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">
+                <div className="grid grid-cols-2 gap-4 mb-6 stagger-animation">
+                  <div className="bg-blue-50 p-4 rounded-lg hover-lift transition-all duration-300 group">
+                    <div className="text-2xl font-bold text-blue-600 group-hover:animate-pulse">
                       {(analysis.quality_score * 100).toFixed(1)}%
                     </div>
                     <div className="text-sm text-gray-600">Quality Score</div>
                   </div>
 
-                  <div className="bg-purple-50 p-4 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600">
+                  <div className="bg-purple-50 p-4 rounded-lg hover-lift transition-all duration-300 group">
+                    <div className="text-2xl font-bold text-purple-600 group-hover:animate-pulse">
                       {(analysis.entropy_score * 100).toFixed(1)}%
                     </div>
                     <div className="text-sm text-gray-600">Entropy Score</div>
@@ -457,8 +490,8 @@ export default function DocumentStudio() {
                     <h4 className="font-medium text-gray-900 mb-2">Suggestions for Improvement</h4>
                     <ul className="space-y-2">
                       {analysis.suggestions.map((suggestion: string, index: number) => (
-                        <li key={index} className="flex items-start space-x-2">
-                          <span className="text-yellow-500 mt-1">💡</span>
+                        <li key={index} className="flex items-start space-x-2 hover:scale-105 transition-transform duration-200">
+                          <span className="text-yellow-500 mt-1 hover:animate-bounce inline-block">💡</span>
                           <span className="text-sm text-gray-600">{suggestion}</span>
                         </li>
                       ))}
@@ -473,26 +506,26 @@ export default function DocumentStudio() {
             )}
 
             {/* Workflow Guide */}
-            <div className="bg-blue-50 rounded-lg p-6">
+            <div className="bg-blue-50 rounded-lg p-6 card-hover transition-all duration-300">
               <h3 className="text-lg font-semibold text-blue-900 mb-3">Workflow Guide</h3>
               <div className="space-y-2 text-sm text-blue-800">
                 <div className="flex items-center space-x-2">
-                  <span className={activeTab === 'generate' ? 'text-blue-600 font-medium' : ''}>
+                  <span className={activeTab === 'generate' ? 'text-blue-600 font-medium animate-pulse' : ''}>
                     1. Generate: Choose template and provide context
                   </span>
-                  {generatedContent && <span className="text-green-600">✓</span>}
+                  {generatedContent && <span className="text-green-600 animate-bounce inline-block">✓</span>}
                 </div>
                 <div className="flex items-center space-x-2">
-                  <span className={activeTab === 'enhance' ? 'text-blue-600 font-medium' : ''}>
+                  <span className={activeTab === 'enhance' ? 'text-blue-600 font-medium animate-pulse' : ''}>
                     2. Enhance: Improve quality with MIAIR AI
                   </span>
-                  {enhancedContent && <span className="text-green-600">✓</span>}
+                  {enhancedContent && <span className="text-green-600 animate-bounce inline-block">✓</span>}
                 </div>
                 <div className="flex items-center space-x-2">
-                  <span className={activeTab === 'analyze' ? 'text-blue-600 font-medium' : ''}>
+                  <span className={activeTab === 'analyze' ? 'text-blue-600 font-medium animate-pulse' : ''}>
                     3. Analyze: Review quality metrics and suggestions
                   </span>
-                  {analysis && <span className="text-green-600">✓</span>}
+                  {analysis && <span className="text-green-600 animate-bounce inline-block">✓</span>}
                 </div>
               </div>
             </div>

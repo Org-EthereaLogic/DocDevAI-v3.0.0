@@ -28,6 +28,81 @@
 **Repository Status**: **READY FOR PRODUCTION DEPLOYMENT** - Complete AI-powered documentation system with Template Marketplace, Version Control, SBOM compliance, and enterprise security
 **Status**: **🚀 READY FOR COMMUNITY RELEASE & PRODUCTION DEPLOYMENT 🚀**
 
+## 🚀 **Quick Start - Enable AI-Powered Generation**
+
+DevDocAI works out of the box in demo mode, but to unlock real AI-powered documentation generation, you need to configure API keys from AI providers.
+
+### **Method 1: Modern Web UI (Recommended)**
+
+1. **Start the Application**:
+   ```bash
+   # Clone and setup
+   git clone https://github.com/Org-EthereaLogic/DocDevAI-v3.0.0.git
+   cd DocDevAI-v3.0.0
+   
+   # Start both frontend and backend
+   cd devdocai-frontend
+   npm install && npm run dev
+   # In another terminal:
+   cd .. && python -m uvicorn devdocai-frontend.api.main:app --reload
+   ```
+
+2. **Configure API Keys via Web Interface**:
+   - Open [http://localhost:3000](http://localhost:3000) in your browser
+   - Click **"Settings"** in the navigation menu
+   - Add your API keys from one or more providers:
+     - **OpenAI**: Get key from [OpenAI Platform](https://platform.openai.com/api-keys)
+     - **Anthropic**: Get key from [Anthropic Console](https://console.anthropic.com/)
+     - **Google AI**: Get key from [Google AI Studio](https://makersuite.google.com/app/apikey)
+   - Click **"Save Settings"** to activate AI generation
+
+3. **Start Creating**:
+   - Go to [Document Studio](http://localhost:3000/studio)
+   - Select a template and fill in your project details
+   - Generate professional documentation powered by AI!
+
+### **Method 2: Configuration File**
+
+Create a `.devdocai.yml` file in the project root:
+
+```yaml
+# DevDocAI Configuration
+providers:
+  openai_api_key: "sk-..."      # Primary provider (40%)
+  anthropic_api_key: "sk-ant-..." # Secondary provider (35%)
+  google_api_key: "AIza..."     # Fallback provider (25%)
+
+# Privacy & Security (Optional)
+privacy_mode: "LOCAL_ONLY"      # LOCAL_ONLY, HYBRID, or CLOUD_OPTIMIZED
+telemetry_enabled: false        # Help improve DevDocAI
+```
+
+### **Method 3: Environment Variables**
+
+```bash
+export OPENAI_API_KEY="sk-..."
+export ANTHROPIC_API_KEY="sk-ant-..."
+export GOOGLE_API_KEY="AIza..."
+```
+
+### **API Key Requirements**
+
+- **At least one provider required** for AI generation
+- **Free tiers available** from all providers
+- **Cost management built-in** ($10/day budget by default)
+- **Secure storage** with AES-256-GCM encryption
+- **Local processing** - your API keys never leave your machine
+
+### **Demo Mode vs AI Mode**
+
+| Feature | Demo Mode | AI Mode |
+|---------|-----------|---------|
+| Template system | ✅ Working | ✅ Working |
+| Document structure | ✅ Sample content | ✅ Real AI generation |
+| Enhancement pipeline | ✅ Demo improvements | ✅ Real AI optimization |
+| Quality analysis | ✅ Sample metrics | ✅ Real MIAIR analysis |
+| Marketplace | ✅ Community templates | ✅ Community templates |
+
 ### 🔄 **Why the Restart?**
 
 **Architectural Drift Discovered**: The previous implementation (preserved in git history) had fundamental issues:
