@@ -43,7 +43,7 @@ export default function Settings() {
   const handleSave = async () => {
     setSaving(true)
     setMessage('')
-    
+
     try {
       const response = await fetch('http://localhost:8000/api/config', {
         method: 'POST',
@@ -52,7 +52,7 @@ export default function Settings() {
         },
         body: JSON.stringify(config),
       })
-      
+
       if (response.ok) {
         setMessage('✅ Settings saved successfully! API integration is now active.')
       } else {
@@ -97,9 +97,9 @@ export default function Settings() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <img 
-                src="/devdocai-logo.png" 
-                alt="DevDocAI" 
+              <img
+                src="/devdocai-logo.png"
+                alt="DevDocAI"
                 className="h-12 w-auto"
               />
               <h1 className="text-xl font-bold text-gray-900">Settings</h1>
@@ -143,7 +143,7 @@ export default function Settings() {
                   </label>
                   <p className="text-xs text-gray-500 mt-1">
                     Used for GPT-4 and ChatGPT integration. Get your key from{' '}
-                    <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" 
+                    <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer"
                        className="text-blue-600 hover:text-blue-500">
                       OpenAI Platform
                     </a>
@@ -248,7 +248,7 @@ export default function Settings() {
             {/* Privacy Settings */}
             <div className="pt-6 border-t border-gray-200">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Privacy & Security</h3>
-              
+
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -321,8 +321,8 @@ export default function Settings() {
             {/* Status Message */}
             {message && (
               <div className={`p-4 rounded-lg ${
-                message.includes('✅') 
-                  ? 'bg-green-50 border border-green-200' 
+                message.includes('✅')
+                  ? 'bg-green-50 border border-green-200'
                   : 'bg-red-50 border border-red-200'
               }`}>
                 <p className={`text-sm ${

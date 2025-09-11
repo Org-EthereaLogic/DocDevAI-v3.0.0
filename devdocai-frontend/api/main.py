@@ -131,7 +131,7 @@ async def get_configuration():
 
         # Get API keys (masked for security)
         def mask_key(key):
-            if not key or key == 'your_key_here':
+            if not key or key == "your_key_here":
                 return None
             return key if len(key) <= 8 else f"{key[:4]}{'*' * (len(key) - 8)}{key[-4:]}"
 
@@ -141,9 +141,9 @@ async def get_configuration():
             api_provider=config_manager.api_provider,
             memory_mode=config_manager.memory_mode.value,
             available_memory=config_manager.available_memory,
-            openai_api_key=mask_key(getattr(config_manager, 'openai_api_key', None)),
-            anthropic_api_key=mask_key(getattr(config_manager, 'anthropic_api_key', None)),
-            google_api_key=mask_key(getattr(config_manager, 'google_api_key', None)),
+            openai_api_key=mask_key(getattr(config_manager, "openai_api_key", None)),
+            anthropic_api_key=mask_key(getattr(config_manager, "anthropic_api_key", None)),
+            google_api_key=mask_key(getattr(config_manager, "google_api_key", None)),
         )
     except Exception:
         # Demo mode fallback
@@ -160,62 +160,65 @@ async def get_configuration():
 async def update_configuration(request: ConfigurationUpdateRequest):
     """Update DevDocAI configuration"""
     try:
-        config_manager = ConfigurationManager()
-        
+        # config_manager = ConfigurationManager()
+
         # Update configuration with provided values
         if request.privacy_mode is not None:
             # Update privacy mode if needed
             pass
-        
+
         if request.telemetry_enabled is not None:
             # Update telemetry setting if needed
             pass
-            
+
         # Handle API key updates
         config_updates = {}
         if request.openai_api_key is not None and request.openai_api_key.strip():
-            config_updates['openai_api_key'] = request.openai_api_key.strip()
-        
+            config_updates["openai_api_key"] = request.openai_api_key.strip()
+
         if request.anthropic_api_key is not None and request.anthropic_api_key.strip():
-            config_updates['anthropic_api_key'] = request.anthropic_api_key.strip()
-            
+            config_updates["anthropic_api_key"] = request.anthropic_api_key.strip()
+
         if request.google_api_key is not None and request.google_api_key.strip():
-            config_updates['google_api_key'] = request.google_api_key.strip()
-        
+            config_updates["google_api_key"] = request.google_api_key.strip()
+
         # Save configuration updates to .devdocai.yml
         if config_updates:
-            import yaml
             import os
-            
-            config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.devdocai.yml')
-            
+
+            import yaml
+
+            config_path = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".devdocai.yml"
+            )
+
             # Load existing config or create new one
             config_data = {}
             if os.path.exists(config_path):
                 try:
-                    with open(config_path, 'r') as f:
+                    with open(config_path) as f:
                         config_data = yaml.safe_load(f) or {}
                 except Exception:
                     config_data = {}
-            
+
             # Update providers section
-            if 'providers' not in config_data:
-                config_data['providers'] = {}
-                
-            config_data['providers'].update(config_updates)
-            
+            if "providers" not in config_data:
+                config_data["providers"] = {}
+
+            config_data["providers"].update(config_updates)
+
             # Also update privacy settings if provided
             if request.privacy_mode is not None:
-                config_data['privacy_mode'] = request.privacy_mode
+                config_data["privacy_mode"] = request.privacy_mode
             if request.telemetry_enabled is not None:
-                config_data['telemetry_enabled'] = request.telemetry_enabled
-            
+                config_data["telemetry_enabled"] = request.telemetry_enabled
+
             # Write updated config
-            with open(config_path, 'w') as f:
+            with open(config_path, "w") as f:
                 yaml.dump(config_data, f, default_flow_style=False)
-        
+
         return {"status": "success", "message": "Configuration updated successfully"}
-        
+
     except Exception as e:
         return {"status": "error", "message": f"Failed to update configuration: {str(e)}"}
 

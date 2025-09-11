@@ -39,7 +39,7 @@ DevDocAI works out of the box in demo mode, but to unlock real AI-powered docume
    # Clone and setup
    git clone https://github.com/Org-EthereaLogic/DocDevAI-v3.0.0.git
    cd DocDevAI-v3.0.0
-   
+
    # Start both frontend and backend
    cd devdocai-frontend
    npm install && npm run dev
@@ -68,9 +68,9 @@ Create a `.devdocai.yml` file in the project root:
 ```yaml
 # DevDocAI Configuration
 providers:
-  openai_api_key: "sk-..."      # Primary provider (40%)
-  anthropic_api_key: "sk-ant-..." # Secondary provider (35%)
-  google_api_key: "AIza..."     # Fallback provider (25%)
+  openai_api_key: "your_openai_key_here"      # Primary provider (40%) # pragma: allowlist secret
+  anthropic_api_key: "your_anthropic_key_here" # Secondary provider (35%) # pragma: allowlist secret
+  google_api_key: "your_google_key_here"     # Fallback provider (25%) # pragma: allowlist secret
 
 # Privacy & Security (Optional)
 privacy_mode: "LOCAL_ONLY"      # LOCAL_ONLY, HYBRID, or CLOUD_OPTIMIZED

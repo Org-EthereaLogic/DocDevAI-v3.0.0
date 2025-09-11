@@ -125,7 +125,7 @@ export default function Home() {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 stagger-animation">
-          <div 
+          <div
             className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 card-hover group"
             onMouseEnter={() => setHoveredFeature(0)}
             onMouseLeave={() => setHoveredFeature(null)}
@@ -139,7 +139,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div 
+          <div
             className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 card-hover group"
             onMouseEnter={() => setHoveredFeature(1)}
             onMouseLeave={() => setHoveredFeature(null)}
@@ -153,7 +153,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div 
+          <div
             className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 card-hover group"
             onMouseEnter={() => setHoveredFeature(2)}
             onMouseLeave={() => setHoveredFeature(null)}
@@ -167,7 +167,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div 
+          <div
             className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 card-hover group"
             onMouseEnter={() => setHoveredFeature(3)}
             onMouseLeave={() => setHoveredFeature(null)}
@@ -181,7 +181,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div 
+          <div
             className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 card-hover group"
             onMouseEnter={() => setHoveredFeature(4)}
             onMouseLeave={() => setHoveredFeature(null)}
@@ -195,7 +195,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div 
+          <div
             className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 card-hover group"
             onMouseEnter={() => setHoveredFeature(5)}
             onMouseLeave={() => setHoveredFeature(null)}
