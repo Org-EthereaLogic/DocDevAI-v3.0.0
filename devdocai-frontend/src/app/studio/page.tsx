@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { generateDocument, enhanceDocument, analyzeDocument, listTemplates } from '@/lib/api'
+import { generateDocument, enhanceDocument, analyzeDocument, listTemplates, getMarketplaceTemplates } from '@/lib/api'
 import { LoadingSpinner } from '@/components/ui/loading'
 
 interface Template {
@@ -20,27 +20,43 @@ interface AnalysisResult {
 
 export default function DocumentStudio() {
   const [templates, setTemplates] = useState<Template[]>([])
+  const [marketplaceTemplates, setMarketplaceTemplates] = useState<Template[]>([])
   const [selectedTemplate, setSelectedTemplate] = useState('')
+  const [templateSource, setTemplateSource] = useState<'local' | 'marketplace'>('local')
   const [context, setContext] = useState('')
   const [generatedContent, setGeneratedContent] = useState('')
   const [enhancedContent, setEnhancedContent] = useState('')
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null)
-  
+
   const [isGenerating, setIsGenerating] = useState(false)
   const [isEnhancing, setIsEnhancing] = useState(false)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
-  
+  const [isLoadingMarketplace, setIsLoadingMarketplace] = useState(false)
+
   const [activeTab, setActiveTab] = useState<'generate' | 'enhance' | 'analyze'>('generate')
 
   // Load templates on component mount
   useEffect(() => {
     const loadTemplates = async () => {
       try {
+        // Load local templates
         const response = await listTemplates()
         setTemplates(response.templates as Template[])
         if (response.templates.length > 0) {
           const firstTemplate = response.templates[0] as Template
           setSelectedTemplate(firstTemplate.id)
+        }
+
+        // Load marketplace templates
+        setIsLoadingMarketplace(true)
+        try {
+          const marketplaceResponse = await getMarketplaceTemplates()
+          setMarketplaceTemplates(marketplaceResponse.templates as Template[])
+        } catch (marketplaceError) {
+          console.error('Failed to load marketplace templates:', marketplaceError)
+          // Gracefully fail - marketplace templates are optional
+        } finally {
+          setIsLoadingMarketplace(false)
         }
       } catch (error) {
         console.error('Failed to load templates:', error)
@@ -51,13 +67,14 @@ export default function DocumentStudio() {
 
   const handleGenerate = async () => {
     if (!selectedTemplate || !context.trim()) return
-    
+
     setIsGenerating(true)
     try {
       const contextObj = JSON.parse(context)
       const result = await generateDocument({
         template: selectedTemplate,
-        context: contextObj
+        context: contextObj,
+        source: templateSource // Pass template source to backend
       })
       setGeneratedContent(result.content)
       setActiveTab('enhance')
@@ -71,7 +88,7 @@ export default function DocumentStudio() {
 
   const handleEnhance = async () => {
     if (!generatedContent.trim()) return
-    
+
     setIsEnhancing(true)
     try {
       const result = await enhanceDocument({
@@ -91,7 +108,7 @@ export default function DocumentStudio() {
   const handleAnalyze = async () => {
     const contentToAnalyze = enhancedContent || generatedContent
     if (!contentToAnalyze.trim()) return
-    
+
     setIsAnalyzing(true)
     try {
       const result = await analyzeDocument({
@@ -119,8 +136,8 @@ export default function DocumentStudio() {
               </div>
               <h1 className="text-xl font-bold text-gray-900">Document Studio</h1>
             </div>
-            <Link 
-              href="/" 
+            <Link
+              href="/"
               className="text-gray-600 hover:text-gray-900 font-medium"
             >
               ← Back to Home
@@ -156,19 +173,84 @@ export default function DocumentStudio() {
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Template Source
+                  </label>
+                  <div className="flex space-x-4 mb-4">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="templateSource"
+                        value="local"
+                        checked={templateSource === 'local'}
+                        onChange={(e) => {
+                          setTemplateSource(e.target.value as 'local' | 'marketplace')
+                          if (templates.length > 0) {
+                            setSelectedTemplate(templates[0].id)
+                          }
+                        }}
+                        className="mr-2"
+                      />
+                      Local Templates
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="templateSource"
+                        value="marketplace"
+                        checked={templateSource === 'marketplace'}
+                        onChange={(e) => {
+                          setTemplateSource(e.target.value as 'local' | 'marketplace')
+                          if (marketplaceTemplates.length > 0) {
+                            setSelectedTemplate(marketplaceTemplates[0].id)
+                          }
+                        }}
+                        className="mr-2"
+                      />
+                      Marketplace Templates
+                      {isLoadingMarketplace && (
+                        <span className="ml-2">
+                          <LoadingSpinner size="sm" />
+                        </span>
+                      )}
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Template
                   </label>
                   <select
                     value={selectedTemplate}
                     onChange={(e) => setSelectedTemplate(e.target.value)}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    disabled={templateSource === 'marketplace' && marketplaceTemplates.length === 0}
                   >
-                    {templates.map((template) => (
-                      <option key={template.id} value={template.id}>
-                        {template.name} - {template.description}
-                      </option>
-                    ))}
+                    {templateSource === 'local' ? (
+                      templates.map((template) => (
+                        <option key={template.id} value={template.id}>
+                          {template.name} - {template.description}
+                        </option>
+                      ))
+                    ) : (
+                      marketplaceTemplates.length > 0 ? (
+                        marketplaceTemplates.map((template) => (
+                          <option key={template.id} value={template.id}>
+                            🌐 {template.name} - {template.description}
+                          </option>
+                        ))
+                      ) : (
+                        <option value="" disabled>
+                          {isLoadingMarketplace ? 'Loading marketplace templates...' : 'No marketplace templates available'}
+                        </option>
+                      )
+                    )}
                   </select>
+                  {templateSource === 'marketplace' && marketplaceTemplates.length > 0 && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      🌐 Community template from DevDocAI Marketplace
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -286,7 +368,7 @@ export default function DocumentStudio() {
             {activeTab === 'analyze' && analysis && (
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Quality Analysis</h3>
-                
+
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="bg-blue-50 p-4 rounded-lg">
                     <div className="text-2xl font-bold text-blue-600">
@@ -294,7 +376,7 @@ export default function DocumentStudio() {
                     </div>
                     <div className="text-sm text-gray-600">Quality Score</div>
                   </div>
-                  
+
                   <div className="bg-purple-50 p-4 rounded-lg">
                     <div className="text-2xl font-bold text-purple-600">
                       {(analysis.entropy_score * 100).toFixed(1)}%

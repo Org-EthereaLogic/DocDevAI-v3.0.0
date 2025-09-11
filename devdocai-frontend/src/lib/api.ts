@@ -1,6 +1,6 @@
 /**
  * DevDocAI API Client
- * 
+ *
  * TypeScript client for the FastAPI backend bridge
  */
 
@@ -11,6 +11,7 @@ export interface GenerateDocumentRequest {
   template: string
   context: Record<string, unknown>
   output_format?: string
+  source?: 'local' | 'marketplace'
 }
 
 export interface EnhanceDocumentRequest {
@@ -59,11 +60,11 @@ export async function generateDocument(request: GenerateDocumentRequest): Promis
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(request)
   })
-  
+
   if (!response.ok) {
     throw new Error(`Generation failed: ${response.statusText}`)
   }
-  
+
   return response.json()
 }
 
@@ -73,11 +74,11 @@ export async function enhanceDocument(request: EnhanceDocumentRequest): Promise<
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(request)
   })
-  
+
   if (!response.ok) {
     throw new Error(`Enhancement failed: ${response.statusText}`)
   }
-  
+
   return response.json()
 }
 
@@ -87,41 +88,41 @@ export async function analyzeDocument(request: AnalyzeDocumentRequest): Promise<
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(request)
   })
-  
+
   if (!response.ok) {
     throw new Error(`Analysis failed: ${response.statusText}`)
   }
-  
+
   return response.json()
 }
 
 export async function getConfiguration(): Promise<ConfigurationResponse> {
   const response = await fetch(`${API_BASE}/api/config`)
-  
+
   if (!response.ok) {
     throw new Error(`Config fetch failed: ${response.statusText}`)
   }
-  
+
   return response.json()
 }
 
 export async function listTemplates(): Promise<{ templates: unknown[] }> {
   const response = await fetch(`${API_BASE}/api/templates/list`)
-  
+
   if (!response.ok) {
     throw new Error(`Template list failed: ${response.statusText}`)
   }
-  
+
   return response.json()
 }
 
 export async function getMarketplaceTemplates(): Promise<{ templates: unknown[] }> {
   const response = await fetch(`${API_BASE}/api/marketplace/templates`)
-  
+
   if (!response.ok) {
     throw new Error(`Marketplace fetch failed: ${response.statusText}`)
   }
-  
+
   return response.json()
 }
 

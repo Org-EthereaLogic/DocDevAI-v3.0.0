@@ -10,10 +10,10 @@ interface LoadingSpinnerProps {
 export function LoadingSpinner({ size = 'md', color = 'blue-500' }: LoadingSpinnerProps) {
   const sizeClasses = {
     sm: 'w-4 h-4',
-    md: 'w-8 h-8', 
+    md: 'w-8 h-8',
     lg: 'w-12 h-12'
   }
-  
+
   return (
     <div className={`animate-spin rounded-full border-2 border-gray-200 border-t-${color} ${sizeClasses[size]}`} />
   )
@@ -45,7 +45,7 @@ export function LoadingSkeleton({ lines = 3, className = '' }: LoadingSkeletonPr
   return (
     <div className={`animate-pulse ${className}`}>
       {Array.from({ length: lines }, (_, i) => (
-        <div key={i} className="h-4 bg-gray-200 rounded mb-2 last:mb-0" 
+        <div key={i} className="h-4 bg-gray-200 rounded mb-2 last:mb-0"
              style={{ width: `${Math.random() * 40 + 60}%` }} />
       ))}
     </div>

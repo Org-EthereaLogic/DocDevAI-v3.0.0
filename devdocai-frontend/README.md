@@ -4,7 +4,7 @@ Modern web interface for DevDocAI v3.0.0 - AI-powered documentation generation s
 
 ## Architecture
 
-- **Frontend**: Next.js 14 with TypeScript and Tailwind CSS
+- **Frontend**: Next.js 15 with TypeScript and Tailwind CSS
 - **Backend Bridge**: FastAPI server that connects to DevDocAI Python core
 - **API Integration**: RESTful communication between frontend and AI modules
 
@@ -41,7 +41,7 @@ npm run dev
 ## Access Points
 
 - **Frontend**: http://localhost:3000
-- **Document Studio**: http://localhost:3000/studio  
+- **Document Studio**: http://localhost:3000/studio
 - **API Documentation**: http://localhost:8000/api/docs
 - **API Health**: http://localhost:8000
 
@@ -65,7 +65,7 @@ npm run dev
 The frontend communicates with the FastAPI backend bridge, which connects to:
 
 - **M004 Document Generator**: AI-powered content generation
-- **M009 Enhancement Pipeline**: MIAIR quality improvement  
+- **M009 Enhancement Pipeline**: MIAIR quality improvement
 - **M007 Review Engine**: Multi-dimensional analysis
 - **M013 Template Marketplace**: Community templates
 
@@ -100,7 +100,7 @@ The system includes demo mode fallbacks when the Python DevDocAI core is not ava
 
 ## Technology Stack
 
-- **Next.js 14**: React framework with App Router
+- **Next.js 15**: React framework with App Router
 - **TypeScript**: Type-safe development
 - **Tailwind CSS**: Utility-first styling
 - **FastAPI**: Python backend bridge
@@ -111,7 +111,7 @@ The system includes demo mode fallbacks when the Python DevDocAI core is not ava
 For production deployment, the FastAPI backend should connect to a properly configured DevDocAI Python environment with:
 
 - API keys for LLM providers (OpenAI, Anthropic, Google)
-- Encrypted local storage configuration  
+- Encrypted local storage configuration
 - Template marketplace access
 - Performance optimization settings
 

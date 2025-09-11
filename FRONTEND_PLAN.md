@@ -10,7 +10,7 @@ Create a modern, intuitive web interface that showcases DevDocAI's powerful AI c
 
 ### **Why This Stack?**
 
-- **Next.js 14+ (Frontend)**
+- **Next.js 15+ (Frontend)**
   - App Router for modern React patterns
   - Server-side rendering for SEO
   - Built-in TypeScript support
@@ -90,7 +90,7 @@ Create a modern, intuitive web interface that showcases DevDocAI's powerful AI c
 ### **Phase 1: Foundation (Week 1-2)**
 
 **Deliverables:**
-- Next.js 14 app with App Router
+- Next.js 15 app with App Router
 - Basic FastAPI backend integration
 - Authentication system (optional for MVP)
 - Design system components
@@ -237,18 +237,18 @@ export function DocumentStudio() {
 
   return (
     <div className="grid grid-cols-2 gap-6 h-full">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         className="space-y-4"
       >
-        <textarea 
+        <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
           className="w-full h-96 p-4 border rounded-lg"
           placeholder="Start writing your documentation..."
         />
-        <button 
+        <button
           onClick={handleEnhance}
           disabled={isEnhancing}
           className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-2 rounded-lg"
@@ -256,7 +256,7 @@ export function DocumentStudio() {
           {isEnhancing ? 'Enhancing...' : '✨ AI Enhance'}
         </button>
       </motion.div>
-      
+
       <div className="bg-gray-50 p-4 rounded-lg">
         <h3 className="font-semibold mb-2">Live Preview</h3>
         <div dangerouslySetInnerHTML={{ __html: markdownToHtml(content) }} />

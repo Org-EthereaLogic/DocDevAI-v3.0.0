@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { generateDocument } from '@/lib/api'
 
 export default function Home() {
   const [generatedDoc, setGeneratedDoc] = useState('')
@@ -9,18 +10,13 @@ export default function Home() {
   const handleGenerate = async () => {
     setIsGenerating(true)
     try {
-      const response = await fetch('/api/documents/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          template: 'readme',
-          context: {
-            title: 'Sample Project',
-            description: 'A demonstration of DevDocAI capabilities'
-          }
-        })
+      const result = await generateDocument({
+        template: 'readme',
+        context: {
+          title: 'Sample Project',
+          description: 'A demonstration of DevDocAI capabilities'
+        }
       })
-      const result = await response.json()
       setGeneratedDoc(result.content)
     } catch (error) {
       console.error('Generation failed:', error)
@@ -61,20 +57,20 @@ export default function Home() {
             <span className="bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent"> Documentation</span>
           </h2>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Generate professional documentation in seconds with our advanced AI engine. 
+            Generate professional documentation in seconds with our advanced AI engine.
             Perfect for solo developers who want enterprise-quality docs without the complexity.
           </p>
-          
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <button 
+            <button
               onClick={handleGenerate}
               disabled={isGenerating}
               className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-8 py-3 rounded-lg font-medium text-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50"
             >
               {isGenerating ? '✨ Generating...' : '🚀 Try Demo'}
             </button>
-            <a 
-              href="/studio" 
+            <a
+              href="/studio"
               className="border border-blue-500 text-blue-600 px-8 py-3 rounded-lg font-medium text-lg hover:bg-blue-50 transition-colors"
             >
               Document Studio →
@@ -174,7 +170,7 @@ export default function Home() {
           <div className="text-center mb-12">
             <h3 className="text-3xl font-bold text-gray-900 mb-4">Performance That Scales</h3>
           </div>
-          
+
           <div className="grid md:grid-cols-4 gap-8 text-center">
             <div>
               <div className="text-4xl font-bold text-blue-600 mb-2">412K</div>
@@ -203,21 +199,21 @@ export default function Home() {
           <p className="text-blue-100 text-xl mb-8 max-w-2xl mx-auto">
             Install DevDocAI in seconds and start generating professional documentation powered by AI.
           </p>
-          
+
           <div className="bg-gray-900 text-green-400 p-4 rounded-lg inline-block font-mono text-left mb-8">
             <div>$ pip install devdocai</div>
             <div>$ devdocai --help</div>
           </div>
-          
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a 
-              href="https://github.com/Org-EthereaLogic/DocDevAI-v3.0.0" 
+            <a
+              href="https://github.com/Org-EthereaLogic/DocDevAI-v3.0.0"
               className="bg-white text-blue-600 px-8 py-3 rounded-lg font-medium text-lg hover:bg-gray-50 transition-colors"
             >
               View on GitHub
             </a>
-            <a 
-              href="/docs" 
+            <a
+              href="/docs"
               className="border border-white text-white px-8 py-3 rounded-lg font-medium text-lg hover:bg-white hover:text-blue-600 transition-colors"
             >
               Documentation
@@ -239,7 +235,7 @@ export default function Home() {
                 AI-powered documentation generation for modern developers.
               </p>
             </div>
-            
+
             <div>
               <h4 className="font-semibold text-white mb-3">Product</h4>
               <ul className="space-y-2 text-sm">
@@ -248,7 +244,7 @@ export default function Home() {
                 <li><a href="#pricing" className="hover:text-white">Pricing</a></li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-semibold text-white mb-3">Developers</h4>
               <ul className="space-y-2 text-sm">
@@ -257,7 +253,7 @@ export default function Home() {
                 <li><a href="https://github.com/Org-EthereaLogic/DocDevAI-v3.0.0" className="hover:text-white">GitHub</a></li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-semibold text-white mb-3">Company</h4>
               <ul className="space-y-2 text-sm">
@@ -267,7 +263,7 @@ export default function Home() {
               </ul>
             </div>
           </div>
-          
+
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm">
             <p>&copy; 2025 DevDocAI. All rights reserved. Built with ❤️ for developers.</p>
           </div>
