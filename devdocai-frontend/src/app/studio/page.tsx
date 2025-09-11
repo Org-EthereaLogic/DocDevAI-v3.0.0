@@ -24,6 +24,10 @@ export default function DocumentStudio() {
   const [selectedTemplate, setSelectedTemplate] = useState('')
   const [templateSource, setTemplateSource] = useState<'local' | 'marketplace'>('local')
   const [context, setContext] = useState('')
+  const [projectTitle, setProjectTitle] = useState('')
+  const [projectDescription, setProjectDescription] = useState('')
+  const [projectType, setProjectType] = useState('')
+  const [mainFeatures, setMainFeatures] = useState('')
   const [generatedContent, setGeneratedContent] = useState('')
   const [enhancedContent, setEnhancedContent] = useState('')
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null)
@@ -66,11 +70,18 @@ export default function DocumentStudio() {
   }, [])
 
   const handleGenerate = async () => {
-    if (!selectedTemplate || !context.trim()) return
+    if (!selectedTemplate || !projectTitle.trim()) return
 
     setIsGenerating(true)
     try {
-      const contextObj = JSON.parse(context)
+      // Build context object from form fields
+      const contextObj = {
+        title: projectTitle,
+        description: projectDescription,
+        type: projectType,
+        features: mainFeatures
+      }
+
       const result = await generateDocument({
         template: selectedTemplate,
         context: contextObj,
@@ -80,7 +91,7 @@ export default function DocumentStudio() {
       setActiveTab('enhance')
     } catch (error) {
       console.error('Generation failed:', error)
-      alert('Generation failed. Please check your context JSON format.')
+      alert('Generation failed. Please check your project details and try again.')
     } finally {
       setIsGenerating(false)
     }
@@ -125,20 +136,22 @@ export default function DocumentStudio() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="w-full min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white shadow-sm border-b flex-shrink-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">AI</span>
-              </div>
-              <h1 className="text-xl font-bold text-gray-900">Document Studio</h1>
+          <div className="flex items-center justify-between min-w-0">
+            <div className="flex items-center space-x-3 min-w-0 flex-1">
+              <img
+                src="/devdocai-logo.png"
+                alt="DevDocAI"
+                className="h-16 w-auto flex-shrink-0"
+              />
+              <h1 className="text-xl font-bold text-gray-900 truncate">Document Studio</h1>
             </div>
             <Link
               href="/"
-              className="text-gray-600 hover:text-gray-900 font-medium"
+              className="text-gray-600 hover:text-gray-900 font-medium whitespace-nowrap flex-shrink-0 ml-4"
             >
               ← Back to Home
             </Link>
@@ -146,27 +159,30 @@ export default function DocumentStudio() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-none lg:max-w-7xl">
         {/* Tab Navigation */}
         <div className="flex space-x-1 bg-gray-100 rounded-lg p-1 mb-8">
           {(['generate', 'enhance', 'analyze'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-2 px-4 rounded-md font-medium text-sm transition-colors ${
+              className={`flex-1 py-2 px-2 sm:px-4 rounded-md font-medium text-xs sm:text-sm transition-colors ${
                 activeTab === tab
                   ? 'bg-white text-blue-600 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              {tab === 'generate' && '1. Generate'}
-              {tab === 'enhance' && '2. Enhance'}
-              {tab === 'analyze' && '3. Analyze'}
+              <span className="hidden sm:inline">{tab === 'generate' && '1. Generate'}</span>
+              <span className="hidden sm:inline">{tab === 'enhance' && '2. Enhance'}</span>
+              <span className="hidden sm:inline">{tab === 'analyze' && '3. Analyze'}</span>
+              <span className="sm:hidden">{tab === 'generate' && '1'}</span>
+              <span className="sm:hidden">{tab === 'enhance' && '2'}</span>
+              <span className="sm:hidden">{tab === 'analyze' && '3'}</span>
             </button>
           ))}
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-8">
           {/* Left Column - Input */}
           <div className="space-y-6">
             {activeTab === 'generate' && (
@@ -253,21 +269,72 @@ export default function DocumentStudio() {
                   )}
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Context (JSON)
-                  </label>
-                  <textarea
-                    value={context}
-                    onChange={(e) => setContext(e.target.value)}
-                    placeholder='{\n  "title": "My Project",\n  "description": "A great project"\n}'
-                    className="w-full h-64 border border-gray-300 rounded-lg px-3 py-2 font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-gray-700 mb-3">Project Information</h3>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Project Title <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={projectTitle}
+                      onChange={(e) => setProjectTitle(e.target.value)}
+                      placeholder="My Awesome Project"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Project Description
+                    </label>
+                    <textarea
+                      value={projectDescription}
+                      onChange={(e) => setProjectDescription(e.target.value)}
+                      placeholder="A brief description of what your project does..."
+                      rows={3}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Project Type
+                    </label>
+                    <select
+                      value={projectType}
+                      onChange={(e) => setProjectType(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="">Select project type...</option>
+                      <option value="web-application">Web Application</option>
+                      <option value="mobile-app">Mobile App</option>
+                      <option value="api">API/Backend Service</option>
+                      <option value="library">Library/Package</option>
+                      <option value="cli-tool">CLI Tool</option>
+                      <option value="desktop-app">Desktop Application</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Main Features
+                    </label>
+                    <textarea
+                      value={mainFeatures}
+                      onChange={(e) => setMainFeatures(e.target.value)}
+                      placeholder="List the key features or capabilities (one per line or comma-separated)"
+                      rows={3}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                    />
+                  </div>
                 </div>
 
                 <button
                   onClick={handleGenerate}
-                  disabled={isGenerating || !selectedTemplate || !context.trim()}
+                  disabled={isGenerating || !selectedTemplate || !projectTitle.trim()}
                   className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 rounded-lg font-medium hover:from-blue-600 hover:to-purple-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 >
                   {isGenerating ? (

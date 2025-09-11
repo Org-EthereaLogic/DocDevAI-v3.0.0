@@ -26,16 +26,17 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+    <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex flex-col">
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">AI</span>
-              </div>
-              <h1 className="text-xl font-bold text-gray-900">DevDocAI</h1>
+              <img
+                src="/devdocai-logo.png"
+                alt="DevDocAI"
+                className="h-16 w-auto"
+              />
               <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
                 v3.0.0
               </span>
@@ -228,8 +229,11 @@ export default function Home() {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">
-                <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded"></div>
-                <span className="font-bold text-white">DevDocAI</span>
+                <img
+                  src="/devdocai-logo.png"
+                  alt="DevDocAI"
+                  className="h-12 w-auto"
+                />
               </div>
               <p className="text-sm">
                 AI-powered documentation generation for modern developers.
