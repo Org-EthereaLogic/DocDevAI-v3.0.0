@@ -19,14 +19,14 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
+# Foundation modules
+from ..core.config import ConfigurationManager
+
 # Local imports - extracted modules
 from .batch_monitoring import BatchMonitor
 from .batch_processors import DocumentProcessorFactory
+from .batch_security import BatchSecurityManager, SecurityConfig
 from .batch_strategies import BatchStrategyFactory
-from .batch_security import SecurityConfig, BatchSecurityManager
-
-# Foundation modules
-from ..core.config import ConfigurationManager
 
 logger = logging.getLogger(__name__)
 

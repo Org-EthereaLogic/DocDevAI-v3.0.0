@@ -5,7 +5,6 @@ This script creates corrected versions of the API endpoints
 """
 
 
-
 def create_fixed_main_py():
     """Create a fixed version of the FastAPI main.py with all corrections"""
 

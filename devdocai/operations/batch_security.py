@@ -169,7 +169,7 @@ class InputValidator:
         # Check content length
         content = document.get("content", "")
         if len(content) > self.config.max_content_length:
-            return False, f"Content exceeds maximum length", ["content_too_large"]
+            return False, "Content exceeds maximum length", ["content_too_large"]
 
         # Check for dangerous patterns
         for pattern in self._compiled_dangerous:
@@ -572,7 +572,7 @@ class ResourceMonitor:
         # Check concurrent operations
         self._operation_count += 1
         if self._operation_count > self.config.max_concurrent_operations:
-            return False, f"Concurrent operation limit exceeded"
+            return False, "Concurrent operation limit exceeded"
 
         return True, None
 

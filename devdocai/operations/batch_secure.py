@@ -16,13 +16,9 @@ import time
 from pathlib import Path
 from typing import Any, AsyncIterator, Callable, Dict, List, Optional, Union
 
-
 # Local imports
 from .batch import BatchConfig, BatchResult
-from .batch_optimized import (
-    OptimizedBatchOperationsManager,
-    PerformanceConfig,
-)
+from .batch_optimized import OptimizedBatchOperationsManager, PerformanceConfig
 from .batch_security import (
     BatchSecurityError,
     BatchSecurityManager,
@@ -480,9 +476,7 @@ class SecureOptimizedBatchManager(OptimizedBatchOperationsManager):
         """
         # Benchmark with security
         start_time = time.time()
-        await self.process_batch_optimized(
-            test_documents, operation, "benchmark_client"
-        )
+        await self.process_batch_optimized(test_documents, operation, "benchmark_client")
         time_with_security = time.time() - start_time
 
         # Temporarily disable security for comparison
