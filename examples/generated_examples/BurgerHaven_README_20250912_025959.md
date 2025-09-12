@@ -95,13 +95,13 @@ Note: These instructions assume that you're using a Linux-based system. The comm
 
 Here's how to use the Burger Haven Website project:
 
-1. **Homepage Navigation**: Navigate to the Burger Haven Website homepage. Here you will see an overview of the restaurant, its mission, and featured items. 
+1. **Homepage Navigation**: Navigate to the Burger Haven Website homepage. Here you will see an overview of the restaurant, its mission, and featured items.
 
 2. **Menu**: Click on the "Menu" tab from the navigation bar. This page lists all the food items available at Burger Haven. You can filter these items by categories like burgers, sides, drinks, etc. Each item comes with a description, price, and an image.
 
-3. **Order Online**: If you wish to place an order, select the "Order Online" option from the navigation bar. You will be directed to a page where you can choose your desired items. Click on the items you wish to order, specify the quantity and any customizations (if available), then click on the "Add to Cart" button. 
+3. **Order Online**: If you wish to place an order, select the "Order Online" option from the navigation bar. You will be directed to a page where you can choose your desired items. Click on the items you wish to order, specify the quantity and any customizations (if available), then click on the "Add to Cart" button.
 
-4. **Shopping Cart**: You can view your order summary by clicking on the "Cart" icon. Here, you can review your order, adjust quantities, or remove items. 
+4. **Shopping Cart**: You can view your order summary by clicking on the "Cart" icon. Here, you can review your order, adjust quantities, or remove items.
 
 5. **Checkout**: When you're ready to finalize your order, click on the "Checkout" button. You will be prompted to enter your delivery address and payment details. Once you confirm these details, click on "Place Order" to complete the transaction. You will receive an email confirmation with your order details.
 
@@ -161,4 +161,3 @@ By following these contribution guidelines, contributors can ensure that their w
 ## License
 
 License: MIT License
-

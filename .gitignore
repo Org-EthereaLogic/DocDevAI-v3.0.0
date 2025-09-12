@@ -14,6 +14,8 @@ __pycache__/
 coverage.xml
 htmlcov/
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
 # Development files
 .DS_Store
