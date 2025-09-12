@@ -5,6 +5,28 @@ All notable changes to DevDocAI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.1] - 2025-09-12
+
+### 🌐 Web Interface Integration Complete
+
+#### Added
+- **Modern Web UI**: Next.js 15.5.3 frontend with real AI integration
+- **FastAPI Bridge**: Seamless backend-frontend communication via HTTP proxy
+- **Extended Timeout Configuration**: 120-second timeouts to accommodate AI processing times
+- **Real-time Document Generation**: Full Claude API integration with ~90 second generation times
+- **Production-Ready UI**: Comprehensive web interface for document generation and management
+
+#### Fixed
+- **Timeout Issues**: Resolved frontend-backend timeout mismatches causing "socket hang up" errors
+- **Proxy Configuration**: Extended Next.js proxy timeout from 30s to 120s in next.config.ts
+- **API Client Timeouts**: Updated frontend timeouts (generateDocument: 120s, enhanceDocument: 90s, analyzeDocument: 60s)
+- **UX Feedback**: Improved timeout warnings and user experience during AI generation
+
+#### Validated
+- **Playwright Testing**: Frontend-UX-specialist confirmed system working with real AI generation
+- **End-to-End Workflow**: Complete document generation pipeline validated via web interface
+- **Performance**: Real Claude API integration confirmed with comprehensive documentation output
+
 ## [3.0.0] - 2025-09-10
 
 ### 🎉 Major Release - Complete System Rewrite

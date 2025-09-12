@@ -22,8 +22,9 @@
 
 ## 🎉 **Project Status: 100% COMPLETE & PRODUCTION-READY**
 
-**Current Branch**: `development/v3.1.0-clean` | **Files**: 64 Python files, 43 test files, 167+ documentation files
+**Current Branch**: `development/v3.1.0-clean` | **Files**: 64 Python files, 43 test files, 167+ documentation files | **Web UI**: Next.js frontend operational with real AI integration
 **Implementation Status**: **100% COMPLETE** ✅ - ALL 13 MODULES (M001→M002→M003→M004→M005→M006→M007→M008→M009→M010→M011→M012→M013) with complete Enhanced 4-Pass TDD methodology
+**Web Interface Status**: **FULLY OPERATIONAL** ✅ - Next.js 15.5.3 frontend + FastAPI bridge + Extended timeouts (120s) for AI processing + Real Claude API integration (~90 seconds generation)
 **Validation Status**: **PRODUCTION-READY VERIFIED** ✅ - Comprehensive real-world testing + Template Marketplace operational + Enterprise performance (412K docs/min MIAIR, 9.75x batch improvement, 15-20x marketplace performance)
 **Repository Status**: **READY FOR PRODUCTION DEPLOYMENT** - Complete AI-powered documentation system with Template Marketplace, Version Control, SBOM compliance, and enterprise security
 **Status**: **🚀 READY FOR COMMUNITY RELEASE & PRODUCTION DEPLOYMENT 🚀**
@@ -44,8 +45,10 @@ DevDocAI works out of the box in demo mode, but to unlock real AI-powered docume
    cd devdocai-frontend
    npm install && npm run dev
    # In another terminal:
-   cd .. && python -m uvicorn devdocai-frontend.api.main:app --reload
+   cd .. && source .venv/bin/activate && PYTHONPATH=/Users/etherealogic/Dev/DocDevAI-v3.0.0 uvicorn devdocai-frontend.api.main:app --host 0.0.0.0 --port 8002 --reload
    ```
+   
+   **Configuration Note**: The system is configured with extended timeouts (120 seconds) to accommodate AI processing times. Document generation typically takes 60-90 seconds with real AI providers.
 
 2. **Configure API Keys via Web Interface**:
    - Open [http://localhost:3000](http://localhost:3000) in your browser
