@@ -17,10 +17,10 @@ Clean Architecture Implementation:
 import asyncio
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 # Local imports - extracted modules
-from .batch_monitoring import BatchMonitor, BatchEvent
+from .batch_monitoring import BatchMonitor
 from .batch_processors import DocumentProcessorFactory
 from .batch_strategies import BatchStrategyFactory
 from .batch_security import SecurityConfig, BatchSecurityManager

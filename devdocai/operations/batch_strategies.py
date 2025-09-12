@@ -16,10 +16,8 @@ Strategy Pattern for different batch processing approaches:
 import asyncio
 import hashlib
 import logging
-import time
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import Any, AsyncIterator, Callable, Dict, List, Optional, Union
+from typing import Any, AsyncIterator, Callable, Dict, List
 
 logger = logging.getLogger(__name__)
 

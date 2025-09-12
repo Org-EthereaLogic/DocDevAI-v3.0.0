@@ -42,11 +42,8 @@ from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 try:
     from cryptography.exceptions import InvalidSignature
     from cryptography.hazmat.backends import default_backend
-    from cryptography.hazmat.primitives import constant_time, hashes, serialization
+    from cryptography.hazmat.primitives import serialization
     from cryptography.hazmat.primitives.asymmetric import ed25519
-    from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-    from cryptography.x509 import load_pem_x509_certificate
-    from cryptography.x509.oid import NameOID
 
     HAS_CRYPTO = True
 except ImportError:

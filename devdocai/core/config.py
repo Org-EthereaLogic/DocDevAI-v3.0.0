@@ -244,6 +244,13 @@ class ConfigurationManager:
         """
         return isinstance(data, dict)
 
+    # ------------------------------------------------------------------
+    # Convenience accessor used by LLMAdapter and tests
+    # ------------------------------------------------------------------
+    def get_llm_config(self) -> LLMConfig:
+        """Return the current LLM configuration object."""
+        return self.llm
+
     def _prepare_llm_for_save(self) -> Dict[str, Any]:
         """Prepare LLM config for saving."""
         data = self.llm.model_dump()

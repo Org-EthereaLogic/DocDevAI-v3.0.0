@@ -475,7 +475,7 @@ class ReviewEngine:
             Provide additional insights not covered by automated analysis.
             """
 
-            response = await self.llm_adapter.generate(prompt=prompt, max_tokens=500)
+            await self.llm_adapter.generate(prompt=prompt, max_tokens=500)
 
             logger.info("LLM enhancement completed")
         except Exception as e:

@@ -473,7 +473,7 @@ class MIAIREngine:
                     metadata={"operation": "miair_refinement"},
                 )
             else:
-                response = self.llm_adapter.query(
+                response = self.llm_adapter.generate(
                     prompt,
                     preferred_providers=["claude", "openai"],
                     max_tokens=2000,

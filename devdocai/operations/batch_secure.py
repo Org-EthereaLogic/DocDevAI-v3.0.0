@@ -11,33 +11,21 @@ Secure batch operations with performance preservation:
 
 import asyncio
 import hashlib
-import json
 import logging
-import os
 import time
-from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
-from typing import Any, AsyncIterator, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, AsyncIterator, Callable, Dict, List, Optional, Union
 
-import psutil
 
 # Local imports
-from ..core.config import ConfigurationManager
-from ..core.storage import StorageManager
 from .batch import BatchConfig, BatchResult
 from .batch_optimized import (
     OptimizedBatchOperationsManager,
     PerformanceConfig,
 )
 from .batch_security import (
-    AuditLogger,
     BatchSecurityError,
     BatchSecurityManager,
-    CircuitBreaker,
-    InputValidator,
-    RateLimiter,
-    ResourceMonitor,
     SecureCache,
     SecurityConfig,
     SecurityEvent,
@@ -236,7 +224,7 @@ class SecureOptimizedBatchManager(OptimizedBatchOperationsManager):
 
             return result
 
-        except Exception as e:
+        except Exception:
             # Release resources on error
             self.security_manager.resource_monitor.release_operation()
             raise
@@ -492,7 +480,7 @@ class SecureOptimizedBatchManager(OptimizedBatchOperationsManager):
         """
         # Benchmark with security
         start_time = time.time()
-        results_with_security = await self.process_batch_optimized(
+        await self.process_batch_optimized(
             test_documents, operation, "benchmark_client"
         )
         time_with_security = time.time() - start_time
@@ -503,7 +491,7 @@ class SecureOptimizedBatchManager(OptimizedBatchOperationsManager):
         self.security_config.enable_rate_limiting = False
 
         start_time = time.time()
-        results_without_security = await super().process_batch_optimized(test_documents, operation)
+        await super().process_batch_optimized(test_documents, operation)
         time_without_security = time.time() - start_time
 
         # Restore security

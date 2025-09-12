@@ -1073,7 +1073,18 @@ class LLMAdapter:
         """Set default configuration."""
         llm_config = getattr(self.config, "get_llm_config", lambda: None)()
         if llm_config:
-            self.default_provider = llm_config.provider
+            # Normalize provider aliases from config to internal keys
+            prov = str(getattr(llm_config, "provider", "") or "").lower().strip()
+            alias_map = {
+                "anthropic": "claude",
+                "claude": "claude",
+                "chatgpt": "openai",
+                "openai": "openai",
+                "gemini": "gemini",
+                "google": "gemini",
+                "local": "local",
+            }
+            self.default_provider = alias_map.get(prov, prov or "openai")
             self.default_max_tokens = llm_config.max_tokens
             self.default_temperature = llm_config.temperature
         else:
@@ -1112,8 +1123,20 @@ class LLMAdapter:
         # Use defaults
         max_tokens = max_tokens or self.default_max_tokens
         temperature = temperature or self.default_temperature
-        # Detect if caller explicitly specified a provider before default selection
+        # Detect if caller explicitly specified a provider
         explicit_provider = (provider_type is not None) or (provider is not None)
+
+        # Prefer configured default provider when not explicitly set and it's healthy/available
+        if not explicit_provider and not provider:
+            preferred = getattr(self, "default_provider", None)
+            if (
+                preferred
+                and preferred in self.providers
+                and self.health_monitor.is_healthy(preferred)
+            ):
+                provider = preferred
+
+        # Fall back to strategy selection if provider still not chosen
         provider = provider or self._select_provider(routing_strategy)
 
         request_id = self.audit_logger.generate_request_id()
