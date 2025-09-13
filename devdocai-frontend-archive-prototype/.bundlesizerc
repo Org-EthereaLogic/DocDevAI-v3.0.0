@@ -1,0 +1,24 @@
+{
+  "files": [
+    {
+      "path": "dist/assets/index-*.js",
+      "maxSize": "100 kB",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/DocumentGeneration-*.js",
+      "maxSize": "50 kB",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/vendor-vue-*.js",
+      "maxSize": "80 kB",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/index-*.css",
+      "maxSize": "10 kB",
+      "compression": "gzip"
+    }
+  ]
+}

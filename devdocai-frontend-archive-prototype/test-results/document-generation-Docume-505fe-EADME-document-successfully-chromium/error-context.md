@@ -1,0 +1,52 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - generic [ref=e7]:
+      - heading "DevDocAI" [level=1] [ref=e9]
+      - generic [ref=e10]:
+        - button [ref=e11]:
+          - img
+        - button [ref=e13]:
+          - img
+  - main [ref=e16]:
+    - generic [ref=e17]:
+      - generic [ref=e18]:
+        - heading "Dashboard" [level=1] [ref=e19]
+        - paragraph [ref=e20]: Welcome back! Here's an overview of your documentation.
+      - generic [ref=e21]:
+        - generic [ref=e24]:
+          - generic:
+            - img
+          - generic [ref=e27]:
+            - term [ref=e28]: Total Documents
+            - definition [ref=e29]: "42"
+        - generic [ref=e32]:
+          - generic:
+            - img
+          - generic [ref=e35]:
+            - term [ref=e36]: Generated Today
+            - definition [ref=e37]: "5"
+        - generic [ref=e40]:
+          - generic:
+            - img
+          - generic [ref=e43]:
+            - term [ref=e44]: Quality Score
+            - definition [ref=e45]: 87%
+        - generic [ref=e48]:
+          - generic:
+            - img
+          - generic [ref=e51]:
+            - term [ref=e52]: Templates Used
+            - definition [ref=e53]: "12"
+      - generic [ref=e55]:
+        - heading "Quick Actions" [level=3] [ref=e56]
+        - generic [ref=e57]:
+          - button "Generate New Document" [ref=e58]
+          - button "Browse Templates" [ref=e59]
+          - button "Review Documents" [ref=e60]
+      - generic [ref=e62]:
+        - heading "Recent Documents" [level=3] [ref=e63]
+        - generic [ref=e64]: Recent documents will appear here...
+```

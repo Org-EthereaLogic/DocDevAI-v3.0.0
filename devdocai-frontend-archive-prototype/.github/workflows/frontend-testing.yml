@@ -1,0 +1,362 @@
+name: Frontend Testing Pipeline
+
+on:
+  push:
+    branches: [ main, development/** ]
+    paths:
+      - 'devdocai-frontend/**'
+      - '.github/workflows/frontend-testing.yml'
+  pull_request:
+    branches: [ main, development/** ]
+    paths:
+      - 'devdocai-frontend/**'
+      - '.github/workflows/frontend-testing.yml'
+
+defaults:
+  run:
+    working-directory: devdocai-frontend
+
+jobs:
+  # Unit and Integration Tests
+  test-unit:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: devdocai-frontend/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run unit tests
+      run: npm run test:run
+
+    - name: Generate coverage report
+      run: npm run test:coverage
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage/lcov.info
+        directory: ./devdocai-frontend
+        flags: frontend
+        name: frontend-coverage
+        fail_ci_if_error: true
+
+    - name: Upload coverage artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report-${{ matrix.node-version }}
+        path: |
+          devdocai-frontend/coverage/
+          !devdocai-frontend/coverage/.nyc_output/
+
+  # E2E Tests with Playwright
+  test-e2e:
+    runs-on: ubuntu-latest
+    needs: test-unit
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+        cache: 'npm'
+        cache-dependency-path: devdocai-frontend/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Install Playwright browsers
+      run: npm run test:install
+
+    - name: Start development server
+      run: |
+        npm run dev &
+        npx wait-on http://localhost:5173
+      env:
+        CI: true
+
+    - name: Run E2E tests
+      run: npm run test:e2e
+      env:
+        CI: true
+
+    - name: Upload Playwright report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: playwright-report
+        path: devdocai-frontend/playwright-report/
+        retention-days: 30
+
+    - name: Upload E2E test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: e2e-results
+        path: |
+          devdocai-frontend/test-results/
+          devdocai-frontend/test-results.json
+        retention-days: 30
+
+  # Accessibility Testing
+  test-accessibility:
+    runs-on: ubuntu-latest
+    needs: test-unit
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+        cache: 'npm'
+        cache-dependency-path: devdocai-frontend/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Install Playwright browsers
+      run: npm run test:install
+
+    - name: Start development server
+      run: |
+        npm run dev &
+        npx wait-on http://localhost:5173
+      env:
+        CI: true
+
+    - name: Run accessibility tests
+      run: npm run test:a11y
+      env:
+        CI: true
+
+    - name: Upload accessibility report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: accessibility-report
+        path: devdocai-frontend/playwright-report/
+        retention-days: 30
+
+  # Performance Testing
+  test-performance:
+    runs-on: ubuntu-latest
+    needs: test-unit
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+        cache: 'npm'
+        cache-dependency-path: devdocai-frontend/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Install Playwright browsers
+      run: npm run test:install
+
+    - name: Start development server
+      run: |
+        npm run dev &
+        npx wait-on http://localhost:5173
+      env:
+        CI: true
+
+    - name: Run performance tests
+      run: npm run test:performance
+      env:
+        CI: true
+
+    - name: Upload performance report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: performance-report
+        path: |
+          devdocai-frontend/playwright-report/
+          devdocai-frontend/lighthouse-report/
+        retention-days: 30
+
+  # Code Quality and Linting
+  code-quality:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+        cache: 'npm'
+        cache-dependency-path: devdocai-frontend/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run ESLint
+      run: npx eslint src/ --ext .js,.vue --format @microsoft/eslint-formatter-sarif --output-file eslint-results.sarif
+      continue-on-error: true
+
+    - name: Upload ESLint results to GitHub
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: devdocai-frontend/eslint-results.sarif
+        wait-for-processing: true
+
+    - name: Run TypeScript compiler (if applicable)
+      run: npx vue-tsc --noEmit
+      continue-on-error: true
+
+    - name: Check code formatting with Prettier
+      run: npx prettier --check "src/**/*.{js,vue,css,scss,html,md}"
+      continue-on-error: true
+
+  # Build and Bundle Analysis
+  build-analysis:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+        cache: 'npm'
+        cache-dependency-path: devdocai-frontend/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build application
+      run: npm run build
+
+    - name: Analyze bundle size
+      run: |
+        du -sh dist/
+        find dist/ -name "*.js" -exec ls -lh {} \; | head -10
+        find dist/ -name "*.css" -exec ls -lh {} \; | head -5
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-artifacts
+        path: |
+          devdocai-frontend/dist/
+          !devdocai-frontend/dist/**/*.map
+        retention-days: 7
+
+  # Security Scanning
+  security-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: 'devdocai-frontend'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+    - name: Audit npm packages
+      run: npm audit --audit-level=high
+      continue-on-error: true
+
+  # Test Summary and Reporting
+  test-summary:
+    runs-on: ubuntu-latest
+    needs: [test-unit, test-e2e, test-accessibility, test-performance, code-quality, build-analysis]
+    if: always()
+
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+
+    - name: Generate test summary
+      run: |
+        echo "# Frontend Test Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+        echo "- Unit Tests: ${{ needs.test-unit.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- E2E Tests: ${{ needs.test-e2e.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Accessibility Tests: ${{ needs.test-accessibility.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Performance Tests: ${{ needs.test-performance.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Code Quality: ${{ needs.code-quality.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Build Analysis: ${{ needs.build-analysis.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "## Coverage Information" >> $GITHUB_STEP_SUMMARY
+        if [ -d coverage-report-20.x ]; then
+          echo "Coverage reports generated successfully." >> $GITHUB_STEP_SUMMARY
+        fi
+
+        echo "## Test Reports" >> $GITHUB_STEP_SUMMARY
+        echo "- [Playwright Report](playwright-report/index.html)" >> $GITHUB_STEP_SUMMARY
+        echo "- [Accessibility Report](accessibility-report/index.html)" >> $GITHUB_STEP_SUMMARY
+        echo "- [Performance Report](performance-report/index.html)" >> $GITHUB_STEP_SUMMARY
+
+    - name: Comment PR with test results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+
+          let comment = `# 🧪 Frontend Test Results\n\n`;
+          comment += `| Test Suite | Result |\n`;
+          comment += `|------------|--------|\n`;
+          comment += `| Unit Tests | ${{ needs.test-unit.result == 'success' ? '✅' : '❌' }} ${{ needs.test-unit.result }} |\n`;
+          comment += `| E2E Tests | ${{ needs.test-e2e.result == 'success' ? '✅' : '❌' }} ${{ needs.test-e2e.result }} |\n`;
+          comment += `| Accessibility | ${{ needs.test-accessibility.result == 'success' ? '✅' : '❌' }} ${{ needs.test-accessibility.result }} |\n`;
+          comment += `| Performance | ${{ needs.test-performance.result == 'success' ? '✅' : '❌' }} ${{ needs.test-performance.result }} |\n`;
+          comment += `| Code Quality | ${{ needs.code-quality.result == 'success' ? '✅' : '❌' }} ${{ needs.code-quality.result }} |\n`;
+          comment += `\n📊 Detailed reports are available in the Actions artifacts.`;
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+
+# Environment Variables
+env:
+  FORCE_COLOR: 1
+  NODE_ENV: test
