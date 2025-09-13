@@ -10,7 +10,7 @@ from ...core.config import ConfigurationManager
 from ...core.generator import DocumentGenerator
 from ...core.storage import StorageManager
 from ...intelligence.llm_adapter import LLMAdapter
-from ..models.requests import ReadmeRequest
+from ..models.requests import APIDocRequest, ChangelogRequest, ReadmeRequest
 from ..models.responses import DocumentResponse
 
 logger = logging.getLogger(__name__)
@@ -198,3 +198,177 @@ async def validate_document(content: str, document_type: str = "readme") -> Dict
     except Exception as e:
         logger.exception(f"Validation error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/api-doc", response_model=DocumentResponse)
+async def generate_api_doc(request: APIDocRequest) -> DocumentResponse:
+    """
+    Generate API documentation using AI.
+
+    Creates comprehensive API documentation including endpoints,
+    authentication, and usage examples based on provided API information.
+    """
+    start_time = time.time()
+
+    try:
+        generator = get_document_generator()
+
+        # Prepare context for API documentation
+        context = {
+            "project_name": request.project_name,
+            "description": request.description,
+            "api_base_url": request.api_base_url,
+            "version": request.version,
+            "endpoints": [
+                {
+                    "method": ep.method,
+                    "path": ep.path,
+                    "description": ep.description,
+                    "parameters": ep.parameters or [],
+                    "responses": ep.responses or [],
+                }
+                for ep in request.endpoints
+            ],
+            "authentication": request.authentication,
+            "examples": request.examples or [],
+            "date": time.strftime("%Y-%m-%d"),
+        }
+
+        logger.info(f"Generating API documentation for: {request.project_name}")
+
+        # Generate API documentation
+        result = await generator.generate_document(
+            template_name="api_doc",
+            context=context,
+            use_cache=True,
+            validate=True,
+        )
+
+        generation_time = time.time() - start_time
+
+        if result.success:
+            logger.info(f"API documentation generated successfully in {generation_time:.2f}s")
+
+            return DocumentResponse(
+                success=True,
+                document_type="api_doc",
+                content=result.document,
+                metadata={
+                    "generation_time": generation_time,
+                    "model_used": result.model_used or "unknown",
+                    "cached": result.cached,
+                    "project_name": request.project_name,
+                    "version": request.version,
+                    "endpoint_count": len(request.endpoints),
+                },
+            )
+        else:
+            logger.error(f"API doc generation failed: {result.error}")
+
+            return DocumentResponse(
+                success=False,
+                document_type="api_doc",
+                content=None,
+                error=result.error or "Unknown generation error",
+                metadata={"generation_time": generation_time, "project_name": request.project_name},
+            )
+
+    except Exception as e:
+        logger.exception(f"Unexpected error during API documentation generation: {e}")
+
+        return DocumentResponse(
+            success=False,
+            document_type="api_doc",
+            content=None,
+            error=f"Internal server error: {str(e)}",
+            metadata={
+                "generation_time": time.time() - start_time,
+                "project_name": request.project_name,
+            },
+        )
+
+
+@router.post("/changelog", response_model=DocumentResponse)
+async def generate_changelog(request: ChangelogRequest) -> DocumentResponse:
+    """
+    Generate changelog documentation using AI.
+
+    Creates a properly formatted changelog with version history,
+    changes categorization, and migration notes.
+    """
+    start_time = time.time()
+
+    try:
+        generator = get_document_generator()
+
+        # Prepare context for changelog
+        context = {
+            "project_name": request.project_name,
+            "version": request.version,
+            "release_date": request.release_date or time.strftime("%Y-%m-%d"),
+            "changes": [
+                {
+                    "type": change.type,
+                    "description": change.description,
+                    "breaking": change.breaking,
+                }
+                for change in request.changes
+            ],
+            "breaking_changes": request.breaking_changes or [],
+            "deprecated": request.deprecated or [],
+            "migration_notes": request.migration_notes,
+            "date": time.strftime("%Y-%m-%d"),
+        }
+
+        logger.info(f"Generating changelog for: {request.project_name} v{request.version}")
+
+        # Generate changelog
+        result = await generator.generate_document(
+            template_name="changelog",
+            context=context,
+            use_cache=True,
+            validate=True,
+        )
+
+        generation_time = time.time() - start_time
+
+        if result.success:
+            logger.info(f"Changelog generated successfully in {generation_time:.2f}s")
+
+            return DocumentResponse(
+                success=True,
+                document_type="changelog",
+                content=result.document,
+                metadata={
+                    "generation_time": generation_time,
+                    "model_used": result.model_used or "unknown",
+                    "cached": result.cached,
+                    "project_name": request.project_name,
+                    "version": request.version,
+                    "change_count": len(request.changes),
+                },
+            )
+        else:
+            logger.error(f"Changelog generation failed: {result.error}")
+
+            return DocumentResponse(
+                success=False,
+                document_type="changelog",
+                content=None,
+                error=result.error or "Unknown generation error",
+                metadata={"generation_time": generation_time, "project_name": request.project_name},
+            )
+
+    except Exception as e:
+        logger.exception(f"Unexpected error during changelog generation: {e}")
+
+        return DocumentResponse(
+            success=False,
+            document_type="changelog",
+            content=None,
+            error=f"Internal server error: {str(e)}",
+            metadata={
+                "generation_time": time.time() - start_time,
+                "project_name": request.project_name,
+            },
+        )

@@ -7,22 +7,35 @@
       <div class="flex space-x-2">
         <button
           @click="copyToClipboard"
-          class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors"
+          class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all duration-200"
+          :class="{ 'bg-green-600 hover:bg-green-700': copied }"
         >
-          {{ copied ? 'Copied!' : 'Copy' }}
+          <svg v-if="!copied" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+          <svg v-else class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          {{ copied ? 'Copied!' : 'Copy to Clipboard' }}
         </button>
 
         <button
           @click="downloadMarkdown"
-          class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors"
+          class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors"
         >
-          Download
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Download .md
         </button>
 
         <button
           @click="$emit('reset')"
-          class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+          class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
         >
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
           Generate Another
         </button>
       </div>
@@ -145,25 +158,86 @@ const copyToClipboard = async () => {
   try {
     await navigator.clipboard.writeText(props.content);
     copied.value = true;
+
+    // Show success feedback
+    const successMessage = document.createElement('div');
+    successMessage.className = 'fixed top-4 right-4 z-50 px-4 py-2 bg-green-600 text-white rounded-lg shadow-lg transform transition-all duration-300 translate-x-0';
+    successMessage.textContent = 'Document copied to clipboard!';
+    document.body.appendChild(successMessage);
+
+    // Animate in
     setTimeout(() => {
-      copied.value = false;
+      successMessage.style.opacity = '0';
+      successMessage.style.transform = 'translateX(100%)';
     }, 2000);
+
+    // Remove from DOM
+    setTimeout(() => {
+      document.body.removeChild(successMessage);
+      copied.value = false;
+    }, 2500);
+
   } catch (error) {
     console.error('Failed to copy:', error);
-    alert('Failed to copy to clipboard');
+
+    // Show error feedback
+    const errorMessage = document.createElement('div');
+    errorMessage.className = 'fixed top-4 right-4 z-50 px-4 py-2 bg-red-600 text-white rounded-lg shadow-lg';
+    errorMessage.textContent = 'Failed to copy to clipboard';
+    document.body.appendChild(errorMessage);
+
+    setTimeout(() => {
+      document.body.removeChild(errorMessage);
+    }, 3000);
   }
 };
 
 const downloadMarkdown = () => {
-  const blob = new Blob([props.content], { type: 'text/markdown' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${props.metadata?.project_name || 'README'}.md`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  try {
+    const blob = new Blob([props.content], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+
+    // Generate filename with timestamp
+    const timestamp = new Date().toISOString().split('T')[0];
+    const projectName = props.metadata?.project_name || 'README';
+    const sanitizedName = projectName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    a.download = `${sanitizedName}_${timestamp}.md`;
+
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    // Show download success feedback
+    const successMessage = document.createElement('div');
+    successMessage.className = 'fixed top-4 right-4 z-50 px-4 py-2 bg-blue-600 text-white rounded-lg shadow-lg transform transition-all duration-300';
+    successMessage.textContent = `Downloaded: ${a.download}`;
+    document.body.appendChild(successMessage);
+
+    setTimeout(() => {
+      successMessage.style.opacity = '0';
+      successMessage.style.transform = 'translateX(100%)';
+    }, 2000);
+
+    setTimeout(() => {
+      document.body.removeChild(successMessage);
+    }, 2500);
+
+  } catch (error) {
+    console.error('Failed to download:', error);
+
+    // Show error feedback
+    const errorMessage = document.createElement('div');
+    errorMessage.className = 'fixed top-4 right-4 z-50 px-4 py-2 bg-red-600 text-white rounded-lg shadow-lg';
+    errorMessage.textContent = 'Failed to download document';
+    document.body.appendChild(errorMessage);
+
+    setTimeout(() => {
+      document.body.removeChild(errorMessage);
+    }, 3000);
+  }
 };
 </script>
 

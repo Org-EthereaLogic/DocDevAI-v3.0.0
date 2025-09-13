@@ -38,7 +38,7 @@ class DocumentResponse(BaseModel):
         """Pydantic config."""
 
         json_encoders = {datetime: lambda v: v.isoformat()}
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "success": True,
                 "document_type": "readme",

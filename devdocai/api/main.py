@@ -13,7 +13,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from .routers import documents_router, health_router
+from .routers import (
+    dashboard_router,
+    documents_router,
+    health_router,
+    review_router,
+    suites_router,
+    templates_router,
+)
 
 # Configure logging
 logging.basicConfig(
@@ -120,6 +127,10 @@ async def general_exception_handler(request: Request, exc: Exception):
 # Include routers
 app.include_router(health_router)
 app.include_router(documents_router)
+app.include_router(dashboard_router)
+app.include_router(templates_router)
+app.include_router(suites_router)
+app.include_router(review_router)
 
 
 # Root endpoint
@@ -149,11 +160,19 @@ async def api_info():
             "Changelog generation",
             "Document validation",
             "Template management",
+            "Quality review and analysis",
+            "Document suite management",
+            "Dependency tracking",
+            "Dashboard analytics",
         ],
         "endpoints": {
             "health": "/api/v1/health",
             "documents": "/api/v1/documents",
-            "templates": "/api/v1/documents/templates",
+            "dashboard": "/api/v1/dashboard",
+            "templates": "/api/v1/templates",
+            "suites": "/api/v1/suites",
+            "review": "/api/v1/documents/{id}/review",
+            "quality": "/api/v1/documents/{id}/quality",
         },
         "models": {
             "available": ["gpt-4", "gpt-3.5-turbo", "claude-3", "gemini-pro"],
