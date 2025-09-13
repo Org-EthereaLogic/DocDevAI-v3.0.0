@@ -1,0 +1,172 @@
+[
+  {
+    "type": "debug",
+    "text": "[vite] connecting...",
+    "timestamp": 1757754004.444117
+  },
+  {
+    "type": "warning",
+    "text": "Service registration delayed due to import timing: ReferenceError: configurationService is not defined\n    at registerServices (http://localhost:5174/src/services/index.ts:33:46)\n    at http://localhost:5174/src/services/index.ts:40:3",
+    "timestamp": 1757754004.471563
+  },
+  {
+    "type": "debug",
+    "text": "[vite] connected.",
+    "timestamp": 1757754004.517664
+  },
+  {
+    "type": "startGroup",
+    "text": "\ud83d\ude80 API Request: GET /configuration",
+    "timestamp": 1757754004.518877
+  },
+  {
+    "type": "log",
+    "text": "Config: {transitional: Object, adapter: Array(3), transformRequest: Array(1), transformResponse: Array(1), timeout: 30000}",
+    "timestamp": 1757754004.51912
+  },
+  {
+    "type": "endGroup",
+    "text": "console.groupEnd",
+    "timestamp": 1757754004.519244
+  },
+  {
+    "type": "startGroup",
+    "text": "\ud83d\ude80 API Request: GET /configuration",
+    "timestamp": 1757754004.519362
+  },
+  {
+    "type": "log",
+    "text": "Config: {transitional: Object, adapter: Array(3), transformRequest: Array(1), transformResponse: Array(1), timeout: 30000}",
+    "timestamp": 1757754004.519497
+  },
+  {
+    "type": "endGroup",
+    "text": "console.groupEnd",
+    "timestamp": 1757754004.5195708
+  },
+  {
+    "type": "error",
+    "text": "Access to XMLHttpRequest at 'http://localhost:8000/api/v1/configuration' from origin 'http://localhost:5174' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+    "timestamp": 1757754004.567038
+  },
+  {
+    "type": "startGroup",
+    "text": "\u274c API Error: undefined",
+    "timestamp": 1757754004.567399
+  },
+  {
+    "type": "error",
+    "text": "Error: ApiClientError: Network error - Unable to reach server\n    at http://localhost:5174/src/services/api.ts:52:17\n    at async Axios.request (http://localhost:5174/node_modules/.vite/deps/axios.js?v=eebbc2d8:2198:14)\n    at async ApiClient.get (http://localhost:5174/src/services/api.ts:77:22)\n    at async fetchConfiguration (http://localhost:5174/src/stores/config.ts:23:24)\n    at async Proxy.initialize (http://localhost:5174/src/stores/config.ts:124:7)\n    at async initializeStores (http://localhost:5174/src/stores/index.ts?t=1757753759668:81:5)\n    at async initializeApp (http://localhost:5174/src/main.ts?t=1757753759668:19:5)",
+    "timestamp": 1757754004.567607
+  },
+  {
+    "type": "endGroup",
+    "text": "console.groupEnd",
+    "timestamp": 1757754004.5677178
+  },
+  {
+    "type": "startGroup",
+    "text": "\u274c API Error: undefined",
+    "timestamp": 1757754004.56794
+  },
+  {
+    "type": "error",
+    "text": "Error: ApiClientError: Network error - Unable to reach server\n    at http://localhost:5174/src/services/api.ts:52:17\n    at async Axios.request (http://localhost:5174/node_modules/.vite/deps/axios.js?v=eebbc2d8:2198:14)\n    at async ApiClient.get (http://localhost:5174/src/services/api.ts:77:22)\n    at async fetchConfiguration (http://localhost:5174/src/stores/config.ts:23:24)\n    at async Proxy.initialize (http://localhost:5174/src/stores/config.ts:124:7)\n    at async initializeStores (http://localhost:5174/src/stores/index.ts?t=1757753759668:81:5)\n    at async initializeApp (http://localhost:5174/src/main.ts?t=1757753759668:19:5)",
+    "timestamp": 1757754004.5681322
+  },
+  {
+    "type": "endGroup",
+    "text": "console.groupEnd",
+    "timestamp": 1757754004.568248
+  },
+  {
+    "type": "error",
+    "text": "Store action error: config.initialize ApiClientError: Network error - Unable to reach server\n    at http://localhost:5174/src/services/api.ts:52:17\n    at async Axios.request (http://localhost:5174/node_modules/.vite/deps/axios.js?v=eebbc2d8:2198:14)\n    at async ApiClient.get (http://localhost:5174/src/services/api.ts:77:22)\n    at async fetchConfiguration (http://localhost:5174/src/stores/config.ts:23:24)\n    at async Proxy.initialize (http://localhost:5174/src/stores/config.ts:124:7)\n    at async initializeStores (http://localhost:5174/src/stores/index.ts?t=1757753759668:81:5)\n    at async initializeApp (http://localhost:5174/src/main.ts?t=1757753759668:19:5)",
+    "timestamp": 1757754004.568371
+  },
+  {
+    "type": "error",
+    "text": "Store initialization failed: ApiClientError: Network error - Unable to reach server\n    at http://localhost:5174/src/services/api.ts:52:17\n    at async Axios.request (http://localhost:5174/node_modules/.vite/deps/axios.js?v=eebbc2d8:2198:14)\n    at async ApiClient.get (http://localhost:5174/src/services/api.ts:77:22)\n    at async fetchConfiguration (http://localhost:5174/src/stores/config.ts:23:24)\n    at async Proxy.initialize (http://localhost:5174/src/stores/config.ts:124:7)\n    at async initializeStores (http://localhost:5174/src/stores/index.ts?t=1757753759668:81:5)\n    at async initializeApp (http://localhost:5174/src/main.ts?t=1757753759668:19:5)",
+    "timestamp": 1757754004.568507
+  },
+  {
+    "type": "error",
+    "text": "Vue Error: ReferenceError: RefreshIcon is not defined\n    at setup (http://localhost:5174/src/components/organisms/sidebars/AppSidebar.vue?t=1757753759668:97:15)\n    at callWithErrorHandling (http://localhost:5174/node_modules/.vite/deps/chunk-4EPKHDIW.js?v=eebbc2d8:2295:19)\n    at setupStatefulComponent (http://localhost:5174/node_modules/.vite/deps/chunk-4EPKHDIW.js?v=eebbc2d8:10109:25)\n    at setupComponent (http://localhost:5174/node_modules/.vite/deps/chunk-4EPKHDIW.js?v=eebbc2d8:10070:36)\n    at mountComponent (http://localhost:5174/node_modules/.vite/deps/chunk-4EPKHDIW.js?v=eebbc2d8:7406:7)\n    at processComponent (http://localhost:5174/node_modules/.vite/deps/chunk-4EPKHDIW.js?v=eebbc2d8:7372:9)\n    at patch (http://localhost:5174/node_modules/.vite/deps/chunk-4EPKHDIW.js?v=eebbc2d8:6886:11)\n    at mountChildren (http://localhost:5174/node_modules/.vite/deps/chunk-4EPKHDIW.js?v=eebbc2d8:7120:7)\n    at mountElement (http://localhost:5174/node_modules/.vite/deps/chunk-4EPKHDIW.js?v=eebbc2d8:7043:7)\n    at processElement (http://localhost:5174/node_modules/.vite/deps/chunk-4EPKHDIW.js?v=eebbc2d8:7008:7)",
+    "timestamp": 1757754004.568649
+  },
+  {
+    "type": "error",
+    "text": "Component: Proxy(Object)",
+    "timestamp": 1757754004.568741
+  },
+  {
+    "type": "error",
+    "text": "Info: setup function",
+    "timestamp": 1757754004.56883
+  },
+  {
+    "type": "warning",
+    "text": "Vue Warning: Invalid vnode type when creating vnode: undefined.",
+    "timestamp": 1757754004.569015
+  },
+  {
+    "type": "warning",
+    "text": "Component: Proxy(Object)",
+    "timestamp": 1757754004.569122
+  },
+  {
+    "type": "warning",
+    "text": "Trace: at <AppSidebar>\nat <App>",
+    "timestamp": 1757754004.5693839
+  },
+  {
+    "type": "warning",
+    "text": "Vue Warning: Invalid vnode type when creating vnode: undefined.",
+    "timestamp": 1757754004.5694861
+  },
+  {
+    "type": "warning",
+    "text": "Component: Proxy(Object)",
+    "timestamp": 1757754004.569608
+  },
+  {
+    "type": "warning",
+    "text": "Trace: at <AppSidebar>\nat <App>",
+    "timestamp": 1757754004.5697489
+  },
+  {
+    "type": "error",
+    "text": "Vue Error: TypeError: Cannot read properties of undefined (reading 'length')\n    at Proxy._sfc_render (http://localhost:5174/src/components/organisms/sidebars/AppSidebar.vue?t=1757753759668:592:33)\n    at renderComponentRoot (http://localhost:5174/node_modules/.vite/deps/chunk-4EPKHDIW.js?v=eebbc2d8:8706:17)\n    at ReactiveEffect.componentUpdateFn [as fn] (http://localhost:5174/node_modules/.vite/deps/chunk-4EPKHDIW.js?v=eebbc2d8:7511:46)\n    at ReactiveEffect.run (http://localhost:5174/node_modules/.vite/deps/chunk-4EPKHDIW.js?v=eebbc2d8:505:19)\n    at setupRenderEffect (http://localhost:5174/node_modules/.vite/deps/chunk-4EPKHDIW.js?v=eebbc2d8:7646:5)\n    at mountComponent (http://localhost:5174/node_modules/.vite/deps/chunk-4EPKHDIW.js?v=eebbc2d8:7420:7)\n    at processComponent (http://localhost:5174/node_modules/.vite/deps/chunk-4EPKHDIW.js?v=eebbc2d8:7372:9)\n    at patch (http://localhost:5174/node_modules/.vite/deps/chunk-4EPKHDIW.js?v=eebbc2d8:6886:11)\n    at mountChildren (http://localhost:5174/node_modules/.vite/deps/chunk-4EPKHDIW.js?v=eebbc2d8:7120:7)\n    at mountElement (http://localhost:5174/node_modules/.vite/deps/chunk-4EPKHDIW.js?v=eebbc2d8:7043:7)",
+    "timestamp": 1757754004.569955
+  },
+  {
+    "type": "error",
+    "text": "Component: Proxy(Object)",
+    "timestamp": 1757754004.570096
+  },
+  {
+    "type": "error",
+    "text": "Info: render function",
+    "timestamp": 1757754004.5702012
+  },
+  {
+    "type": "info",
+    "text": "<Suspense> is an experimental feature and its API will likely change.",
+    "timestamp": 1757754004.570287
+  },
+  {
+    "type": "error",
+    "text": "Failed to load resource: net::ERR_FAILED",
+    "timestamp": 1757754004.57039
+  },
+  {
+    "type": "error",
+    "text": "Access to fetch at 'http://localhost:8000/api/v1/health' from origin 'http://localhost:5174' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+    "timestamp": 1757754005.882998
+  },
+  {
+    "type": "error",
+    "text": "Failed to load resource: net::ERR_FAILED",
+    "timestamp": 1757754005.8831549
+  }
+]

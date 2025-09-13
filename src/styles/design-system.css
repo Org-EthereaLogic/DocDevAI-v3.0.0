@@ -1,0 +1,736 @@
+/**
+ * DevDocAI v3.6.0 Design System CSS
+ *
+ * Base styles, custom properties, and utility classes for the design system.
+ * This file works in conjunction with Tailwind CSS and design tokens.
+ *
+ * Import order: design-system.css → Tailwind CSS → component styles
+ */
+
+/* ==========================================================================
+   CSS Custom Properties (CSS Variables)
+   ========================================================================== */
+
+:root {
+  /* Color system - will be overridden by theme composable */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f9fafb;
+  --color-bg-tertiary: #f3f4f6;
+
+  --color-text-primary: #111827;
+  --color-text-secondary: #374151;
+  --color-text-tertiary: #6b7280;
+  --color-text-inverse: #ffffff;
+
+  --color-border-primary: #e5e7eb;
+  --color-border-secondary: #d1d5db;
+  --color-border-strong: #9ca3af;
+
+  /* Animation properties */
+  --animation-duration-micro: 100ms;
+  --animation-duration-fast: 150ms;
+  --animation-duration-normal: 200ms;
+  --animation-duration-medium: 300ms;
+  --animation-duration-slow: 400ms;
+
+  --animation-easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --animation-easing-decelerate: cubic-bezier(0, 0, 0.2, 1);
+  --animation-easing-accelerate: cubic-bezier(0.4, 0, 1, 1);
+  --animation-easing-spring: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  /* Focus ring */
+  --focus-ring-width: 2px;
+  --focus-ring-color: #3b82f6;
+  --focus-ring-offset: 2px;
+
+  /* Component sizing */
+  --touch-target-minimum: 44px;
+  --touch-target-recommended: 48px;
+
+  /* Typography */
+  --font-family-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-mono: 'JetBrains Mono', 'Fira Code', Menlo, Monaco, Consolas, monospace;
+  --font-family-dyslexic: 'OpenDyslexic', 'Comic Sans MS', sans-serif;
+}
+
+/* Dark theme */
+.dark {
+  --color-bg-primary: #111827;
+  --color-bg-secondary: #1f2937;
+  --color-bg-tertiary: #374151;
+
+  --color-text-primary: #f3f4f6;
+  --color-text-secondary: #d1d5db;
+  --color-text-tertiary: #9ca3af;
+  --color-text-inverse: #111827;
+
+  --color-border-primary: #374151;
+  --color-border-secondary: #4b5563;
+  --color-border-strong: #6b7280;
+}
+
+/* High contrast theme */
+.high-contrast {
+  --color-bg-primary: #000000;
+  --color-bg-secondary: #111827;
+  --color-bg-tertiary: #1f2937;
+
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #f3f4f6;
+  --color-text-tertiary: #e5e7eb;
+  --color-text-inverse: #000000;
+
+  --color-border-primary: #ffffff;
+  --color-border-secondary: #d1d5db;
+  --color-border-strong: #ffffff;
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --animation-duration-micro: 0.01ms;
+    --animation-duration-fast: 0.01ms;
+    --animation-duration-normal: 0.01ms;
+    --animation-duration-medium: 0.01ms;
+    --animation-duration-slow: 0.01ms;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==========================================================================
+   Base Styles
+   ========================================================================== */
+
+/* Reset and base typography */
+html {
+  font-family: var(--font-family-sans);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  transition: background-color var(--animation-duration-medium) var(--animation-easing-standard),
+              color var(--animation-duration-medium) var(--animation-easing-standard);
+}
+
+/* Focus management for accessibility */
+*:focus {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Remove focus outline for mouse users, keep for keyboard users */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Skip links for accessibility */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  padding: 8px;
+  text-decoration: none;
+  border-radius: 4px;
+  border: 2px solid var(--color-border-strong);
+  z-index: 1000;
+  transition: top var(--animation-duration-fast) var(--animation-easing-standard);
+}
+
+.skip-link:focus {
+  top: 6px;
+}
+
+/* ==========================================================================
+   Typography Utilities
+   ========================================================================== */
+
+.font-dyslexic {
+  font-family: var(--font-family-dyslexic);
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.text-pretty {
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Animation Utilities
+   ========================================================================== */
+
+/* Keyframe animations */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes bounce-gentle {
+  0%, 20%, 53%, 80%, 100% {
+    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+    transform: translateY(0);
+  }
+  40%, 43% {
+    animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
+    transform: translateY(-8px);
+  }
+  70% {
+    animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
+    transform: translateY(-4px);
+  }
+  90% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Animation utility classes */
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s infinite ease-in-out;
+}
+
+.animate-fade-in {
+  animation: fade-in var(--animation-duration-medium) var(--animation-easing-decelerate);
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right var(--animation-duration-medium) var(--animation-easing-decelerate);
+}
+
+.animate-scale-in {
+  animation: scale-in var(--animation-duration-medium) var(--animation-easing-decelerate);
+}
+
+.animate-bounce-gentle {
+  animation: bounce-gentle 1s ease-in-out;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 2s linear infinite;
+}
+
+/* Stagger animation utilities */
+.animate-stagger > * {
+  animation-delay: calc(var(--stagger-delay, 50ms) * var(--stagger-index, 0));
+}
+
+/* ==========================================================================
+   Component Base Styles
+   ========================================================================== */
+
+/* Button base styles */
+.btn-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  border: none;
+  cursor: pointer;
+  transition: all var(--animation-duration-fast) var(--animation-easing-standard);
+  text-decoration: none;
+  user-select: none;
+  min-height: var(--touch-target-minimum);
+  min-width: var(--touch-target-minimum);
+}
+
+.btn-base:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn-base:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.btn-base:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Input base styles */
+.input-base {
+  display: block;
+  width: 100%;
+  border-radius: 0.375rem;
+  border: 1px solid var(--color-border-primary);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  transition: all var(--animation-duration-fast) var(--animation-easing-standard);
+  min-height: var(--touch-target-minimum);
+}
+
+.input-base:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.input-base::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+/* Card base styles */
+.card-base {
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  transition: all var(--animation-duration-fast) var(--animation-easing-standard);
+}
+
+.card-base:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+
+/* Modal base styles */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-content {
+  background-color: var(--color-bg-primary);
+  border-radius: 0.75rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  max-height: 90vh;
+  overflow-y: auto;
+  width: 100%;
+  max-width: 32rem;
+}
+
+/* ==========================================================================
+   Health Score Indicators
+   ========================================================================== */
+
+.health-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.health-excellent {
+  background-color: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.health-good {
+  background-color: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.health-poor {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.dark .health-excellent {
+  background-color: #064e3b;
+  color: #a7f3d0;
+  border-color: #065f46;
+}
+
+.dark .health-good {
+  background-color: #78350f;
+  color: #fde68a;
+  border-color: #92400e;
+}
+
+.dark .health-poor {
+  background-color: #7f1d1d;
+  color: #fecaca;
+  border-color: #991b1b;
+}
+
+/* ==========================================================================
+   Status Indicators
+   ========================================================================== */
+
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-online {
+  background-color: #ecfdf5;
+  color: #065f46;
+}
+
+.status-offline {
+  background-color: #f9fafb;
+  color: #374151;
+}
+
+.status-pending {
+  background-color: #fffbeb;
+  color: #92400e;
+}
+
+.status-error {
+  background-color: #fef2f2;
+  color: #991b1b;
+}
+
+.status-processing {
+  background-color: #eff6ff;
+  color: #1e40af;
+}
+
+/* ==========================================================================
+   Progress Indicators
+   ========================================================================== */
+
+.progress-bar {
+  width: 100%;
+  height: 0.5rem;
+  background-color: var(--color-bg-tertiary);
+  border-radius: 0.25rem;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #3b82f6;
+  border-radius: 0.25rem;
+  transition: width var(--animation-duration-medium) var(--animation-easing-standard);
+}
+
+.progress-fill.health-excellent {
+  background-color: #10b981;
+}
+
+.progress-fill.health-good {
+  background-color: #f59e0b;
+}
+
+.progress-fill.health-poor {
+  background-color: #ef4444;
+}
+
+/* Indeterminate progress bar */
+.progress-indeterminate {
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-indeterminate::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  animation: shimmer 2s infinite linear;
+}
+
+/* ==========================================================================
+   Loading States
+   ========================================================================== */
+
+.loading-skeleton {
+  background: linear-gradient(90deg, var(--color-bg-secondary) 25%, var(--color-bg-tertiary) 50%, var(--color-bg-secondary) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: 0.25rem;
+}
+
+.loading-spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--color-border-primary);
+  border-top: 2px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-dots {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.loading-dots > div {
+  width: 0.5rem;
+  height: 0.5rem;
+  background-color: #3b82f6;
+  border-radius: 50%;
+  animation: pulse-soft 1.4s ease-in-out infinite both;
+}
+
+.loading-dots > div:nth-child(1) { animation-delay: -0.32s; }
+.loading-dots > div:nth-child(2) { animation-delay: -0.16s; }
+.loading-dots > div:nth-child(3) { animation-delay: 0s; }
+
+/* ==========================================================================
+   Accessibility Enhancements
+   ========================================================================== */
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Not screen reader only (for debugging) */
+.not-sr-only {
+  position: static !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: visible !important;
+  clip: auto !important;
+  white-space: normal !important;
+}
+
+/* High contrast focus indicators */
+.high-contrast *:focus,
+.high-contrast *:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
+}
+
+/* ==========================================================================
+   Responsive Utilities
+   ========================================================================== */
+
+/* Mobile-first responsive utilities */
+.container-responsive {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media (min-width: 640px) {
+  .container-responsive {
+    padding: 0 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-responsive {
+    padding: 0 2rem;
+  }
+}
+
+/* ==========================================================================
+   Utility Classes
+   ========================================================================== */
+
+/* Touch target helpers */
+.touch-target {
+  min-width: var(--touch-target-minimum);
+  min-height: var(--touch-target-minimum);
+}
+
+.touch-target-recommended {
+  min-width: var(--touch-target-recommended);
+  min-height: var(--touch-target-recommended);
+}
+
+/* Text selection */
+.select-none {
+  user-select: none;
+}
+
+.select-text {
+  user-select: text;
+}
+
+.select-all {
+  user-select: all;
+}
+
+/* Scrollbar styling */
+.scrollbar-thin {
+  scrollbar-width: thin;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-tertiary);
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  * {
+    background: transparent !important;
+    color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  a,
+  a:visited {
+    text-decoration: underline;
+  }
+
+  a[href]:after {
+    content: ' (' attr(href) ')';
+  }
+
+  abbr[title]:after {
+    content: ' (' attr(title) ')';
+  }
+
+  pre,
+  blockquote {
+    border: 1px solid #999;
+    page-break-inside: avoid;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tr,
+  img {
+    page-break-inside: avoid;
+  }
+
+  img {
+    max-width: 100% !important;
+  }
+
+  p,
+  h2,
+  h3 {
+    orphans: 3;
+    widows: 3;
+  }
+
+  h2,
+  h3 {
+    page-break-after: avoid;
+  }
+}
